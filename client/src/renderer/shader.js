@@ -10,7 +10,7 @@ function compile_shader(type, src)
   
   if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
     const info = gl.getShaderInfoLog(shader);
-    throw "could not compile WebGL program\n\n" + info;
+    throw "compile_shader():\n" + src + "\n\ncould not compile WebGL program\n\n" + info;
   }
   
   return shader;

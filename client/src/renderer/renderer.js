@@ -6,15 +6,23 @@ import { mesh_pool_t } from "./mesh-pool.js";
 import { basic_shader_t } from "./basic-shader.js";
 
 import { screen } from "../screen.js";
+import { asset_load_json } from "../asset.js";
+
 import { vec3_t, mat4_t, quat_t } from "../common/math.js";
 
 export class renderer_t {
   constructor(cgame)
   {
-    gl.clearColor(0.0, 0.5, 1.0, 1.0);
+    gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    
+    gl.enable(gl.CULL_FACE);
+    gl.enable(gl.DEPTH_TEST);
+  
+    gl.cullFace(gl.FRONT);
+    gl.depthFunc(gl.LESS);
     
     this.cgame = cgame;
-    this.mesh_pool = new mesh_pool_t(1024);
+    this.mesh_pool = new mesh_pool_t(16 * 1024);
     this.basic_shader = new basic_shader_t();
     
     const FOV = 90 * Math.PI / 180.0;
@@ -25,13 +33,20 @@ export class renderer_t {
     
     this.basic_shader.bind();
     
-    const vertices = [
-      new vertex_t(new vec3_t(0, 0, 0)),
-      new vertex_t(new vec3_t(0, 1, 0)),
-      new vertex_t(new vec3_t(1, 0, 0)),
-    ];
-    
-    this.mesh = this.mesh_pool.new_mesh(vertices);
+    const self = this;
+    asset_load_json("assets/model.json", function(model) {
+      const vertices = [];
+      
+      for (const brush of model) {
+        for (const face of brush.faces) {
+          for (const vertex of face.vertices) {
+            vertices.push(new vertex_t(vertex));
+          }
+        }
+      }
+      
+      self.mesh = self.mesh_pool.new_mesh(vertices);
+    });
   }
   
   setup_view_matrix()
@@ -50,7 +65,7 @@ export class renderer_t {
   
   render()
   {
-    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     
     this.setup_view_matrix();
     
@@ -61,6 +76,7 @@ export class renderer_t {
     
     this.basic_shader.set_mvp(mvp);
     
-    this.mesh.draw();
+    if (this.mesh)
+      this.mesh.draw();
   } 
 };
