@@ -1,4 +1,5 @@
 "use strict";
 
-const canvas = document.getElementById("screen");
-export const gl = canvas.getContext("webgl2");
+import { screen } from "../screen.js";
+
+export const gl = screen.getContext("webgl2");
