@@ -8,6 +8,7 @@ export class input_t {
   static KEY_LEFT     = "A".charCodeAt(0);
   static KEY_BACK     = "S".charCodeAt(0);
   static KEY_RIGHT    = "D".charCodeAt(0);
+  static KEY_JUMP     = " ".charCodeAt(0);
   
   constructor()
   {
@@ -15,6 +16,7 @@ export class input_t {
     this.in_left    = 0;
     this.in_back    = 0;
     this.in_right   = 0;
+    this.in_jump    = 0;
     
     this.rot_yaw    = 0;
     this.rot_pitch  = 0;
@@ -24,13 +26,11 @@ export class input_t {
   
   setup()
   {
-    const self = this;
+    const fn_keyup = (e) => this.key_event(e.keyCode, 0);
+    const fn_keydown = (e) => this.key_event(e.keyCode, 1);
+    const fn_mousemove = (e) => this.mouse_move(e.movementX, e.movementY);
     
-    const fn_keyup = function(e) { self.key_event(e.keyCode, 0); };
-    const fn_keydown = function(e) { self.key_event(e.keyCode, 1); };
-    const fn_mousemove = function(e) { self.mouse_move(e.movementX, e.movementY); };
-    
-    document.addEventListener("pointerlockchange", function(e) {
+    document.addEventListener("pointerlockchange", (e) => {
       if (document.pointerLockElement == screen
       || document.mozPointerLockElement == screen) {
         document.addEventListener("mousemove", fn_mousemove);
@@ -60,6 +60,9 @@ export class input_t {
       case input_t.KEY_RIGHT:
         this.in_right_down();
         break;
+      case input_t.KEY_JUMP:
+        this.in_jump_down();
+        break;
       }
     } else if (action == 0) {
       switch (keycode) {
@@ -75,6 +78,9 @@ export class input_t {
       case input_t.KEY_RIGHT:
         this.in_right_up();
         break;
+      case input_t.KEY_JUMP:
+        this.in_jump_up();
+        break;
       }
     }
   }
@@ -89,19 +95,22 @@ export class input_t {
   {
     const cmd_right = this.in_right - this.in_left;
     const cmd_forward = this.in_forward - this.in_back;
+    const cmd_jump = this.in_jump;
     const cmd_yaw = this.rot_yaw;
     const cmd_pitch = this.rot_pitch;
     
-    return new usercmd_t(cmd_right, cmd_forward, cmd_yaw, cmd_pitch);
+    return new usercmd_t(cmd_right, cmd_forward, cmd_jump, cmd_yaw, cmd_pitch);
   }
   
   in_forward_down() { this.in_forward = 1;  }
   in_left_down()    { this.in_left = 1;     }
   in_back_down()    { this.in_back = 1;     }
   in_right_down()   { this.in_right = 1;    }
+  in_jump_down()    { this.in_jump = 1;     }
   
   in_forward_up()   { this.in_forward = 0;  }
   in_left_up()      { this.in_left = 0;     }
   in_back_up()      { this.in_back = 0;     }
   in_right_up()     { this.in_right = 0;    }
+  in_jump_up()    { this.in_jump = 0;     }
 }

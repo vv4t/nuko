@@ -4,19 +4,26 @@ import fs from 'fs';
 import path from 'path';
 
 import { vec2_t, vec3_t } from "../client/src/common/math.js";
-import { face_t, brush_t } from "../client/src/common/map.js";
+import { face_t, brush_t, map_t } from "../client/src/common/map.js";
 
 function main()
 {
-  const obj_path = path.parse("./model.obj");
+  if (process.argv.length != 3) {
+    console.log("usage: node tiled.js [map-name]");
+    process.exit(1);
+  }
+  
+  const map_name = process.argv[2];
+  
+  const obj_path = path.parse("./obj/" + map_name + ".obj");
   
   const obj = fs.readFileSync(obj_path.dir + "/" + obj_path.base).toString();
   const brushes = parse_obj(obj);
   
-  const model_path = obj_path.dir + "/" + obj_path.name + ".json";
-  const model_json = JSON.stringify(brushes); 
+  const map_path = "../client/assets/" + obj_path.name + ".json";
+  const map_json = JSON.stringify(brushes); 
   
-  fs.writeFileSync(model_path, model_json);
+  fs.writeFileSync(map_path, map_json);
 }
 
 function parse_obj(obj)
@@ -81,7 +88,7 @@ function parse_obj(obj)
     fbuf = [];
   } 
   
-  return brushes;
+  return new map_t(brushes);
 }
 
 main();

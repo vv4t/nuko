@@ -48,6 +48,11 @@ export class vec3_t {
     this.z = z;
   }
   
+  dot(v)
+  {
+    return this.x * v.x + this.y * v.y + this.z * v.z;
+  }
+  
   add(v)
   {
     return new vec3_t(
@@ -57,12 +62,12 @@ export class vec3_t {
     );
   }
   
-  mul(v)
+  sub(v)
   {
     return new vec3_t(
-      this.x * v.x,
-      this.y * v.y,
-      this.z * v.z
+      this.x - v.x,
+      this.y - v.y,
+      this.z - v.z
     );
   }
   
@@ -78,6 +83,23 @@ export class vec3_t {
   rotate(q)
   {
     return q.mul_vec3(this).mul(q.conjugate()).get_xyz();
+  }
+  
+  length()
+  {
+    return Math.sqrt(this.dot(this));
+  }
+  
+  normalize()
+  {
+    const length_squared = this.dot(this);
+    
+    if (length_squared == 0)
+      return new vec3_t();
+    
+    const inverse_length = 1.0 / Math.sqrt(length_squared);
+    
+    return this.mulf(inverse_length);
   }
 }
 
@@ -140,6 +162,14 @@ export class quat_t {
       axis.z * sin_rot,
       cos_rot
     );
+  }
+}
+
+export class plane_t {
+  constructor(normal, distance)
+  {
+    this.normal = normal;
+    this.distance = distance;
   }
 }
 
@@ -236,5 +266,4 @@ export class mat4_t {
     
     return m;
   }
-  
 }

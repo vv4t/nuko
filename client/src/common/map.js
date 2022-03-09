@@ -12,18 +12,18 @@ export class face_t {
 }
 
 export class brush_t {
+  static BRUSH_EMPTY = 0;
+  static BRUSH_SOLID = 1;
+  
   constructor(faces)
   {
     this.faces = faces;
   }
 }
 
-export class bspnode_t {
-  constructor(type, plane, behind, ahead)
+export class map_t {
+  constructor(brushes)
   {
-    this.type = type;
-    this.plane = plane;
-    this.behind = behind;
-    this.ahead = ahead;
+    this.brushes = brushes;
   }
 }

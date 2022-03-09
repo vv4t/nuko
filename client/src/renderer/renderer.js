@@ -32,21 +32,23 @@ export class renderer_t {
     this.projection_matrix = mat4_t.init_perspective(aspect_ratio, FOV, 0.1, 100);
     
     this.basic_shader.bind();
+  }
+  
+  new_map(map_handle)
+  {
+    this.mesh_pool.reset(0);
     
-    const self = this;
-    asset_load_json("assets/model.json", function(model) {
-      const vertices = [];
-      
-      for (const brush of model) {
-        for (const face of brush.faces) {
-          for (const vertex of face.vertices) {
-            vertices.push(new vertex_t(vertex));
-          }
+    const vertices = [];
+    
+    for (const brush of map_handle.brushes) {
+      for (const face of brush.faces) {
+        for (const vertex of face.vertices) {
+          vertices.push(new vertex_t(vertex));
         }
       }
-      
-      self.mesh = self.mesh_pool.new_mesh(vertices);
-    });
+    }
+    
+    this.mesh = this.mesh_pool.new_mesh(vertices);
   }
   
   setup_view_matrix()
