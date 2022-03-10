@@ -101,6 +101,11 @@ export class vec3_t {
     
     return this.mulf(inverse_length);
   }
+  
+  toString()
+  {
+    return "vec3_t(" + this.x + ", " + this.y + ", " + this.z + ")";
+  }
 }
 
 export class quat_t {

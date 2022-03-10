@@ -36,19 +36,19 @@ export class basic_shader_t extends shader_t {
       "#version 300 es\n" +
       "layout(location = 0) in vec3 v_pos;\n" +
       "uniform mat4 u_mvp;\n" +
-      "out float depth;\n" +
+      "out vec4 depth;\n" +
       "void main() {\n" + 
       " gl_Position = u_mvp * vec4(v_pos, 1);\n" +
-      " depth = gl_Position.z;\n" +
+      " depth = gl_Position;\n" +
       "}\n";
 
     const src_basic_fragment_shader = "" +
       "#version 300 es\n" + 
       "precision mediump float;\n" +
       "out vec4 frag_color;\n" +
-      "in float depth;\n" +
+      "in vec4 depth;\n" +
       "void main() {\n" +
-      " float l = 0.1 + 0.9 / depth;\n" +
+      " float l = 0.1 + 0.9 / length(depth);\n" +
       " frag_color = vec4(l, l, l, 1);\n" + 
       "}";
     
