@@ -1,7 +1,8 @@
 "use strict";
 
+import { vertex_t } from "./vertex.js";
 import { vec3_t, plane_t } from "./math.js";
-import { brush_t, face_t } from "./map.js";
+import { material_t, brush_t, face_t } from "./map.js";
 
 const DOT_DEGREE = 0.0001;
 
@@ -35,12 +36,15 @@ export class bsp_t {
 
 function intersect_plane(a, b, plane)
 {
-  const d = b.sub(a);
-  const n = d.normalize();
+  const delta_pos = b.pos.sub(a.pos);
+  const delta_uv = b.uv.sub(a.uv);
   
   const t = -(a.dot(plane.normal) - plane.distance) / n.dot(plane.normal);
   
-  return a.add(n.mulf(t));
+  const pos = a.pos.add(delta_pos.mulf(t));
+  const uv = a.uv.add(delta_uv.mulf(t));
+  
+  return new vertex_t(pos, uv);
 }
 
 function split_face_even(vbehind, vmiddle, vahead, plane, normal)
@@ -78,7 +82,7 @@ function split_face(face, plane)
   const ahead = [];
   
   for (const vertex of face.vertices) {
-    const dist = plane.normal.dot(vertex) - plane.distance;
+    const dist = plane.normal.dot(vertex.pos) - plane.distance;
     
     if (dist < -DOT_DEGREE) {
       behind.push(vertex);
@@ -128,18 +132,18 @@ function split_brush(brush, plane)
   
   let brush_behind = null;
   if (faces_behind.length > 0)
-    brush_behind = new brush_t(faces_behind);
+    brush_behind = new brush_t(faces_behind, brush.material);
   
   let brush_ahead = null;
   if (faces_ahead.length > 0)
-    brush_ahead = new brush_t(faces_ahead);
+    brush_ahead = new brush_t(faces_ahead, brush.material);
   
   return new split_t(brush_behind, brush_ahead);
 }
 
 function face_to_plane(face)
 {
-  const distance = face.vertices[0].dot(face.normal);
+  const distance = face.vertices[0].pos.dot(face.normal);
   return new plane_t(face.normal, distance);
 }
 
@@ -170,9 +174,9 @@ function get_shared_vertices(a, b)
   let shared = [];
   for (const v1 of a.vertices) {
     for (const v2 of b.vertices) {
-      const d = v1.sub(v2);
+      const delta_pos = v1.pos.sub(v2.pos);
       
-      if (d.dot(d) < DOT_DEGREE * DOT_DEGREE)
+      if (delta_pos.dot(delta_pos) < DOT_DEGREE * DOT_DEGREE)
         shared.push(v1);
     }
   }
@@ -205,12 +209,12 @@ function gen_bevel_planes(brush)
         const d = brush.faces[i].normal.dot(brush.faces[j].normal);
         if (d < -DOT_DEGREE) {
           const normal = axis_align(brush.faces[i].normal.add(brush.faces[j].normal).normalize());
-          const distance = shared[0].dot(normal);
+          const distance = shared[0].pos.dot(normal);
           
           bevel.push(new plane_t(normal, distance));
         } else if (d < COS_MAX_THETA) {
           const normal = brush.faces[i].normal.add(brush.faces[j].normal).normalize();
-          const distance = shared[0].dot(normal);
+          const distance = shared[0].pos.dot(normal);
           
           bevel.push(new plane_t(normal, distance));
         }

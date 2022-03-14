@@ -12,7 +12,7 @@ export class client_t {
     this.cgame = new cgame_t();
     this.renderer = new renderer_t(this.cgame);
     
-    map_load("./assets/nk_test1.json", (map_handle) => {
+    map_load("./asset/map/nk_flatgrass.json", (map_handle) => {
       this.cgame.new_map(map_handle);
       this.renderer.new_map(map_handle);
     });

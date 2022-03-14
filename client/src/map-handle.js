@@ -1,7 +1,8 @@
 "use strict";
 
-import { brush_t, face_t } from "./common/map.js";
-import { vec3_t } from "./common/math.js";
+import { vertex_t } from "./common/vertex.js";
+import { material_t, brush_t, face_t } from "./common/map.js";
+import { vec2_t, vec3_t } from "./common/math.js";
 import { asset_load_json } from "./asset.js";
 
 export function map_load(path, on_loaded)
@@ -18,19 +19,23 @@ export class map_handle_t {
     
     for (const brush of map.brushes) {
       const faces = [];
+      const material = new material_t(brush.material.path);
       
       for (const face of brush.faces) {
         const vertices = [];
-        
         const normal = new vec3_t(face.normal.x, face.normal.y, face.normal.z);
         
-        for (const vertex of face.vertices)
-          vertices.push(new vec3_t(vertex.x, vertex.y, vertex.z));
+        for (const vertex of face.vertices) {
+          const pos = new vec3_t(vertex.pos.x, vertex.pos.y, vertex.pos.z);
+          const uv = new vec2_t(vertex.uv.x, vertex.uv.y);
+          
+          vertices.push(new vertex_t(pos, uv));
+        }
         
         faces.push(new face_t(vertices, normal));
       }
       
-      this.brushes.push(new brush_t(faces));
+      this.brushes.push(new brush_t(faces, material));
     }
   }
 }

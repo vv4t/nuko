@@ -1,13 +1,14 @@
 "use strict";
 
 import { gl } from "./gl.js";
-import { vertex_t } from "./vertex.js";
 import { mesh_pool_t } from "./mesh-pool.js";
 import { basic_shader_t } from "./basic-shader.js";
+import { texture_t } from "./texture.js";
 
 import { screen } from "../screen.js";
-import { asset_load_json } from "../asset.js";
+import { asset_load_json, asset_load_image } from "../asset.js";
 
+import { vertex_t } from "../common/vertex.js";
 import { vec3_t, mat4_t, quat_t } from "../common/math.js";
 
 export class renderer_t {
@@ -32,6 +33,11 @@ export class renderer_t {
     this.projection_matrix = mat4_t.init_perspective(aspect_ratio, FOV, 0.1, 100);
     
     this.basic_shader.bind();
+    
+    asset_load_image("asset/mtl/brick.png", (image) => {
+      this.texture = new texture_t(image);
+      this.texture.bind();
+    });
   }
   
   new_map(map_handle)
@@ -39,11 +45,14 @@ export class renderer_t {
     this.mesh_pool.reset(0);
     
     const vertices = [];
+    const mtl_list = [];
     
     for (const brush of map_handle.brushes) {
+      mtl_list.push(brush.material);
+      
       for (const face of brush.faces) {
         for (const vertex of face.vertices) {
-          vertices.push(new vertex_t(vertex));
+          vertices.push(vertex);
         }
       }
     }

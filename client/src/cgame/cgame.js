@@ -42,7 +42,7 @@ export class cgame_t {
     this.c_motion[this.player] = new motion_t();
     this.c_transform[this.player] = new transform_t();
     
-    this.c_transform[this.player].pos = new vec3_t(0, 1, 0);
+    this.c_transform[this.player].pos = new vec3_t(0, 2, 0);
     this.c_motion[this.player].old_pos = this.c_transform[this.player].pos;
     
     this.usercmd = null;
@@ -56,8 +56,6 @@ export class cgame_t {
   
   update()
   {
-    document.getElementById("pos").innerHTML = this.c_transform[this.player].pos;
-    
     this.reset_force();
     this.apply_gravity();
     this.player_look();
