@@ -1,7 +1,7 @@
 "use strict";
 
 import { vertex_t } from "./common/vertex.js";
-import { material_t, brush_t, face_t } from "./common/map.js";
+import { brushgroup_t, material_t, brush_t, face_t } from "./common/map.js";
 import { vec2_t, vec3_t } from "./common/math.js";
 import { asset_load_json } from "./asset.js";
 
@@ -16,10 +16,24 @@ export class map_handle_t {
   constructor(map)
   {
     this.brushes = [];
+    this.brushgroups = [];
+    this.materials = [];
+    
+    for (const brushgroup of map.brushgroups) {
+      const id_material = brushgroup.id_material;
+      const brushofs = brushgroup.brushofs;
+      const brushend = brushgroup.brushend;
+      
+      this.brushgroups.push(new brushgroup_t(id_material, brushofs, brushend));
+    }
+    
+    for (const material of map.materials) {
+      const texture = material.texture;
+      this.materials.push(new material_t(texture));
+    }
     
     for (const brush of map.brushes) {
       const faces = [];
-      const material = new material_t(brush.material.path);
       
       for (const face of brush.faces) {
         const vertices = [];
@@ -35,7 +49,7 @@ export class map_handle_t {
         faces.push(new face_t(vertices, normal));
       }
       
-      this.brushes.push(new brush_t(faces, material));
+      this.brushes.push(new brush_t(faces));
     }
   }
 }

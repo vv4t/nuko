@@ -25,6 +25,7 @@ export class renderer_t {
     this.cgame = cgame;
     this.mesh_pool = new mesh_pool_t(16 * 1024);
     this.basic_shader = new basic_shader_t();
+    this.map_meshes = [];
     
     const FOV = 90 * Math.PI / 180.0;
     const aspect_ratio = screen.height / screen.width;
@@ -43,21 +44,31 @@ export class renderer_t {
   new_map(map_handle)
   {
     this.mesh_pool.reset(0);
+    this.textures = [];
+    this.map_meshes = [];
+    this.map_handle = map_handle;
     
-    const vertices = [];
-    const mtl_list = [];
-    
-    for (const brush of map_handle.brushes) {
-      mtl_list.push(brush.material);
+    for (const brushgroup of map_handle.brushgroups) {
+      const vertices = [];
       
-      for (const face of brush.faces) {
-        for (const vertex of face.vertices) {
-          vertices.push(vertex);
+      for (let i = brushgroup.brushofs; i < brushgroup.brushend; i++) {
+        const brush = map_handle.brushes[i];
+        
+        for (const face of brush.faces) {
+          for (const vertex of face.vertices) {
+            vertices.push(vertex);
+          }
         }
       }
+      
+      this.map_meshes.push(this.mesh_pool.new_mesh(vertices));
     }
     
-    this.mesh = this.mesh_pool.new_mesh(vertices);
+    for (let i = 0; i < map_handle.materials.length; i++) {
+      asset_load_image(map_handle.materials[i].texture, (image) => {
+        this.textures[i] = new texture_t(image);
+      });
+    }
   }
   
   setup_view_matrix()
@@ -87,7 +98,14 @@ export class renderer_t {
     
     this.basic_shader.set_mvp(mvp);
     
-    if (this.mesh)
-      this.mesh.draw();
+    if (this.map_meshes.length > 0) {
+      for (let i = 0; i < this.map_handle.brushgroups.length; i++) {
+        const id_material = this.map_handle.brushgroups[i].id_material;
+        if (this.textures[id_material]) {
+          this.textures[id_material].bind();
+          this.map_meshes[i].draw();
+        }
+      }
+    }
   } 
 };

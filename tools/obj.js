@@ -152,11 +152,13 @@ function parse_obj(obj_path)
         const id_vt = face_data[1] - 1;
         const id_vn  = face_data[2] - 1;
         
-        vertices.push(new vertex_t(vbuf[id_v], vnbuf[id_vt]));
+        vertices.push(new vertex_t(vbuf[id_v], vtbuf[id_vt]));
         normals.push(vnbuf[id_vn]);
       }
       
-      fbuf.push(new face_t(vertices, normals[0]));
+      const normal = normals[0].normalize();
+      
+      fbuf.push(new face_t(vertices, normal));
     }
   }
   
@@ -173,7 +175,7 @@ function parse_obj(obj_path)
   let brushofs = 0;
   let brushend = brushofs;
   while (brushofs != brushmtls.length) {
-    brushes.push(brushmtls[brushofs].brush);
+    brushes.push(brushmtls[brushend].brush);
     
     for (let j = brushend + 1; j < brushmtls.length; j++) {
       if (brushmtls[brushend].id_material == brushmtls[j].id_material) {
@@ -182,6 +184,8 @@ function parse_obj(obj_path)
         const tmp = brushmtls[brushend];
         brushmtls[brushend] = brushmtls[j];
         brushmtls[j] = tmp;
+        
+        brushes.push(brushmtls[brushend].brush);
       }
     }
     

@@ -198,7 +198,7 @@ export class cgame_t {
         min_plane = new plane_t(node.plane.normal, dist_from_plane);
       
       if (node.type == brush_t.BRUSH_SOLID) {
-        if (min_plane.normal.dot(UP) > COS_GROUND_INCLINE)
+        //if (min_plane.normal.dot(UP) > COS_GROUND_INCLINE)
           this.c_pmove.grounded = true;
         
         const fix = min_plane.normal.mulf(-min_plane.distance);

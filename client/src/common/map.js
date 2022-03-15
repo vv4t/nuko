@@ -12,9 +12,9 @@ export class face_t {
 }
 
 export class material_t {
-  constructor(path)
+  constructor(texture)
   {
-    this.path = path;
+    this.texture = texture;
   }
 }
 
