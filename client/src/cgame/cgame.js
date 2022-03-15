@@ -168,20 +168,47 @@ export class cgame_t {
   
   clip_map()
   {
-    this.c_pmove.grounded = false;
-    if (this.bsp)
-      this.clip_map_R(this.bsp.root, new plane_t(new vec3_t(0, 1, 0), -100));
-  }
-  
-  clip_map_R(node, min_plane)
-  {
+    const UP = new vec3_t(0, 1, 0);
     const SPHERE_RADIUS = 0.5;
     const CAPSULE_HEIGHT = 1.0;
     const COS_GROUND_INCLINE = Math.cos(45 * Math.PI / 180.0);
-    const UP = new vec3_t(0, 1, 0);
+    
+    this.c_pmove.grounded = false;
+    
+    if (this.bsp) {
+      const fixes = this.clip_map_R(this.bsp.root, new plane_t(new vec3_t(0, 1, 0), 0), -100);
+      
+      document.getElementById("test").innerHTML = fixes.toString();
+      
+      for (const plane of fixes) {
+        if (plane.normal.dot(UP) > COS_GROUND_INCLINE)
+          this.c_pmove.grounded = true;
+        
+        const pos = this.c_transform[this.player].pos;
+        
+        const top_dist_from_plane = plane.normal.dot(pos) - plane.distance - SPHERE_RADIUS;
+        const bottom_dist_from_plane = plane.normal.dot(pos.sub(new vec3_t(0, CAPSULE_HEIGHT, 0))) - plane.distance - SPHERE_RADIUS;
+        
+        const dist_from_plane = Math.min(top_dist_from_plane, bottom_dist_from_plane);
+        
+        if (dist_from_plane < 0) {
+          const fix = plane.normal.mulf(-dist_from_plane);
+          
+          this.c_transform[this.player].pos = this.c_transform[this.player].pos.add(fix);
+        }
+      }
+    }
+  }
+  
+  clip_map_R(node, min_plane, min_dist)
+  {
+    const SPHERE_RADIUS = 0.5;
+    const CAPSULE_HEIGHT = 1.0;
+    
+    const fixes = [];
     
     if (!node)
-      return;
+      return fixes;
     
     const pos = this.c_transform[this.player].pos;
     
@@ -191,23 +218,22 @@ export class cgame_t {
     const dist_from_plane = Math.min(top_dist_from_plane, bottom_dist_from_plane);
     
     if (dist_from_plane > -2 * SPHERE_RADIUS)
-      this.clip_map_R(node.ahead, min_plane);
+      fixes.push(...this.clip_map_R(node.ahead, min_plane, min_dist));
     
     if (dist_from_plane < 0) {
-      if (dist_from_plane > min_plane.distance)
-        min_plane = new plane_t(node.plane.normal, dist_from_plane);
-      
-      if (node.type == brush_t.BRUSH_SOLID) {
-        //if (min_plane.normal.dot(UP) > COS_GROUND_INCLINE)
-          this.c_pmove.grounded = true;
-        
-        const fix = min_plane.normal.mulf(-min_plane.distance);
-        
-        this.c_transform[this.player].pos = this.c_transform[this.player].pos.add(fix);
+      if (dist_from_plane > min_dist) {
+        min_plane = node.plane;
+        min_dist = dist_from_plane;
       }
       
-      this.clip_map_R(node.behind, min_plane);
+      if (node.type == brush_t.BRUSH_SOLID) {
+        fixes.push(min_plane);
+      }
+      
+      fixes.push(...this.clip_map_R(node.behind, min_plane, min_dist));
     }
+    
+    return fixes;
   }
   
   add_entity()

@@ -23,6 +23,14 @@ export class vec2_t {
     );
   }
   
+  sub(v)
+  {
+    return new vec2_t(
+      this.x - v.x,
+      this.y - v.y
+    );
+  }
+  
   mul(v)
   {
     return new vec2_t(
@@ -37,6 +45,11 @@ export class vec2_t {
       this.x * f,
       this.y * f
     );
+  }
+  
+  dot(v)
+  {
+    return this.x * v.x + this.y * v.y;
   }
 }
 
@@ -175,6 +188,16 @@ export class plane_t {
   {
     this.normal = normal;
     this.distance = distance;
+  }
+  
+  copy()
+  {
+    return new plane_t(this.normal.copy(), this.distance);
+  }
+  
+  toString()
+  {
+    return "plane_t(" + this.normal + ", " + this.distance + ")";
   }
 }
 

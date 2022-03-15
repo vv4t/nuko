@@ -1,5 +1,7 @@
 "use strict";
 
+// TODO: fix face gets culled, leaving faulty bevel detection
+
 import { vertex_t } from "./vertex.js";
 import { vec3_t, plane_t } from "./math.js";
 import { material_t, brush_t, face_t } from "./map.js";
@@ -39,7 +41,7 @@ function intersect_plane(a, b, plane)
   const delta_pos = b.pos.sub(a.pos);
   const delta_uv = b.uv.sub(a.uv);
   
-  const t = -(a.dot(plane.normal) - plane.distance) / n.dot(plane.normal);
+  const t = -(a.pos.dot(plane.normal) - plane.distance) / delta_pos.dot(plane.normal);
   
   const pos = a.pos.add(delta_pos.mulf(t));
   const uv = a.uv.add(delta_uv.mulf(t));
@@ -98,7 +100,7 @@ function split_face(face, plane)
   } else if (ahead.length == 3 || (ahead.length == 2 && middle.length == 1)) {
     return new split_t([], [face]);
   } else if (middle.length == 3) {
-    if (face.normal.dot(plane.normal) >= 0)
+    if (face.normal.dot(plane.normal) > +DOT_DEGREE)
       return new split_t([], []);
     else
       return new split_t([], [face]);

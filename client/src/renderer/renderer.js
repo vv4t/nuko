@@ -14,7 +14,8 @@ import { vec3_t, mat4_t, quat_t } from "../common/math.js";
 export class renderer_t {
   constructor(cgame)
   {
-    gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    gl.clearColor(0.2, 0.7, 1.0, 1.0);
+    // gl.clearColor(1.0, 1.0, 1.0, 1.0);
     
     gl.enable(gl.CULL_FACE);
     gl.enable(gl.DEPTH_TEST);

@@ -53,7 +53,8 @@ export class basic_shader_t extends shader_t {
       "in vec2 vs_uv;\n" +
       "uniform sampler2D sampler;\n" +
       "void main() {\n" +
-      " float l = 0.1 + 0.9 / length(vs_depth);\n" +
+      " float l = 0.5 + 5.0 / length(vs_depth);\n" +
+      " if (l > 1.0) l = 1.0;\n" +
       " vec4 light = vec4(l, l, l, 1.0);\n" +
       " vec4 color = texture(sampler, vs_uv);\n" +
       " frag_color = color * light;\n" + 
