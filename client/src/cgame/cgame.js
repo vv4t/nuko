@@ -8,6 +8,9 @@ import { brush_t } from "../common/map.js";
 import { bsp_t } from "../common/bsp.js";
 import { vec3_t, quat_t, plane_t } from "../common/math.js";
 
+const SPHERE_RADIUS = 0.3;
+const CAPSULE_HEIGHT = 0.7;
+
 function pmove_accelerate(vel, wish_dir, accel, wish_speed)
 {
   const current_speed = vel.dot(wish_dir);
@@ -169,8 +172,6 @@ export class cgame_t {
   clip_map()
   {
     const UP = new vec3_t(0, 1, 0);
-    const SPHERE_RADIUS = 0.5;
-    const CAPSULE_HEIGHT = 1.0;
     const COS_GROUND_INCLINE = Math.cos(45 * Math.PI / 180.0);
     
     this.c_pmove.grounded = false;
@@ -202,8 +203,6 @@ export class cgame_t {
   
   clip_map_R(node, min_plane, min_dist)
   {
-    const SPHERE_RADIUS = 0.5;
-    const CAPSULE_HEIGHT = 1.0;
     
     const fixes = [];
     
