@@ -1,7 +1,7 @@
 #include <SDL2/SDL.h>
 
-#include "../renderer/renderer.h"
-#include "../game/client/cgame.h"
+#include "renderer/renderer.h"
+#include "cgame/cgame.h"
 
 class app_t {
 private:
@@ -10,15 +10,14 @@ private:
   
   bool          m_quit;
   
-  cgame_t       m_cgame;
-  renderer_t    m_renderer;
+  cgame_t       *m_cgame;
+  renderer_t    *m_renderer;
   
   void poll();
 
 public:
   app_t();
   
-  void init();
   void update();
   void quit();
   

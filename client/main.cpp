@@ -4,7 +4,9 @@
 
 #include "app.h"
 
-static app_t app;  
+#include "../common/log.h"
+
+static app_t app;
 
 void app_update()
 {
@@ -13,8 +15,6 @@ void app_update()
 
 int main(int argc, char *argv[])
 {
-  app.init();
-  
 #ifdef EMSCRIPTEN
   emscripten_set_main_loop(app_update, 0, true);
 #else
