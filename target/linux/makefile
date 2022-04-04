@@ -2,7 +2,7 @@ defualt: build run
 
 C_CC=g++
 C_FLAGS=-O3
-C_SRC=../../client/*.cpp ../../common/*.cpp ../../client/cgame/*.cpp ../../client/renderer/*.cpp
+C_SRC=../../client/*.cpp ../../common/*.cpp ../../game/*.cpp ../../client/cgame/*.cpp ../../client/renderer/*.cpp
 C_OUT=bin/nuko
 C_LIBS=-lSDL2 -lGL -lm -lGLEW
 
