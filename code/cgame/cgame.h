@@ -11,23 +11,22 @@ typedef enum {
 } cg_entitystate_t;
 
 typedef struct {
-  edict_t edict;
+  edict_t         edict;
+  bgame_t         bgame;
   
-  bgc_transform_t bgc_transform[MAX_ENTITIES];
-  bgc_client_t bgc_client[MAX_ENTITIES];
-  bgc_capsule_t bgc_capsule[MAX_ENTITIES];
-  bgc_clip_t bgc_clip[MAX_ENTITIES];
-  bgc_motion_t bgc_motion[MAX_ENTITIES];
-  bgc_pmove_t bgc_pmove[MAX_ENTITIES];
+  bg_transform_t  bg_transform[MAX_ENTITIES];
+  bg_client_t     bg_client[MAX_ENTITIES];
+  bg_capsule_t    bg_capsule[MAX_ENTITIES];
+  bg_clip_t       bg_clip[MAX_ENTITIES];
+  bg_motion_t     bg_motion[MAX_ENTITIES];
+  bg_pmove_t      bg_pmove[MAX_ENTITIES];
   
-  bgame_t bg;
-  
-  entity_t entity_player;
+  entity_t        entity_player;
 } cgame_t;
 
-void cg_init(cgame_t *cg);
-void cg_send_cmd(cgame_t *cg, const usercmd_t *usercmd);
-void cg_new_map(cgame_t *cg, const map_t *map);
-void cg_update(cgame_t *cg);
+void cgame_init(cgame_t *cgame);
+void cgame_send_cmd(cgame_t *cgame, const usercmd_t *usercmd);
+void cgame_new_map(cgame_t *cgame, const map_t *map);
+void cgame_update(cgame_t *cgame);
 
 #endif

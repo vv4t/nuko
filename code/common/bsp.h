@@ -9,17 +9,17 @@ typedef enum {
 } bsp_brush_t;
 
 typedef struct bsp_node_s {
-  bsp_brush_t type;
-  plane_t plane;
+  bsp_brush_t       type;
+  plane_t           plane;
   struct bsp_node_s *behind;
   struct bsp_node_s *ahead;
 } bsp_node_t;
 
 inline static bsp_node_t bsp_node_init(
-  bsp_brush_t type,
-  plane_t plane,
-  bsp_node_t *behind,
-  bsp_node_t *ahead)
+  bsp_brush_t       type,
+  plane_t           plane,
+  bsp_node_t        *behind,
+  bsp_node_t        *ahead)
 {
   return (bsp_node_t) {
     .type = type,

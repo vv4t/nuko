@@ -11,26 +11,26 @@
   #include <emscripten/emscripten.h>
 #endif
 
-static cgame_t cg;
-static renderer_t r;
-static usercmd_t usercmd;
+static client_t   client;
+static cgame_t    cgame;
+static renderer_t renderer;
 
-void cl_event_loop()
+static void main_event_loop()
 {
   sys_event_t *event;
   while ((event = sys_get_event())) {
     switch (event->type) {
     case SYS_KEY_PRESS:
-      cl_key_press(event->data.key_press.key, event->data.key_press.action);
+      client_key_press(&client, event->data.key_press.key, event->data.key_press.action);
       break;
     case SYS_MOUSE_MOVE:
-      cl_mouse_move(event->data.mouse_move.dx, event->data.mouse_move.dy);
+      client_mouse_move(&client, event->data.mouse_move.dx, event->data.mouse_move.dy);
       break;
     }
   }
 }
 
-void main_init()
+static void main_init()
 {
   if (!win_init(1280, 720, "nuko"))
     sys_log(SYS_FATAL, "main(): failed to initialise window");
@@ -40,31 +40,39 @@ void main_init()
     sys_log(SYS_FATAL, "main(): failed to initialise OpenGL");
 #endif
   
-  if (!r_init(&r))
+  if (!renderer_init(&renderer))
     sys_log(SYS_FATAL, "main(): failed to initialize renderer");
   
-  cg_init(&cg);
+  client_init(&client);
+  cgame_init(&cgame);
   
   map_t map;
   if (!map_load(&map, "../../assets/map/untitled.map"))
     sys_log(SYS_FATAL, "main(): failed to load untitled.map");
   
-  r_new_map(&r, &map);
-  cg_new_map(&cg, &map);
+  renderer_new_map(&renderer, &map);
+  cgame_new_map(&cgame, &map);
 }
 
-void main_update()
+static void main_update()
 {
   win_poll();
   
-  cl_event_loop();
-  cl_base_move(&usercmd);
+  main_event_loop();
   
-  cg_send_cmd(&cg, &usercmd);
-  cg_update(&cg);
-  r_render_player_view(&r, &cg);
+  client_base_move(&client);
+  
+  cgame_send_cmd(&cgame, &client.usercmd);
+  cgame_update(&cgame);
+  
+  renderer_render_player_view(&renderer, &cgame);
   
   win_swap();
+}
+
+static void main_quit()
+{
+  win_quit();
 }
 
 int main(int argc, char* argv[])
@@ -78,7 +86,7 @@ int main(int argc, char* argv[])
     main_update();
 #endif
   
-  win_quit();
+  main_quit();
   
   return 0;
 }

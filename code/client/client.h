@@ -3,9 +3,22 @@
 
 #include "../common/usercmd.h"
 
-void cl_event_loop();
-void cl_key_press(int key, int action);
-void cl_mouse_move(int dx, int dy);
-void cl_base_move(usercmd_t *usercmd);
+typedef struct {
+  usercmd_t   usercmd;
+  
+  float       in_forward;
+  float       in_left;
+  float       in_back;
+  float       in_right;
+  float       in_jump;
+  
+  float       mouse_x;
+  float       mouse_y;
+} client_t;
+
+void client_init(client_t *client);
+void client_base_move(client_t *client);
+void client_key_press(client_t *client, int key, int action);
+void client_mouse_move(client_t *client, int dx, int dy);
 
 #endif

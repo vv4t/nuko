@@ -3,13 +3,13 @@
 
 #include "gl.h"
 #include "mesh.h"
-#include "../common/vertex.h"
+#include "vertex.h"
 #include <stdbool.h>
 
 typedef struct {
-  GLuint vbo;
-  GLuint vao;
-  int vertex_ptr;
+  GLuint  vbo;
+  GLuint  vao;
+  int     vertex_ptr;
 } mesh_pool_t;
 
 void mesh_pool_init(mesh_pool_t *mesh_pool, int size);

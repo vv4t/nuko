@@ -9,6 +9,34 @@
 
 #define MAX_CLIP_PLANES 16
 
+typedef struct {
+  vec3_t    position;
+  quat_t    rotation;
+} bg_transform_t;
+
+typedef struct {
+  usercmd_t usercmd;
+} bg_client_t;
+
+typedef struct {
+  float     radius;
+  float     height;
+} bg_capsule_t;
+
+typedef struct {
+  plane_t   planes[MAX_CLIP_PLANES];
+  int       num_planes;
+} bg_clip_t;
+
+typedef struct {
+  vec3_t    velocity;
+} bg_motion_t;
+
+typedef struct {
+  quat_t    move_rot;
+  bool      is_grounded;
+} bg_pmove_t;
+
 typedef enum {
   BGC_TRANSFORM = (1 << 0),
   BGC_CLIENT    = (1 << 1),
@@ -16,55 +44,20 @@ typedef enum {
   BGC_CAPSULE   = (1 << 3),
   BGC_MOTION    = (1 << 4),
   BGC_PMOVE     = (1 << 5)
-} bgc_t;
+} bg_component_t;
 
 typedef struct {
-  vec3_t pos;
-  quat_t rot;
-} bgc_transform_t;
-
-typedef struct {
-  usercmd_t usercmd;
-} bgc_client_t;
-
-typedef struct {
-  float radius;
-  float height;
-} bgc_capsule_t;
-
-typedef struct {
-  plane_t planes[MAX_CLIP_PLANES];
-  int num_planes;
-} bgc_clip_t;
-
-typedef struct {
-  vec3_t vel;
-} bgc_motion_t;
-
-typedef struct {
-  quat_t move_rot;
-  bool is_grounded;
-} bgc_pmove_t;
-
-typedef struct {
-  edict_t *edict;
+  edict_t        *edict;
+  bsp_node_t     *bsp;
   
-  bgc_transform_t *bgc_transform;
-  bgc_client_t *bgc_client;
-  bgc_clip_t *bgc_clip;
-  bgc_capsule_t *bgc_capsule;
-  bgc_motion_t *bgc_motion;
-  bgc_pmove_t *bgc_pmove;
-  
-  bsp_node_t *bsp;
+  bg_transform_t *transform;
+  bg_client_t    *client;
+  bg_clip_t      *clip;
+  bg_capsule_t   *capsule;
+  bg_motion_t    *motion;
+  bg_pmove_t     *pmove;
 } bgame_t;
 
-void bgs_player_move(bgame_t *bg);
-void bgs_player_look(bgame_t *bg);
-void bgs_clip_capsule_bsp(bgame_t *bg);
-void bgs_motion_gravity(bgame_t *bg);
-void bgs_motion_clip(bgame_t *bg);
-void bgs_motion_integrate(bgame_t *bg);
-void bgs_player_test_grounded(bgame_t *bg);
+void bgame_update(bgame_t *bgame);
 
 #endif

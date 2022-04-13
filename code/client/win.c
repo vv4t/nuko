@@ -3,9 +3,9 @@
 #include "../common/sys.h"
 #include <SDL2/SDL.h>
 
-static bool win_is_quit;
-static SDL_Window *win_sdl_window;
-static SDL_GLContext win_gl_context;
+static bool           win_is_quit;
+static SDL_Window     *win_sdl_window;
+static SDL_GLContext  win_gl_context;
 
 bool win_init(int width, int height, const char *title)
 {

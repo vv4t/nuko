@@ -5,26 +5,16 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-#define MAX_EVENTS 8
+#define MAX_EVENTS 32
 
-static sys_event_t sys_event_queue[MAX_EVENTS];
-static int sys_event_tail;
-static int sys_event_head;
+static sys_event_t  sys_event_queue[MAX_EVENTS];
+static int          sys_event_tail;
+static int          sys_event_head;
 
 void sys_init()
 {
   sys_event_head = 0;
   sys_event_tail = 0;
-}
-
-void *sys_malloc(int size)
-{
-  return malloc(size);
-}
-
-void sys_free(void *block)
-{
-  free(block);
 }
 
 void sys_key_press(int key, int action)
