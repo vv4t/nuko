@@ -5,6 +5,8 @@ import { bsp_gen } from "./bsp.js";
 import { map_t } from "./map.js";
 import { vec2_t, vec3_t, plane_t } from "./math.js"
 
+const MAX_STRING_SIZE = 32;
+
 class sizeof {
   static U8       = 1;
   static U16      = 2;
@@ -21,12 +23,13 @@ class map_file_lump {
   static VERTICES       = 0;
   static BSP_NODES      = 1;
   static BRUSH_GROUPS   = 2;
+  static MATERIALS      = 3;
 };
 
 class map_file_mtl_t {
-  constructor(name)
+  constructor(u8_name)
   {
-    this.name = name;
+    this.u8_name = u8_name;
   }
 };
 
@@ -41,9 +44,9 @@ class map_file_bsp_node_t {
 };
 
 class map_file_brush_group_t {
-  constructor(mtl, vertexofs, vertexlen)
+  constructor(mtl_id, vertexofs, vertexlen)
   {
-    this.mtl = mtl;
+    this.mtl_id = mtl_id;
     this.vertexofs = vertexofs;
     this.vertexlen = vertexlen;
   }
@@ -63,8 +66,9 @@ export function write_map(map, path)
   
   const [vertices, brush_groups] = flatten_brushes(map.brushes);
   const bsp_nodes = flatten_bsp_node_R(bsp_gen(map), 0);
+  const mtls = flatten_mtls(map.mtls);
   
-  write.seek(3 * sizeof.LUMP_T);
+  write.seek(4 * sizeof.LUMP_T);
   
   const vertices_fileofs = write.tell();
   for (const vertex of vertices)
@@ -81,16 +85,39 @@ export function write_map(map, path)
     write.write_brush_group(brush_group);
   const brush_group_filelen = write.tell() - brush_group_fileofs;
   
+  const mtls_fileofs = write.tell();
+  for (const mtl of mtls)
+    write.write_mtl(mtl);
+  const mtls_filelen = write.tell() - mtls_fileofs;
+  
   const lump_vertices = new lump_t(vertices_fileofs, vertices_filelen);
   const lump_bsp_nodes = new lump_t(bsp_nodes_fileofs, bsp_nodes_filelen);
   const lump_brush_group = new lump_t(brush_group_fileofs, brush_group_filelen);
+  const lump_mtls = new lump_t(mtls_fileofs, mtls_filelen);
   
   write.seek(0);
   write.write_lump(lump_vertices);
   write.write_lump(lump_bsp_nodes);
   write.write_lump(lump_brush_group);
+  write.write_lump(lump_mtls);
   
   fs.writeFileSync(path, Buffer.from(write.data()));
+}
+
+function flatten_mtls(mtls)
+{
+  const map_mtls = [];
+  
+  for (const mtl of mtls) {
+    const u8_name = new Uint8Array(MAX_STRING_SIZE);
+    
+    for (let i = 0; i < mtl.name.length; i++)
+      u8_name[i] = mtl.name[i].charCodeAt(0);
+    
+    map_mtls.push(new map_file_mtl_t(u8_name));
+  }
+  
+  return map_mtls;
 }
 
 function flatten_brushes(brushes)
@@ -107,10 +134,10 @@ function flatten_brushes(brushes)
   while (brushend != sorted_brushes.length) {
     vertices.push(...flatten_brush(sorted_brushes[brushend]));
     
-    const mtl = sorted_brushes[brushend].mtl;
+    const mtl_id = sorted_brushes[brushend].mtl_id;
     
     for (let j = brushend + 1; j < sorted_brushes.length; j++) {
-      if (mtl == sorted_brushes[j].mtl) {
+      if (mtl_id == sorted_brushes[j].mtl_id) {
         brushend++;
         
         const tmp = sorted_brushes[brushend];
@@ -124,7 +151,7 @@ function flatten_brushes(brushes)
     brushend++;
     
     const vertexlen = vertices.length - vertexofs;
-    const brush_group = new map_file_brush_group_t(mtl, vertexofs, vertexlen);
+    const brush_group = new map_file_brush_group_t(mtl_id, vertexofs, vertexlen);
     brush_groups.push(brush_group);
     
     vertexofs = vertices.length;
@@ -278,9 +305,15 @@ class write_t {
   
   write_brush_group(brush_group)
   {
-    this.write_u32(brush_group.mtl);
+    this.write_u32(brush_group.mtl_id);
     this.write_u32(brush_group.vertexofs);
     this.write_u32(brush_group.vertexlen);
+  }
+  
+  write_mtl(mtl)
+  {
+    for (let i = 0; i < MAX_STRING_SIZE; i++)
+      this.write_u8(mtl.u8_name[i]);
   }
   
   write_lump(lump)

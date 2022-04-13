@@ -21,10 +21,10 @@ export class obj_face_t {
 };
 
 export class obj_object_t {
-  constructor(faces, mtl)
+  constructor(faces, mtl_id)
   {
     this.faces = faces;
-    this.mtl = mtl;
+    this.mtl_id = mtl_id;
   }
 };
 
@@ -37,9 +37,10 @@ export class obj_mtl_t {
 };
 
 export class obj_t {
-  constructor(objects)
+  constructor(objects, mtls)
   {
     this.objects = objects;
+    this.mtls = mtls;
   }
 };
 
@@ -51,7 +52,7 @@ function mtllib_parse(str_path)
   let mtl_name = "";
   let map_Kd = "";
   
-  const mtllib = {};
+  const mtls = [];
   
   for (const line of lines) {
     const args = line.split(' ').filter((x) => x.length > 0);
@@ -59,7 +60,7 @@ function mtllib_parse(str_path)
     if (args[0] == "newmtl") {
       if (mtl_name.length > 0) {
         const mtl = new obj_mtl_t(mtl_name, map_Kd);
-        mtllib[mtl_name] = mtl;
+        mtls.push(mtl);
       }
       
       const name = args[1];
@@ -71,10 +72,10 @@ function mtllib_parse(str_path)
   
   if (mtl_name.length > 0) {
     const mtl = new obj_mtl_t(mtl_name, map_Kd);
-    mtllib[mtl_name] = mtl;
+    mtls.push(mtl);
   }
   
-  return mtllib;
+  return mtls;
 }
 
 export function obj_parse(str_path)
@@ -88,9 +89,9 @@ export function obj_parse(str_path)
   let vt_buf = [];
   let vn_buf = [];
   let f_buf = [];
-  let mtl;
+  let mtl_id;
   
-  let mtllib = {};
+  let mtls = [];
   
   const objects = [];
   
@@ -98,17 +99,20 @@ export function obj_parse(str_path)
     const args = line.split(' ').filter((x) => x.length > 0);
     
     if (args[0] == "mtllib") {
-      const mtllib_path = path.join(dir, args[1]);
-      mtllib = mtllib_parse(mtllib_path);
+      const mtls_path = path.join(dir, args[1]);
+      mtls = mtllib_parse(mtls_path);
     } if (args[0] == "o") {
       if (f_buf.length > 0) {
-        const object = new obj_object_t(f_buf, mtl);
+        const object = new obj_object_t(f_buf, mtl_id);
         objects.push(object);
         f_buf = [];
       }
     } else if (args[0] == "usemtl") {
       const mtl_name = args[1];
-      mtl = mtllib[mtl_name];
+      for (let i = 0; i < mtls.length; i++) {
+        if (mtl_name == mtls[i].name)
+          mtl_id = i;
+      }
     } else if (args[0] == "v") {
       v_buf.push(
         new vec3_t(
@@ -148,10 +152,10 @@ export function obj_parse(str_path)
   }
   
   if (f_buf.length > 0) {
-    const object = new obj_object_t(f_buf, mtl);
+    const object = new obj_object_t(f_buf, mtl_id);
     objects.push(object);
     f_buf = [];
   }
   
-  return new obj_t(objects);
+  return new obj_t(objects, mtls);
 }

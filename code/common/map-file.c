@@ -50,6 +50,15 @@ map_brush_group_t *map_load_brush_groups(const map_t *map, int *num_brush_groups
     num_brush_groups);
 }
 
+map_mtl_t *map_load_mtls(const map_t *map, int *num_mtls)
+{
+  return (map_mtl_t*) load_lump(
+    map,
+    LUMP_MTLS,
+    sizeof(map_mtl_t),
+    num_mtls);
+}
+
 static bsp_node_t *build_bsp_R(const map_bsp_node_t *map_bsp_nodes, int node)
 {
   if (node == -1)

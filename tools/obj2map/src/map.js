@@ -1,5 +1,6 @@
 "use strict";
 
+import path from "path";
 import { vec2_t, vec3_t } from "./math.js";
 
 export class map_brush_type {
@@ -31,41 +32,43 @@ export class map_face_t {
 };
 
 export class map_brush_t {
-  constructor(faces, mtl)
+  constructor(faces, mtl_id)
   {
     this.faces = faces;
-    this.mtl = mtl;
+    this.mtl_id = mtl_id;
+  }
+};
+
+export class map_mtl_t {
+  constructor(name)
+  {
+    this.name = name;
   }
 };
 
 export class map_t {
-  constructor(brushes)
+  constructor(brushes, mtls)
   {
     this.brushes = brushes;
+    this.mtls = mtls;
   }
 };
-
-function to_brush_mtl(obj_mtl)
-{
-  switch (obj_mtl) {
-  case "grass":
-    return map_brush_mtl.MTL_GRASS;
-  case "concrete":
-    return map_brush_mtl.MTL_CONCRETE;
-  case "brick":
-    return map_brush_mtl.MTL_BRICK;
-  case "building":
-    return map_brush_mtl.MTL_BUILDING;
-  }
-}
 
 export function map_from_obj(obj)
 {
   const brushes = [];
+  const mtls = [];
+  
+  for (const obj_mtl of obj.mtls) {
+    const mtl_name = path.parse(obj_mtl.map_Kd).name;
+    const mtl = new map_mtl_t(mtl_name);
+    
+    mtls.push(mtl);
+  }
   
   for (const object of obj.objects) {
     const faces = [];
-    const mtl = to_brush_mtl(object.mtl.name);
+    const mtl_id = object.mtl_id;
     
     for (const face of object.faces) {
       const vertices = [];
@@ -80,11 +83,11 @@ export function map_from_obj(obj)
       faces.push(map_face);
     }
     
-    const map_brush = new map_brush_t(faces, mtl);
+    const map_brush = new map_brush_t(faces, mtl_id);
     brushes.push(map_brush);
   }
   
-  const map = new map_t(brushes);
+  const map = new map_t(brushes, mtls);
   
   return map;
 }

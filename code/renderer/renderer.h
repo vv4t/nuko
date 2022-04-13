@@ -10,7 +10,11 @@
 #include "../cgame/cgame.h"
 
 typedef struct {
-  map_brush_mtl_t mtl;
+  texture_t tex;
+} r_mtl_t;
+
+typedef struct {
+  int mtl_id;
   mesh_t mesh;
 } r_brush_group_t;
 
@@ -21,7 +25,8 @@ typedef struct {
   mat4x4_t projection_matrix;
   mat4x4_t view_projection_matrix;
   
-  texture_t map_textures[MAX_MAP_BRUSH_MTLS];
+  r_mtl_t *map_mtls;
+  int num_mtls;
   
   r_brush_group_t *brush_groups;
   int num_brush_groups;
