@@ -20,14 +20,18 @@ static GLuint load_gl_texture(void *data, int width, int height)
   return texture;
 }
 
-texture_t texture_load(const char *path)
+bool texture_load(texture_t *texture, const char *path)
 {
   SDL_Surface *bitmap = IMG_Load(path);
   
-  if (!bitmap)
+  if (!bitmap) {
     sys_log(SYS_ERROR, "texture_load(): could not load %s", path);
+    return false;
+  }
   
-  return load_gl_texture(bitmap->pixels, bitmap->w, bitmap->h);
+  *texture = load_gl_texture(bitmap->pixels, bitmap->w, bitmap->h);
+  
+  return true;
 }
 
 void texture_bind(texture_t texture)

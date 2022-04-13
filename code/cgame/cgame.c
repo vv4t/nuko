@@ -35,8 +35,11 @@ void cgame_send_cmd(cgame_t *cgame, const usercmd_t *usercmd)
 }
 
 void cgame_new_map(cgame_t *cgame, const map_t *map)
-{ 
-  cgame->bgame.bsp = map_load_bsp_nodes(map);
+{
+  if (cgame->bgame.bsp)
+    map_free_bsp(cgame->bgame.bsp);
+  
+  cgame->bgame.bsp = map_load_bsp(map);
 }
 
 void cgame_update(cgame_t *cgame)

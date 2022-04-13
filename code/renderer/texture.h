@@ -2,10 +2,11 @@
 #define TEXTURE_H
 
 #include "gl.h"
+#include <stdbool.h>
 
 typedef GLuint texture_t;
 
-texture_t texture_load(const char *path);
+bool texture_load(texture_t *texture, const char *path);
 void texture_bind(texture_t texture);
 
 #endif

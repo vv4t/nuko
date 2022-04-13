@@ -32,7 +32,7 @@ typedef struct {
 } renderer_t;
 
 bool renderer_init(renderer_t *renderer);
-void renderer_new_map(renderer_t *renderer, const map_t *map);
+bool renderer_new_map(renderer_t *renderer, const map_t *map);
 void renderer_render_player_view(renderer_t *renderer, const cgame_t *cg);
 
 #endif

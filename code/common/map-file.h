@@ -55,6 +55,7 @@ bool              map_load(map_t *map, const char *path);
 map_vertex_t      *map_load_vertices(const map_t *map, int *num_vertices);
 map_brush_group_t *map_load_brush_groups(const map_t *map, int *num_brush_groups);
 map_material_t    *map_load_materials(const map_t *map, int *num_materials);
-bsp_node_t        *map_load_bsp_nodes(const map_t *map);
+bsp_node_t        *map_load_bsp(const map_t *map);
+void              map_free_bsp(bsp_node_t *bsp);
 
 #endif

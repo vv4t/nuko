@@ -6,8 +6,8 @@
 #include <stdbool.h>
 
 typedef struct {
-  shader_t shader;
-  GLuint ul_mvp;
+  shader_t  shader;
+  GLuint    ul_mvp;
 } basic_shader_t;
 
 bool basic_shader_init(basic_shader_t *basic_shader);

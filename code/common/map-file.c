@@ -44,20 +44,12 @@ map_vertex_t *map_load_vertices(const map_t *map, int *num_vertices)
 
 map_brush_group_t *map_load_brush_groups(const map_t *map, int *num_brush_groups)
 {
-  return (map_brush_group_t*) load_lump(
-    map,
-    LUMP_BRUSH_GROUPS,
-    sizeof(map_brush_group_t),
-    num_brush_groups);
+  return (map_brush_group_t*) load_lump(map, LUMP_BRUSH_GROUPS, sizeof(map_brush_group_t), num_brush_groups);
 }
 
 map_material_t *map_load_materials(const map_t *map, int *num_materials)
 {
-  return (map_material_t*) load_lump(
-    map,
-    LUMP_MATERIALS,
-    sizeof(map_material_t),
-    num_materials);
+  return (map_material_t*) load_lump(map, LUMP_MATERIALS, sizeof(map_material_t), num_materials);
 }
 
 static bsp_node_t *build_bsp_R(const map_bsp_node_t *map_bsp_nodes, int node)
@@ -76,10 +68,26 @@ static bsp_node_t *build_bsp_R(const map_bsp_node_t *map_bsp_nodes, int node)
   return bsp_node;
 }
 
-bsp_node_t *map_load_bsp_nodes(const map_t *map)
+bsp_node_t *map_load_bsp(const map_t *map)
 {
   int num_bsp_nodes;
   map_bsp_node_t *map_bsp_nodes = load_lump(map, LUMP_BSP_NODES, sizeof(map_bsp_node_t), &num_bsp_nodes);
   
   return build_bsp_R(map_bsp_nodes, 0);
+}
+
+static void free_bsp_R(bsp_node_t *node)
+{
+  if (!node)
+    return;
+  
+  free_bsp_R(node->behind);
+  free_bsp_R(node->ahead);
+  
+  free(node);
+}
+
+void map_free_bsp(bsp_node_t *bsp)
+{
+  free_bsp_R(bsp);
 }

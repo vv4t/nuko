@@ -22,23 +22,27 @@ static void renderer_gl_init()
 bool renderer_init(renderer_t *renderer)
 {
   renderer_gl_init();
-  mesh_pool_init(&renderer->mesh_pool, 4096);
-  basic_shader_init(&renderer->basic_shader);
   
+  mesh_pool_init(&renderer->mesh_pool, 4096);
+  
+  basic_shader_init(&renderer->basic_shader);
   basic_shader_bind(&renderer->basic_shader);
   
   renderer_init_projection_matrix(renderer);
   
+  renderer->num_materials = 0;
+  renderer->materials = NULL;
+  
+  renderer->num_brush_groups = 0;
+  renderer->brush_groups = NULL;
+  
   return true;
 }
 
-void renderer_new_map(renderer_t *renderer, const map_t *map)
+static bool renderer_load_materials(renderer_t *renderer, const map_t *map)
 {
-  int num_map_vertices;
-  map_vertex_t *map_vertices = map_load_vertices(map, &num_map_vertices);
-  
-  int num_map_brush_groups;
-  map_brush_group_t *map_brush_groups = map_load_brush_groups(map, &num_map_brush_groups);
+  if (renderer->materials)
+    free(renderer->materials);
   
   int num_map_materials;
   map_material_t *map_materials = map_load_materials(map, &num_map_materials);
@@ -48,9 +52,27 @@ void renderer_new_map(renderer_t *renderer, const map_t *map)
   
   for (int i = 0; i < renderer->num_materials; i++) {
     char full_name[128];
-    sprintf(full_name, "../../assets/mtl/%s.png", map_materials[i].name);
-    renderer->materials[i].texture = texture_load(full_name);
+    sprintf(full_name, "../../assets/mtl/%s.png", map_materials[i].name); // buffer overflow somehow? rumao
+    
+    if (!texture_load(&renderer->materials[i].texture, full_name)) {
+      sys_log(SYS_ERROR, "renderer_load_materials(): failed to load texture '%s'", full_name);
+      return false;
+    }
   }
+  
+  return true;
+}
+
+static bool renderer_load_brushes(renderer_t *renderer, const map_t *map)
+{
+  if (renderer->brush_groups)
+    free(renderer->brush_groups);
+  
+  int num_map_vertices;
+  map_vertex_t *map_vertices = map_load_vertices(map, &num_map_vertices);
+  
+  int num_map_brush_groups;
+  map_brush_group_t *map_brush_groups = map_load_brush_groups(map, &num_map_brush_groups);
   
   renderer->num_brush_groups = num_map_brush_groups;
   renderer->brush_groups = malloc(renderer->num_brush_groups * sizeof(r_brush_group_t));
@@ -58,15 +80,36 @@ void renderer_new_map(renderer_t *renderer, const map_t *map)
   for (int i = 0; i < renderer->num_brush_groups; i++) {
     renderer->brush_groups[i].material_id = map_brush_groups[i].material_id;
     
-    mesh_pool_new_mesh(
-      &renderer->mesh_pool,
-      &renderer->brush_groups[i].mesh,
-      (vertex_t*) &map_vertices[map_brush_groups[i].vertexofs],
-      map_brush_groups[i].vertexlen);
+    int vertexofs = map_brush_groups[i].vertexofs;
+    int vertexlen = map_brush_groups[i].vertexlen;
+    
+    vertex_t *vertices = (vertex_t*) &map_vertices[vertexofs];
+    
+    if (!mesh_pool_new_mesh(&renderer->mesh_pool, &renderer->brush_groups[i].mesh, vertices, vertexlen)) {
+      sys_log(SYS_ERROR, "renderer_load_brushes(): failed to load mesh");
+      return false;
+    }
   }
   
   free(map_vertices);
   free(map_brush_groups);
+  
+  return true;
+}
+
+bool renderer_new_map(renderer_t *renderer, const map_t *map)
+{
+  if (!renderer_load_materials(renderer, map)) {
+    sys_log(SYS_ERROR, "renderer_new_map(): failed to load materials");
+    return false;
+  }
+  
+  if (!renderer_load_brushes(renderer, map)) {
+    sys_log(SYS_ERROR, "renderer_new_map(): failed to load brushes");
+    return false;
+  }
+  
+  return true;
 }
 
 void renderer_setup_view_projection_matrix(renderer_t *renderer, const cgame_t *cgame)

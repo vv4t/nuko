@@ -47,10 +47,13 @@ static void main_init()
   cgame_init(&cgame);
   
   map_t map;
+  
   if (!map_load(&map, "../../assets/map/untitled.map"))
     sys_log(SYS_FATAL, "main(): failed to load untitled.map");
   
-  renderer_new_map(&renderer, &map);
+  if (!renderer_new_map(&renderer, &map))
+    sys_log(SYS_FATAL, "main(): renderer failed to load new map");
+  
   cgame_new_map(&cgame, &map);
 }
 

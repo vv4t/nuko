@@ -9,6 +9,15 @@
 
 #define MAX_CLIP_PLANES 16
 
+typedef enum {
+  BGC_TRANSFORM = (1 << 0),
+  BGC_CLIENT    = (1 << 1),
+  BGC_CLIP      = (1 << 2),
+  BGC_CAPSULE   = (1 << 3),
+  BGC_MOTION    = (1 << 4),
+  BGC_PMOVE     = (1 << 5)
+} bg_component_t;
+
 typedef struct {
   vec3_t    position;
   quat_t    rotation;
@@ -36,15 +45,6 @@ typedef struct {
   quat_t    move_rot;
   bool      is_grounded;
 } bg_pmove_t;
-
-typedef enum {
-  BGC_TRANSFORM = (1 << 0),
-  BGC_CLIENT    = (1 << 1),
-  BGC_CLIP      = (1 << 2),
-  BGC_CAPSULE   = (1 << 3),
-  BGC_MOTION    = (1 << 4),
-  BGC_PMOVE     = (1 << 5)
-} bg_component_t;
 
 typedef struct {
   edict_t        *edict;
