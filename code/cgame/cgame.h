@@ -1,9 +1,9 @@
 #ifndef CGAME_H
 #define CGAME_H
 
-#include "../common/bsp.h"
-#include "../common/map-file.h"
-#include "../common/edict.h"
+#include "../game/bsp.h"
+#include "../game/map-file.h"
+#include "../game/edict.h"
 #include "../game/bgame.h"
 
 typedef enum {
@@ -13,13 +13,6 @@ typedef enum {
 typedef struct {
   edict_t         edict;
   bgame_t         bgame;
-  
-  bg_transform_t  bg_transform[MAX_ENTITIES];
-  bg_client_t     bg_client[MAX_ENTITIES];
-  bg_capsule_t    bg_capsule[MAX_ENTITIES];
-  bg_clip_t       bg_clip[MAX_ENTITIES];
-  bg_motion_t     bg_motion[MAX_ENTITIES];
-  bg_pmove_t      bg_pmove[MAX_ENTITIES];
   
   entity_t        entity_player;
 } cgame_t;

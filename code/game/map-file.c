@@ -1,7 +1,7 @@
 #include "map-file.h"
 
-#include "log.h"
-#include <stdlib.h>
+#include "../common/log.h"
+#include "../common/zone.h"
 
 bool map_load(map_t *map, const char *path)
 {
@@ -22,7 +22,7 @@ static void *load_lump(const map_t *map, map_lump_t lump, int stride, int *count
   int filelen = map->map_header.lumps[lump].filelen;
   int fileofs = map->map_header.lumps[lump].fileofs;
   
-  void *data = malloc(filelen);
+  void *data = zone_alloc(filelen);
   
   fseek(map->file, fileofs, SEEK_SET);
   fread(data, filelen, 1, map->file);
@@ -62,7 +62,7 @@ static bsp_node_t *build_bsp_R(const map_bsp_node_t *map_bsp_nodes, int node)
   bsp_node_t *behind = build_bsp_R(map_bsp_nodes, map_bsp_node->behind);
   bsp_node_t *ahead = build_bsp_R(map_bsp_nodes, map_bsp_node->ahead);
   
-  bsp_node_t *bsp_node = malloc(sizeof(bsp_node_t));
+  bsp_node_t *bsp_node = zone_alloc(sizeof(bsp_node_t));
   *bsp_node = bsp_node_init(map_bsp_node->type, map_bsp_node->plane, behind, ahead);
   
   return bsp_node;
@@ -84,7 +84,7 @@ static void free_bsp_R(bsp_node_t *node)
   free_bsp_R(node->behind);
   free_bsp_R(node->ahead);
   
-  free(node);
+  zone_free(node);
 }
 
 void map_free_bsp(bsp_node_t *bsp)

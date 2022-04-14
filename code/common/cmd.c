@@ -1,6 +1,7 @@
 #include "cmd.h"
 
 #include "log.h"
+#include "string.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -16,105 +17,95 @@ typedef struct {
   xcommand_t  xcommand;
 } cmd_function_t;
 
-typedef struct {
-  const char  *text;
-} cmd_bind_t;
+static char            cmd_text[MAX_TEXT];
+static char            *cmd_text_ptr;
 
-typedef struct {
-  char            text[MAX_TEXT];
-  char            *text_ptr;
-  
-  char            str[MAX_STR];
-  char            *str_ptr;
-  
-  int             argc;
-  char            *argv[MAX_ARGS];
-  
-  cmd_function_t  functions[MAX_FUNCTIONS];
-  int             num_functions;
-} cmd_t;
+static int             cmd_arg_count;
+static char            *cmd_arg_value[MAX_ARGS];
 
-static cmd_t cmd;
+static cmd_function_t  cmd_functions[MAX_FUNCTIONS];
+static int             cmd_num_functions;
 
 void cmd_init()
 {
-  cmd.text_ptr = cmd.text;
-  cmd.str_ptr = cmd.str;
-  cmd.num_functions = 0;
+  cmd_text_ptr = cmd_text;
+  cmd_num_functions = 0;
   
-  memset(cmd.str, 0, sizeof(cmd.str));
-  memset(cmd.text, 0, sizeof(cmd.text));
+  memset(cmd_text, 0, sizeof(cmd_text));
 }
 
-static char *str_new(const char *str)
+bool cmd_execute()
 {
-  char *new_str = cmd.str_ptr;
-  int len = strlen(str) + 1;
+  if (cmd_text_ptr == cmd_text)
+    return true;
   
-  if (cmd.str_ptr + len >= &cmd.str[MAX_STR]) {
-    log_printf(LOG_ERROR, "str_new(): ran out of memory");
-    return NULL;
-  }
-  
-  cmd.str_ptr += strlen(str) + 1;
-  strcpy(new_str, str);
-  
-  return new_str;
-}
-
-void cmd_execute()
-{
-  if (cmd.text_ptr == cmd.text)
-    return;
-  
-  char *cmd_queue = cmd.text;
+  char *cmd_queue = cmd_text;
   
   char *str_cmd;
   while ((str_cmd = strtok_r(cmd_queue, ";\n", &cmd_queue))) {
-    cmd.argc = 0;
+    cmd_arg_count = 0;
     
-    while ((cmd.argv[cmd.argc] = strtok_r(str_cmd, " ", &str_cmd)))
-      cmd.argc++;
+    while ((cmd_arg_value[cmd_arg_count] = strtok_r(str_cmd, " ", &str_cmd))) {
+      cmd_arg_count++;
+      
+      if (*str_cmd == '"') {
+        ++str_cmd;
+        cmd_arg_value[cmd_arg_count] = str_cmd;
+        
+        while (*str_cmd != '"') {
+          if (*str_cmd == '\n' || *str_cmd == 0) {
+            log_printf(LOG_ERROR, "cmd_execute(): unescaped '\"'");
+            return false;
+          }
+          ++str_cmd;
+        }
+        
+        *str_cmd = 0;
+        cmd_arg_count++;
+      }
+    }
     
-    for (int i = 0; i < cmd.num_functions; i++) {
-      if (strcmp(cmd.argv[0], cmd.functions[i].name) == 0) {
-        cmd.functions[i].xcommand(cmd.functions[i].d);
+    for (int i = 0; i < cmd_num_functions; i++) {
+      if (strcmp(cmd_arg_value[0], cmd_functions[i].name) == 0) {
+        cmd_functions[i].xcommand(cmd_functions[i].d);
         break;
       }
     }
   }
   
-  cmd.text_ptr = cmd.text;
+  cmd_text_ptr = cmd_text;
+  
+  return true;
 }
 
 void cmd_puts(const char *text)
 {
   int len = strlen(text);
   
-  if (cmd.text_ptr + len >= &cmd.text[MAX_TEXT]) {
+  if (cmd_text_ptr + len >= &cmd_text[MAX_TEXT]) {
     log_printf(LOG_ERROR, "cmd_puts(): ran out of memory");
     return;
   }
   
-  strcpy(cmd.text_ptr, text);
-  cmd.text_ptr += len;
+  strcpy(cmd_text_ptr, text);
+  cmd_text_ptr += len;
 }
 
 void cmd_add_command(const char *text, xcommand_t xcommand, void *d)
 {
-  const char *name = str_new(text);
+  const char *name = string_copy(text);
   
   if (!name) {
     log_printf(LOG_ERROR, "cmd_add_command(): could not allocate string");
     return;
   }
   
-  if (cmd.num_functions + 1 >= MAX_FUNCTIONS) {
+  if (cmd_num_functions + 1 >= MAX_FUNCTIONS) {
     log_printf(LOG_ERROR, "cmd_add_command(): ran out of memory");
     return;
   }
   
-  cmd_function_t *cmd_function = &cmd.functions[cmd.num_functions++];
+  cmd_function_t *cmd_function = &cmd_functions[cmd_num_functions++];
   cmd_function->name = name;
   cmd_function->xcommand = xcommand;
   cmd_function->d = d;
@@ -122,10 +113,10 @@ void cmd_add_command(const char *text, xcommand_t xcommand, void *d)
 
 int cmd_argc()
 {
-  return cmd.argc;
+  return cmd_arg_count;
 }
 
 const char *cmd_argv(int n)
 {
-  return cmd.argv[n];
+  return cmd_arg_value[n];
 }

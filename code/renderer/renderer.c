@@ -3,7 +3,7 @@
 #include "gl.h"
 #include "vertex.h"
 #include "../common/log.h"
-#include <stdlib.h>
+#include "../common/zone.h"
 
 static void renderer_init_projection_matrix(renderer_t *renderer)
 {
@@ -42,13 +42,13 @@ bool renderer_init(renderer_t *renderer)
 static bool renderer_load_materials(renderer_t *renderer, const map_t *map)
 {
   if (renderer->materials)
-    free(renderer->materials);
+    zone_free(renderer->materials);
   
   int num_map_materials;
   map_material_t *map_materials = map_load_materials(map, &num_map_materials);
   
   renderer->num_materials = num_map_materials;
-  renderer->materials = malloc(renderer->num_materials * sizeof(r_material_t));
+  renderer->materials = zone_alloc(renderer->num_materials * sizeof(r_material_t));
   
   for (int i = 0; i < renderer->num_materials; i++) {
     char full_name[128];
@@ -66,7 +66,7 @@ static bool renderer_load_materials(renderer_t *renderer, const map_t *map)
 static bool renderer_load_brushes(renderer_t *renderer, const map_t *map)
 {
   if (renderer->brush_groups)
-    free(renderer->brush_groups);
+    zone_free(renderer->brush_groups);
   
   int num_map_vertices;
   map_vertex_t *map_vertices = map_load_vertices(map, &num_map_vertices);
@@ -75,7 +75,7 @@ static bool renderer_load_brushes(renderer_t *renderer, const map_t *map)
   map_brush_group_t *map_brush_groups = map_load_brush_groups(map, &num_map_brush_groups);
   
   renderer->num_brush_groups = num_map_brush_groups;
-  renderer->brush_groups = malloc(renderer->num_brush_groups * sizeof(r_brush_group_t));
+  renderer->brush_groups = zone_alloc(renderer->num_brush_groups * sizeof(r_brush_group_t));
   
   for (int i = 0; i < renderer->num_brush_groups; i++) {
     renderer->brush_groups[i].material_id = map_brush_groups[i].material_id;
@@ -91,14 +91,16 @@ static bool renderer_load_brushes(renderer_t *renderer, const map_t *map)
     }
   }
   
-  free(map_vertices);
-  free(map_brush_groups);
+  zone_free(map_vertices);
+  zone_free(map_brush_groups);
   
   return true;
 }
 
 bool renderer_new_map(renderer_t *renderer, const map_t *map)
 {
+  mesh_pool_reset(&renderer->mesh_pool, 0);
+  
   if (!renderer_load_materials(renderer, map)) {
     log_printf(LOG_ERROR, "renderer_new_map(): failed to load materials");
     return false;
@@ -114,8 +116,11 @@ bool renderer_new_map(renderer_t *renderer, const map_t *map)
 
 void renderer_setup_view_projection_matrix(renderer_t *renderer, const cgame_t *cgame)
 {
-  vec3_t inverted_view_origin = vec3_mulf(cgame->bg_transform[cgame->entity_player].position, -1);
-  quat_t inverted_view_angle = quat_conjugate(cgame->bg_transform[cgame->entity_player].rotation);
+  vec3_t view_origin = cgame->bgame.transform[cgame->entity_player].position;
+  quat_t view_angle = cgame->bgame.transform[cgame->entity_player].rotation;
+  
+  vec3_t inverted_view_origin = vec3_mulf(view_origin, -1);
+  quat_t inverted_view_angle = quat_conjugate(view_angle);
   
   mat4x4_t translation_matrix = mat4x4_init_translation(inverted_view_origin);
   mat4x4_t rotation_matrix = mat4x4_init_rotation(inverted_view_angle);

@@ -1,10 +1,11 @@
 #ifndef BGAME_H
 #define BGAME_H
 
-#include "../common/bsp.h"
-#include "../common/edict.h"
+#include "bsp.h"
+#include "edict.h"
+#include "usercmd.h"
+#include "map-file.h"
 #include "../common/nk-math.h"
-#include "../common/usercmd.h"
 #include <stdbool.h>
 
 #define MAX_CLIP_PLANES 16
@@ -50,14 +51,16 @@ typedef struct {
   edict_t        *edict;
   bsp_node_t     *bsp;
   
-  bg_transform_t *transform;
-  bg_client_t    *client;
-  bg_clip_t      *clip;
-  bg_capsule_t   *capsule;
-  bg_motion_t    *motion;
-  bg_pmove_t     *pmove;
+  bg_transform_t transform[MAX_ENTITIES];
+  bg_client_t    client[MAX_ENTITIES];
+  bg_clip_t      clip[MAX_ENTITIES];
+  bg_capsule_t   capsule[MAX_ENTITIES];
+  bg_motion_t    motion[MAX_ENTITIES];
+  bg_pmove_t     pmove[MAX_ENTITIES];
 } bgame_t;
 
+void bgame_init(bgame_t *bgame, edict_t *edict);
+void bgame_new_map(bgame_t *bgame, const map_t *map);
 void bgame_update(bgame_t *bgame);
 
 #endif

@@ -2,6 +2,7 @@
 
 #include "../common/cmd.h"
 #include "../common/log.h"
+#include "../common/string.h"
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
@@ -22,14 +23,6 @@ static sys_event_t  sys_event_queue[MAX_EVENTS];
 static int          sys_event_tail;
 static int          sys_event_head;
 
-void sys_init()
-{
-  sys_num_keybinds = 0;
-  
-  sys_event_head = 0;
-  sys_event_tail = 0;
-}
-
 void sys_bind(const char *text, int key)
 {
   if (sys_num_keybinds + 1 > MAX_KEYBINDS) {
@@ -42,6 +35,40 @@ void sys_bind(const char *text, int key)
   sys_num_keybinds++;
 }
 
+void sys_console_input()
+{
+  printf("> ");
+  
+  char text_buf[256];
+  const char *text = fgets(text_buf, 256, stdin);
+  
+  cmd_puts(text);
+}
+
+static void sys_bind_f(void *d)
+{
+  if (cmd_argc() != 3) {
+    log_printf(LOG_ERROR, "bind_f(): usage %s [key] [command]", cmd_argv(0));
+    return;
+  }
+  
+  int key = cmd_argv(1)[0];
+  const char *text = string_copy(cmd_argv(2)); 
+  
+  sys_bind(text, key);
+}
+
+void sys_init()
+{
+  sys_num_keybinds = 0;
+  
+  sys_event_head = 0;
+  sys_event_tail = 0;
+  
+  cmd_add_command("bind", sys_bind_f, NULL);
+  cmd_add_command("open_console", sys_console_input, NULL);
+}
+
 void sys_key_press(int key, int action)
 {
   for (int i = 0; i < sys_num_keybinds; i++) {
@@ -52,6 +79,7 @@ void sys_key_press(int key, int action)
       } else if (action) {
         cmd_puts(sys_keybinds[i].text);
       }
+      
       cmd_puts("\n");
     }
   }

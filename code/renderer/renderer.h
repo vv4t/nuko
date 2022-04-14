@@ -5,7 +5,7 @@
 #include "mesh-pool.h"
 #include "basic-shader.h"
 #include "../cgame/cgame.h"
-#include "../common/map-file.h"
+#include "../game/map-file.h"
 #include <stdbool.h>
 
 typedef struct {

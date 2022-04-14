@@ -31,19 +31,21 @@ static void init_gl_buffer(mesh_pool_t *mesh_pool, int size)
 void mesh_pool_init(mesh_pool_t *mesh_pool, int size)
 {
   init_gl_buffer(mesh_pool, size);
-  mesh_pool->vertex_ptr = size - 1;
+  
+  mesh_pool->vertex_size = size;
+  mesh_pool->vertex_ptr = 0;
 }
 
 bool mesh_pool_new_mesh(mesh_pool_t *mesh_pool, mesh_t *mesh, const vertex_t *vertices, int num_vertices)
 {
-  if (mesh_pool->vertex_ptr - num_vertices < 0) {
+  if (mesh_pool->vertex_ptr + num_vertices >= mesh_pool->vertex_size) {
     log_printf(LOG_ERROR, "mesh_pool_new_mesh(): vertex buffer ran out of memory");
     return false;
   }
   
-  mesh_pool->vertex_ptr -= num_vertices;
   mesh->offset = mesh_pool->vertex_ptr;
   mesh->size = num_vertices;
+  mesh_pool->vertex_ptr += num_vertices;
   
   glBufferSubData(
     GL_ARRAY_BUFFER,
@@ -52,6 +54,16 @@ bool mesh_pool_new_mesh(mesh_pool_t *mesh_pool, mesh_t *mesh, const vertex_t *ve
     vertices);
   
   return true;
+}
+
+void mesh_pool_reset(mesh_pool_t *mesh_pool, int vertex_ptr)
+{
+  if (vertex_ptr < 0) {
+    log_printf(LOG_ERROR, "mesh_pool_reset(): invalid reset pointer %i/%i", vertex_ptr, mesh_pool->vertex_size);
+    return;
+  }
+  
+  mesh_pool->vertex_ptr = vertex_ptr;
 }
 
 void mesh_draw(const mesh_t *mesh)

@@ -1,8 +1,8 @@
 #ifndef MAP_FILE_H
 #define MAP_FILE_H
 
-#include "nk-math.h"
 #include "bsp.h"
+#include "../common/nk-math.h"
 #include <stdio.h>
 #include <stdbool.h>
 

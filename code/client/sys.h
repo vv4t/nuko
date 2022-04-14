@@ -20,7 +20,10 @@ typedef struct {
   } data;
 } sys_event_t;
 
+void        sys_init();
+
 void        sys_bind(const char *text, int key);
+void        sys_console_input();
 
 void        sys_key_press(int key, int action);
 void        sys_mouse_move(int dx, int dy);

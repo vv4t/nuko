@@ -1,7 +1,7 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 
-#include "../common/usercmd.h"
+#include "../game/usercmd.h"
 
 #define MAX_BUTTONS 5
 
