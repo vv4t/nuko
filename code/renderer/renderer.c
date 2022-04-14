@@ -2,7 +2,7 @@
 
 #include "gl.h"
 #include "vertex.h"
-#include "../common/sys.h"
+#include "../common/log.h"
 #include <stdlib.h>
 
 static void renderer_init_projection_matrix(renderer_t *renderer)
@@ -55,7 +55,7 @@ static bool renderer_load_materials(renderer_t *renderer, const map_t *map)
     sprintf(full_name, "../../assets/mtl/%s.png", map_materials[i].name); // buffer overflow somehow? rumao
     
     if (!texture_load(&renderer->materials[i].texture, full_name)) {
-      sys_log(SYS_ERROR, "renderer_load_materials(): failed to load texture '%s'", full_name);
+      log_printf(LOG_ERROR, "renderer_load_materials(): failed to load texture '%s'", full_name);
       return false;
     }
   }
@@ -86,7 +86,7 @@ static bool renderer_load_brushes(renderer_t *renderer, const map_t *map)
     vertex_t *vertices = (vertex_t*) &map_vertices[vertexofs];
     
     if (!mesh_pool_new_mesh(&renderer->mesh_pool, &renderer->brush_groups[i].mesh, vertices, vertexlen)) {
-      sys_log(SYS_ERROR, "renderer_load_brushes(): failed to load mesh");
+      log_printf(LOG_ERROR, "renderer_load_brushes(): failed to load mesh");
       return false;
     }
   }
@@ -100,12 +100,12 @@ static bool renderer_load_brushes(renderer_t *renderer, const map_t *map)
 bool renderer_new_map(renderer_t *renderer, const map_t *map)
 {
   if (!renderer_load_materials(renderer, map)) {
-    sys_log(SYS_ERROR, "renderer_new_map(): failed to load materials");
+    log_printf(LOG_ERROR, "renderer_new_map(): failed to load materials");
     return false;
   }
   
   if (!renderer_load_brushes(renderer, map)) {
-    sys_log(SYS_ERROR, "renderer_new_map(): failed to load brushes");
+    log_printf(LOG_ERROR, "renderer_new_map(): failed to load brushes");
     return false;
   }
   

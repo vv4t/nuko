@@ -1,8 +1,9 @@
 #include "client.h"
-
 #include "win.h"
+#include "sys.h"
+#include "../common/cmd.h"
 #include "../common/map-file.h"
-#include "../common/sys.h"
+#include "../common/log.h"
 #include "../cgame/cgame.h"
 #include "../renderer/gl.h"
 #include "../renderer/renderer.h"
@@ -15,13 +16,40 @@ static client_t   client;
 static cgame_t    cgame;
 static renderer_t renderer;
 
+static void open_console_f()
+{
+  printf("> ");
+  
+  win_cursor_lock(false);
+  
+  char text_buf[256];
+  const char *text = fgets(text_buf, 256, stdin);
+  
+  cmd_puts(text);
+  cmd_execute();
+  
+  win_cursor_lock(true);
+}
+
+static void console_init()
+{
+  cmd_add_command("open_console", open_console_f, NULL);
+  
+  sys_bind("+forward", 'w');
+  sys_bind("+left", 'a');
+  sys_bind("+back", 's');
+  sys_bind("+right", 'd');
+  sys_bind("+jump", ' ');
+  
+  sys_bind("open_console", '`');
+}
+
 static void main_event_loop()
 {
   sys_event_t *event;
   while ((event = sys_get_event())) {
     switch (event->type) {
     case SYS_KEY_PRESS:
-      client_key_press(&client, event->data.key_press.key, event->data.key_press.action);
       break;
     case SYS_MOUSE_MOVE:
       client_mouse_move(&client, event->data.mouse_move.dx, event->data.mouse_move.dy);
@@ -32,27 +60,32 @@ static void main_event_loop()
 
 static void main_init()
 {
+  cmd_init();
+  console_init();
+  
   if (!win_init(1280, 720, "nuko"))
-    sys_log(SYS_FATAL, "main(): failed to initialise window");
+    log_printf(LOG_FATAL, "main(): failed to initialise window");
 
 #ifndef EMSCRIPTEN
   if (!gl_init())
-    sys_log(SYS_FATAL, "main(): failed to initialise OpenGL");
+    log_printf(LOG_FATAL, "main(): failed to initialise OpenGL");
 #endif
   
   if (!renderer_init(&renderer))
-    sys_log(SYS_FATAL, "main(): failed to initialize renderer");
+    log_printf(LOG_FATAL, "main(): failed to initialize renderer");
   
   client_init(&client);
   cgame_init(&cgame);
   
+  win_cursor_lock(true);
+  
   map_t map;
   
   if (!map_load(&map, "../../assets/map/untitled.map"))
-    sys_log(SYS_FATAL, "main(): failed to load untitled.map");
+    log_printf(LOG_FATAL, "main(): failed to load untitled.map");
   
   if (!renderer_new_map(&renderer, &map))
-    sys_log(SYS_FATAL, "main(): renderer failed to load new map");
+    log_printf(LOG_FATAL, "main(): renderer failed to load new map");
   
   cgame_new_map(&cgame, &map);
 }
@@ -60,6 +93,7 @@ static void main_init()
 static void main_update()
 {
   win_poll();
+  cmd_execute();
   
   main_event_loop();
   

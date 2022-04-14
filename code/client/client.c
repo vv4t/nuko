@@ -1,38 +1,43 @@
 #include "client.h"
 
-#include "../common/sys.h"
+#include "../common/cmd.h"
 #include <stdbool.h>
 
-#define KEY_FORWARD 'w'
-#define KEY_LEFT    'a'
-#define KEY_BACK    's'
-#define KEY_RIGHT   'd'
-#define KEY_JUMP    ' '
+static void key_state(client_t *client, cl_button_t button, float state)
+{
+  client->buttons[button] = state;
+}
+
+static void in_forward_down(void *client) { key_state((client_t*) client, IN_FORWARD, 1.0f); }
+static void in_forward_up(void *client)   { key_state((client_t*) client, IN_FORWARD, 0.0f); }
+static void in_left_down(void *client)    { key_state((client_t*) client, IN_LEFT,    1.0f); }
+static void in_left_up(void *client)      { key_state((client_t*) client, IN_LEFT,    0.0f); }
+static void in_back_down(void *client)    { key_state((client_t*) client, IN_BACK,    1.0f); }
+static void in_back_up(void *client)      { key_state((client_t*) client, IN_BACK,    0.0f); }
+static void in_right_down(void *client)   { key_state((client_t*) client, IN_RIGHT,   1.0f); }
+static void in_right_up(void *client)     { key_state((client_t*) client, IN_RIGHT,   0.0f); }
+static void in_jump_down(void *client)    { key_state((client_t*) client, IN_JUMP,    1.0f); }
+static void in_jump_up(void *client)      { key_state((client_t*) client, IN_JUMP,    0.0f); }
+
+static void init_input(client_t *client)
+{
+  cmd_add_command("+forward", in_forward_down, client);
+  cmd_add_command("-forward", in_forward_up, client);
+  cmd_add_command("+left", in_left_down, client);
+  cmd_add_command("-left", in_left_up, client);
+  cmd_add_command("+back", in_back_down, client);
+  cmd_add_command("-back", in_back_up, client);
+  cmd_add_command("+right", in_right_down, client);
+  cmd_add_command("-right", in_right_up, client);
+  cmd_add_command("+jump", in_jump_down, client);
+  cmd_add_command("-jump", in_jump_up, client);
+}
 
 void client_init(client_t *client)
 {
   *client = (client_t) { 0 };
-}
-
-void client_key_press(client_t *client, int key, int action)
-{
-  switch (key) {
-  case KEY_FORWARD:
-    client->in_forward = (float) action;
-    break;
-  case KEY_LEFT:
-    client->in_left = (float) action;
-    break;
-  case KEY_BACK:
-    client->in_back = (float) action;
-    break;
-  case KEY_RIGHT:
-    client->in_right = (float) action;
-    break;
-  case KEY_JUMP:
-    client->in_jump = action;
-    break;
-  }
+  
+  init_input(client);
 }
 
 void client_mouse_move(client_t *client, int dx, int dy)
@@ -43,9 +48,15 @@ void client_mouse_move(client_t *client, int dx, int dy)
 
 void client_base_move(client_t *client)
 {
-  client->usercmd.forward = client->in_forward - client->in_back;
-  client->usercmd.right = client->in_right - client->in_left;
-  client->usercmd.jump = client->in_jump;
+  float forward = client->buttons[IN_FORWARD];
+  float left = client->buttons[IN_LEFT];
+  float back = client->buttons[IN_BACK];
+  float right = client->buttons[IN_RIGHT];
+  float jump = client->buttons[IN_JUMP];
+  
+  client->usercmd.forward = forward - back;
+  client->usercmd.right = right - left;
+  client->usercmd.jump = jump;
   
   client->usercmd.yaw = client->mouse_x;
   client->usercmd.pitch = client->mouse_y;

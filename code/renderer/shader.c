@@ -1,7 +1,7 @@
 #include "shader.h"
 
 #include "gl.h"
-#include "../common/sys.h"
+#include "../common/log.h"
 #include <stdbool.h>
 
 static bool compile_shader(GLuint *shader, GLuint type, const char *src)
@@ -16,7 +16,7 @@ static bool compile_shader(GLuint *shader, GLuint type, const char *src)
   glGetShaderiv(*shader, GL_COMPILE_STATUS, &success);
   if (!success) {
     glGetShaderInfoLog(*shader, 1024, NULL, info);
-    sys_log(SYS_ERROR, "compile_shader(): failed to compile shader\n%s", info);
+    log_printf(LOG_ERROR, "compile_shader(): failed to compile shader\n%s", info);
     return false;
   }
   
@@ -36,7 +36,7 @@ static bool link_shader(GLuint *program, GLuint vertex_shader, GLuint fragment_s
   glGetProgramiv(*program, GL_LINK_STATUS, &success);
   if (!success) {
     glGetShaderInfoLog(*program, 1024, NULL, info);
-    sys_log(SYS_ERROR, "link_shader(): failed to link shader\n%s", info);
+    log_printf(LOG_ERROR, "link_shader(): failed to link shader\n%s", info);
     return false;
   }
   
@@ -50,18 +50,18 @@ bool shader_init(shader_t *shader, const char *src_vertex, const char *src_fragm
 {
   GLuint vertex_shader;
   if (!compile_shader(&vertex_shader, GL_VERTEX_SHADER, src_vertex)) {
-    sys_log(SYS_ERROR, "shader_load(): failed to load fragment shader");
+    log_printf(LOG_ERROR, "shader_load(): failed to load fragment shader");
     return false;
   }
   
   GLuint fragment_shader;
   if (!compile_shader(&fragment_shader, GL_FRAGMENT_SHADER, src_fragment)) {
-    sys_log(SYS_ERROR, "shader_load(): failed to load vertex_shader");
+    log_printf(LOG_ERROR, "shader_load(): failed to load vertex_shader");
     return false;
   }
   
   if (!link_shader(shader, vertex_shader, fragment_shader)) {
-    sys_log(SYS_ERROR, "shader_load(): failed to link shader");
+    log_printf(LOG_ERROR, "shader_load(): failed to link shader");
     return false;
   }
   

@@ -1,6 +1,6 @@
 #include "map-file.h"
 
-#include "sys.h"
+#include "log.h"
 #include <stdlib.h>
 
 bool map_load(map_t *map, const char *path)
@@ -8,7 +8,7 @@ bool map_load(map_t *map, const char *path)
   map->file = fopen(path, "rb");
   
   if (!map->file) {
-    sys_log(SYS_ERROR, "map_load(): failed to open %s", path);
+    log_printf(LOG_ERROR, "map_load(): failed to open %s", path);
     return false;
   }
   

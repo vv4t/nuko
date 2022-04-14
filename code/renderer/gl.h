@@ -6,7 +6,7 @@
 #else
   #include <stdbool.h>
   #include <GL/glew.h>
-  #include "../common/sys.h"
+  #include "../common/log.h"
   
   inline static bool gl_init()
   {
@@ -14,7 +14,7 @@
     
     GLenum status = glewInit();
     if (status != GLEW_OK)
-      sys_log(SYS_ERROR, "init_gl(): failed to initialize GLEW: %s", glewGetErrorString(status));
+      log_printf(LOG_ERROR, "init_gl(): failed to initialize GLEW: %s", glewGetErrorString(status));
     
     return status == GLEW_OK;
   }

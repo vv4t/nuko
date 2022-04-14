@@ -1,6 +1,6 @@
 #include "mesh-pool.h"
 
-#include "../common/sys.h"
+#include "../common/log.h"
 
 static void init_gl_buffer(mesh_pool_t *mesh_pool, int size)
 {
@@ -37,7 +37,7 @@ void mesh_pool_init(mesh_pool_t *mesh_pool, int size)
 bool mesh_pool_new_mesh(mesh_pool_t *mesh_pool, mesh_t *mesh, const vertex_t *vertices, int num_vertices)
 {
   if (mesh_pool->vertex_ptr - num_vertices < 0) {
-    sys_log(SYS_ERROR, "mesh_pool_new_mesh(): vertex buffer ran out of memory");
+    log_printf(LOG_ERROR, "mesh_pool_new_mesh(): vertex buffer ran out of memory");
     return false;
   }
   

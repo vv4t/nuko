@@ -1,7 +1,5 @@
 #include "bg-local.h"
 
-#include "../common/sys.h"
-
 static float player_accelerate(vec3_t vel, vec3_t wish_dir, float accel, float wish_speed)
 {
   float current_speed = vec3_dot(vel, wish_dir);

@@ -1,6 +1,6 @@
 #include "basic-shader.h"
 
-#include "../common/sys.h"
+#include "../common/log.h"
 
 bool basic_shader_init(basic_shader_t *basic_shader)
 {
@@ -33,7 +33,7 @@ bool basic_shader_init(basic_shader_t *basic_shader)
     "}";
   
   if (!shader_init(&basic_shader->shader, src_basic_vertex, src_basic_fragment)) {
-    sys_log(SYS_ERROR, "basic_shader_init(): failed to load basic-shader");
+    log_printf(LOG_ERROR, "basic_shader_init(): failed to load basic-shader");
     return false;
   }
   

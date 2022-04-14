@@ -1,6 +1,6 @@
 #include "texture.h"
 
-#include "../common/sys.h"
+#include "../common/log.h"
 #include <SDL2/SDL_image.h>
 
 static GLuint load_gl_texture(void *data, int width, int height)
@@ -25,7 +25,7 @@ bool texture_load(texture_t *texture, const char *path)
   SDL_Surface *bitmap = IMG_Load(path);
   
   if (!bitmap) {
-    sys_log(SYS_ERROR, "texture_load(): could not load %s", path);
+    log_printf(LOG_ERROR, "texture_load(): could not load %s", path);
     return false;
   }
   

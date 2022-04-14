@@ -1,11 +1,22 @@
 #include "sys.h"
 
+#include "../common/cmd.h"
+#include "../common/log.h"
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stdbool.h>
 
-#define MAX_EVENTS 32
+#define MAX_EVENTS    32
+#define MAX_KEYBINDS  32
+
+typedef struct {
+  int         key;
+  const char  *text;
+} keybind_t;
+
+static keybind_t    sys_keybinds[MAX_KEYBINDS];
+static int          sys_num_keybinds;
 
 static sys_event_t  sys_event_queue[MAX_EVENTS];
 static int          sys_event_tail;
@@ -13,12 +24,38 @@ static int          sys_event_head;
 
 void sys_init()
 {
+  sys_num_keybinds = 0;
+  
   sys_event_head = 0;
   sys_event_tail = 0;
 }
 
+void sys_bind(const char *text, int key)
+{
+  if (sys_num_keybinds + 1 > MAX_KEYBINDS) {
+    log_printf(LOG_ERROR, "sys_bind(): ran out of bindings");
+    return;
+  }
+  
+  sys_keybinds[sys_num_keybinds].key = key;
+  sys_keybinds[sys_num_keybinds].text = text;
+  sys_num_keybinds++;
+}
+
 void sys_key_press(int key, int action)
 {
+  for (int i = 0; i < sys_num_keybinds; i++) {
+    if (sys_keybinds[i].key == key) {
+      if (sys_keybinds[i].text[0] == '+') {
+        cmd_puts(action ? "+" : "-");
+        cmd_puts(&sys_keybinds[i].text[1]);
+      } else if (action) {
+        cmd_puts(sys_keybinds[i].text);
+      }
+      cmd_puts("\n");
+    }
+  }
+  
   sys_event_queue[sys_event_head].type = SYS_KEY_PRESS;
   sys_event_queue[sys_event_head].data.key_press.key = key;
   sys_event_queue[sys_event_head].data.key_press.action = action;
@@ -45,41 +82,4 @@ sys_event_t *sys_get_event()
   }
   
   return NULL;
-}
-
-void sys_log(sys_level_t level, const char *fmt, ...)
-{
-  va_list args;
-  va_start(args, fmt);
-  
-  const char *str_level;
-  FILE *out;
-  
-  switch (level) {
-  case SYS_DEBUG:
-    str_level = "DEBUG";
-    out = stdout;
-    break;
-  case SYS_WARNING:
-    str_level = "WARNING";
-    out = stdout;
-    break;
-  case SYS_ERROR:
-    str_level = "ERROR";
-    out = stderr;
-    break;
-  case SYS_FATAL:
-    str_level = "FATAL";
-    out = stderr;
-    break;
-  }
-  
-  fprintf(out, "[%s] ", str_level);
-  vfprintf(out, fmt, args);
-  fprintf(out, "\n");
-  
-  va_end(args);
-  
-  if (level == SYS_FATAL)
-    exit(-1);
 }

@@ -1,6 +1,7 @@
 #include "win.h"
 
-#include "../common/sys.h"
+#include "sys.h"
+#include "../common/log.h"
 #include <SDL2/SDL.h>
 
 static bool           win_is_quit;
@@ -20,8 +21,6 @@ bool win_init(int width, int height, const char *title)
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
   
-  SDL_SetRelativeMouseMode(SDL_TRUE);
-  
   win_is_quit = false;
   
   win_sdl_window = SDL_CreateWindow(
@@ -33,14 +32,14 @@ bool win_init(int width, int height, const char *title)
     SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
   
   if (!win_sdl_window) {
-    sys_log(SYS_ERROR, "win_init(): failed to create SDL window");
+    log_printf(LOG_ERROR, "win_init(): failed to create SDL window");
     return false;
   }
   
   win_gl_context = SDL_GL_CreateContext(win_sdl_window);
   
   if (!win_gl_context) {
-    sys_log(SYS_ERROR, "win_init(): failed to create GL context");
+    log_printf(LOG_ERROR, "win_init(): failed to create GL context");
     return false;
   }
   
@@ -83,4 +82,9 @@ void win_swap()
 bool win_should_quit()
 {
   return win_is_quit;
+}
+
+void win_cursor_lock(bool active)
+{
+  SDL_SetRelativeMouseMode(active);
 }

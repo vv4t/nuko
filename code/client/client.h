@@ -3,14 +3,20 @@
 
 #include "../common/usercmd.h"
 
+#define MAX_BUTTONS 5
+
+typedef enum {
+  IN_FORWARD,
+  IN_LEFT,
+  IN_BACK,
+  IN_RIGHT,
+  IN_JUMP
+} cl_button_t;
+
 typedef struct {
   usercmd_t   usercmd;
   
-  float       in_forward;
-  float       in_left;
-  float       in_back;
-  float       in_right;
-  float       in_jump;
+  cl_button_t buttons[MAX_BUTTONS];
   
   float       mouse_x;
   float       mouse_y;

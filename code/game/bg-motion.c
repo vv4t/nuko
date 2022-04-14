@@ -1,7 +1,5 @@
 #include "bg-local.h"
 
-#include "../common/sys.h"
-
 #define BG_MASK_MOTION_CLIP (BGC_MOTION | BGC_CLIP | BGC_CAPSULE)
 void bgame_motion_clip(bgame_t *bgame)
 {

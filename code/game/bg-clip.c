@@ -1,7 +1,5 @@
 #include "bg-local.h"
 
-#include "../common/sys.h"
-
 static void capsule_clip_bsp_R(
   bg_clip_t             *clip,
   const bg_capsule_t    *capsule,

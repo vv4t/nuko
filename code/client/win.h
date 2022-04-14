@@ -8,5 +8,6 @@ bool win_should_quit();
 void win_poll();
 void win_swap();
 void win_quit();
+void win_cursor_lock(bool active);
 
 #endif
