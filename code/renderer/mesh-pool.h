@@ -16,6 +16,6 @@ typedef struct {
 void  mesh_pool_init(mesh_pool_t *mesh_pool, int size);
 bool  mesh_pool_new_mesh(mesh_pool_t *mesh_pool, mesh_t *mesh, const vertex_t *vertices, int num_vertices);
 void  mesh_pool_reset(mesh_pool_t *mesh_pool, int vertex_ptr);
-int   mesh_pool_vertex_pointer(mesh_pool_t *mesh_pool);
+int   mesh_pool_vertex_pointer(const mesh_pool_t *mesh_pool);
 
 #endif

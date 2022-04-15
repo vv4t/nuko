@@ -12,44 +12,36 @@ bool map_load(map_t *map, const char *path)
     return false;
   }
   
-  fread(&map->map_header, 1, sizeof(map_header_t), map->file);
+  fread(&map->header, 1, sizeof(map_header_t), map->file);
   
   return true;
 }
 
-static void *load_lump(const map_t *map, map_lump_t lump, int stride, int *count)
-{
-  int filelen = map->map_header.lumps[lump].filelen;
-  int fileofs = map->map_header.lumps[lump].fileofs;
-  
-  void *data = zone_alloc(filelen);
-  
-  fseek(map->file, fileofs, SEEK_SET);
-  fread(data, filelen, 1, map->file);
-  
-  if (count)
-    *count = filelen / stride;
-  
-  return data;
-}
-
 map_vertex_t *map_load_vertices(const map_t *map, int *num_vertices)
 {
-  return (map_vertex_t*) load_lump(
-    map,
-    LUMP_VERTICES,
+  return (map_vertex_t*) lump_load(
+    map->file,
+    &map->header.lumps[MAP_LUMP_VERTICES],
     sizeof(map_vertex_t),
     num_vertices);
 }
 
-map_brush_group_t *map_load_brush_groups(const map_t *map, int *num_brush_groups)
+map_mesh_group_t *map_load_mesh_groups(const map_t *map, int *num_mesh_groups)
 {
-  return (map_brush_group_t*) load_lump(map, LUMP_BRUSH_GROUPS, sizeof(map_brush_group_t), num_brush_groups);
+  return (map_mesh_group_t*) lump_load(
+    map->file,
+    &map->header.lumps[MAP_LUMP_MESH_GROUPS],
+    sizeof(map_mesh_group_t),
+    num_mesh_groups);
 }
 
 map_material_t *map_load_materials(const map_t *map, int *num_materials)
 {
-  return (map_material_t*) load_lump(map, LUMP_MATERIALS, sizeof(map_material_t), num_materials);
+  return (map_material_t*) lump_load(
+    map->file,
+    &map->header.lumps[MAP_LUMP_MATERIALS],
+    sizeof(map_material_t),
+    num_materials);
 }
 
 static bsp_node_t *build_bsp_R(const map_bsp_node_t *map_bsp_nodes, int node)
@@ -71,7 +63,11 @@ static bsp_node_t *build_bsp_R(const map_bsp_node_t *map_bsp_nodes, int node)
 bsp_node_t *map_load_bsp(const map_t *map)
 {
   int num_bsp_nodes;
-  map_bsp_node_t *map_bsp_nodes = load_lump(map, LUMP_BSP_NODES, sizeof(map_bsp_node_t), &num_bsp_nodes);
+  map_bsp_node_t *map_bsp_nodes = lump_load(
+    map->file,
+    &map->header.lumps[MAP_LUMP_BSP_NODES],
+    sizeof(map_bsp_node_t),
+    &num_bsp_nodes);
   
   return build_bsp_R(map_bsp_nodes, 0);
 }

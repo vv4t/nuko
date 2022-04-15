@@ -39,7 +39,11 @@ void mesh_pool_init(mesh_pool_t *mesh_pool, int size)
 bool mesh_pool_new_mesh(mesh_pool_t *mesh_pool, mesh_t *mesh, const vertex_t *vertices, int num_vertices)
 {
   if (mesh_pool->vertex_ptr + num_vertices >= mesh_pool->vertex_size) {
-    log_printf(LOG_ERROR, "mesh_pool_new_mesh(): vertex buffer ran out of memory");
+    log_printf(
+      LOG_ERROR,
+      "mesh_pool_new_mesh(): vertex buffer ran out of memory %i/%i",
+      mesh_pool->vertex_ptr + num_vertices,
+      mesh_pool->vertex_size);
     return false;
   }
   
@@ -69,4 +73,9 @@ void mesh_pool_reset(mesh_pool_t *mesh_pool, int vertex_ptr)
 void mesh_draw(const mesh_t *mesh)
 {
   glDrawArrays(GL_TRIANGLES, mesh->offset, mesh->size);
+}
+
+int mesh_pool_vertex_pointer(const mesh_pool_t *mesh_pool)
+{
+  return mesh_pool->vertex_ptr;
 }

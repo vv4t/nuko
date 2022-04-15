@@ -16,7 +16,8 @@ typedef enum {
   BGC_CLIP      = (1 << 2),
   BGC_CAPSULE   = (1 << 3),
   BGC_MOTION    = (1 << 4),
-  BGC_PMOVE     = (1 << 5)
+  BGC_PMOVE     = (1 << 5),
+  AUX_BGC       = (1 << 6)
 } bg_component_t;
 
 typedef struct {

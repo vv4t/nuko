@@ -1,11 +1,9 @@
-#!/usr/bin/env node
-
 "use strict";
 
 import path from "path";
 import { obj_parse } from "./obj.js";
 import { map_from_obj } from "./map.js";
-import { write_map } from "./write-map.js";
+import { map_file_save } from "./map-file.js";
 
 function main()
 {
@@ -20,7 +18,7 @@ function main()
   const untitled_obj = obj_parse(input_obj);
   const untitled_map = map_from_obj(untitled_obj);
   
-  write_map(untitled_map, output_map);
+  map_file_save(untitled_map, output_map);
 }
 
 main();
