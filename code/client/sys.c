@@ -1,5 +1,6 @@
 #include "sys.h"
 
+#include "client.h"
 #include "../common/cmd.h"
 #include "../common/log.h"
 #include "../common/string.h"
@@ -8,44 +9,27 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-#define MAX_EVENTS    32
-#define MAX_KEYBINDS  32
+#ifdef EMSCRIPTEN
+  #include <emscripten/emscripten.h>
+#endif
 
 typedef struct {
-  int         key;
-  const char  *text;
-} keybind_t;
 
-static keybind_t    sys_keybinds[MAX_KEYBINDS];
-static int          sys_num_keybinds;
+} server_t;
 
-static sys_event_t  sys_event_queue[MAX_EVENTS];
-static int          sys_event_tail;
-static int          sys_event_head;
+static client_t client;
 
-void sys_bind(const char *text, int key)
+static void load_map_f(void *d)
 {
-  if (sys_num_keybinds + 1 > MAX_KEYBINDS) {
-    log_printf(LOG_ERROR, "sys_bind(): ran out of bindings");
+  if (cmd_argc() != 2) {
+    log_printf(LOG_ERROR, "load_map_f(): usage: %s [map_name]", cmd_argv(0));
     return;
   }
   
-  sys_keybinds[sys_num_keybinds].key = key;
-  sys_keybinds[sys_num_keybinds].text = text;
-  sys_num_keybinds++;
+  client_load_map(&client, cmd_argv(1));
 }
 
-void sys_console_input()
-{
-  printf("> ");
-  
-  char text_buf[256];
-  const char *text = fgets(text_buf, 256, stdin);
-  
-  cmd_puts(text);
-}
-
-static void sys_bind_f(void *d)
+void key_bind_f(void *d)
 {
   if (cmd_argc() != 3) {
     log_printf(LOG_ERROR, "bind_f(): usage %s [key] [command]", cmd_argv(0));
@@ -58,56 +42,76 @@ static void sys_bind_f(void *d)
   sys_bind(text, key);
 }
 
-void sys_init()
+static void sys_config()
 {
-  sys_num_keybinds = 0;
-  
-  sys_event_head = 0;
-  sys_event_tail = 0;
-  
-  cmd_add_command("bind", sys_bind_f, NULL);
+  cmd_add_command("bind", key_bind_f, NULL);
+  cmd_add_command("map", load_map_f, NULL);
   cmd_add_command("open_console", sys_console_input, NULL);
+  
+  sys_bind("+forward", 'w');
+  sys_bind("+left", 'a');
+  sys_bind("+back", 's');
+  sys_bind("+right", 'd');
+  sys_bind("+jump", ' ');
+  sys_bind("open_console", '`');
 }
 
-void sys_key_press(int key, int action)
+void sys_event_loop()
 {
-  for (int i = 0; i < sys_num_keybinds; i++) {
-    if (sys_keybinds[i].key == key) {
-      if (sys_keybinds[i].text[0] == '+') {
-        cmd_puts(action ? "+" : "-");
-        cmd_puts(&sys_keybinds[i].text[1]);
-      } else if (action) {
-        cmd_puts(sys_keybinds[i].text);
-      }
-      
-      cmd_puts("\n");
+  sys_event_t *event;
+  while ((event = sys_get_event())) {
+    switch (event->type) {
+    case SYS_KEY_PRESS:
+      sys_console_key_press(event->data.key_press.key, event->data.key_press.action);
+      break;
+    case SYS_MOUSE_MOVE:
+      client_mouse_move(&client, event->data.mouse_move.dx, event->data.mouse_move.dy);
+      break;
+    case SYS_QUIT:
+      sys_quit();
+      break;
     }
   }
-  
-  sys_event_queue[sys_event_head].type = SYS_KEY_PRESS;
-  sys_event_queue[sys_event_head].data.key_press.key = key;
-  sys_event_queue[sys_event_head].data.key_press.action = action;
-  
-  sys_event_head = (sys_event_head + 1) % MAX_EVENTS;
 }
 
-void sys_mouse_move(int dx, int dy)
+void sys_init()
 {
-  sys_event_queue[sys_event_head].type = SYS_MOUSE_MOVE;
-  sys_event_queue[sys_event_head].data.mouse_move.dx = dx;
-  sys_event_queue[sys_event_head].data.mouse_move.dy = dy;
+  cmd_init();
+  sys_config();
   
-  sys_event_head = (sys_event_head + 1) % MAX_EVENTS;
+  if (!sys_win_init(1280, 720, "nuko"))
+    log_printf(LOG_FATAL, "sys_init(): failed to initialise window");
+  
+  client_init(&client);
 }
 
-sys_event_t *sys_get_event()
+void sys_update()
 {
-  if (sys_event_tail != sys_event_head) {
-    int current_event = sys_event_tail;
-    sys_event_tail = (sys_event_tail + 1) % MAX_EVENTS;
-    
-    return &sys_event_queue[current_event];
-  }
+  sys_win_poll();
+  cmd_execute();
+  sys_event_loop();
+  client_update(&client);
+  sys_win_swap();
+}
+
+void sys_quit()
+{
+  sys_win_quit();
+  exit(0);
+}
+
+int main(int argc, char* argv[])
+{
+  sys_init();
+
+#ifdef EMSCRIPTEN
+  emscripten_set_main_loop(sys_update, 0, true);
+#else
+  while (1)
+    sys_update();
+#endif
   
-  return NULL;
+  sys_quit();
+  
+  return 0;
 }

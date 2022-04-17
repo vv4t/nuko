@@ -67,7 +67,11 @@ bool cmd_execute()
     
     for (int i = 0; i < cmd_num_functions; i++) {
       if (strcmp(cmd_arg_value[0], cmd_functions[i].name) == 0) {
-        cmd_functions[i].xcommand(cmd_functions[i].d);
+        if (cmd_functions[i].xcommand)
+          cmd_functions[i].xcommand(cmd_functions[i].d);
+        else
+          log_printf(LOG_ERROR, "cmd_execute(): command '%s' is empty", cmd_functions[i].name);
+        
         break;
       }
     }
