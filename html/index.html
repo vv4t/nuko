@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>nuko</title>
+    <style>
+      canvas {
+        border: 1px solid;
+      }
+      
+      body {
+        color: white;
+        background-color: black;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas width="1280" height="720" id="canvas"></canvas>
+    <script type="text/javascript">
+      let canvas = document.getElementById("canvas");
+
+      var Module = {
+        print: function(text) {
+          console.log(text);
+        },
+        canvas: canvas
+      };
+    </script>
+    {{{ SCRIPT }}}
+  </body>
+</html>

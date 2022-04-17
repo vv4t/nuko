@@ -43,7 +43,7 @@ bool renderer_load_model(renderer_t *renderer, r_model_t *model, const char *pat
   
   for (int i = 0; i < model->num_materials; i++) {
     char full_name[128];
-    sprintf(full_name, "../../assets/tex/%s.png", mdl_materials[i].name); // buffer overflow somehow? rumao
+    sprintf(full_name, "assets/tex/%s.png", mdl_materials[i].name); // buffer overflow somehow? rumao
     
     if (!texture_load(&model->materials[i].texture, full_name)) {
       log_printf(LOG_ERROR, "renderer_load_materials(): failed to load texture '%s'", full_name);

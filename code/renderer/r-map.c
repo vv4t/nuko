@@ -1,5 +1,6 @@
 #include "renderer.h"
 
+#include "../common/log.h"
 #include "../common/zone.h"
 
 static bool renderer_map_load_materials(renderer_t *renderer, const map_t *map)
@@ -15,7 +16,7 @@ static bool renderer_map_load_materials(renderer_t *renderer, const map_t *map)
   
   for (int i = 0; i < renderer->map_model.num_materials; i++) {
     char full_name[128];
-    sprintf(full_name, "../../assets/mtl/%s.png", map_materials[i].name); // buffer overflow somehow? rumao
+    sprintf(full_name, "assets/mtl/%s.png", map_materials[i].name); // buffer overflow somehow? rumao
     
     if (!texture_load(&renderer->map_model.materials[i].texture, full_name)) {
       log_printf(LOG_ERROR, "renderer_load_materials(): failed to load texture '%s'", full_name);

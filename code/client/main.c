@@ -19,7 +19,7 @@ static renderer_t renderer;
 static void load_map(const char *name)
 {
   char map_path[256];
-  sprintf(map_path, "../../assets/map/%s.map", name);
+  sprintf(map_path, "assets/map/%s.map", name);
   
   map_t map;
   if (!map_load(&map, map_path))

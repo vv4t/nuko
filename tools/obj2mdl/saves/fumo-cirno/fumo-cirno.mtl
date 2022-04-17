@@ -1,5 +1,5 @@
-# Blender 3.1.1 MTL File: 'fumo-cirno.blend'
-# www.blender.org
+# Blender MTL File: 'fumo-cirno.blend'
+# Material Count: 4
 
 newmtl Body
 Ns 250.000000
@@ -10,8 +10,8 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 2
-map_Kd  Fumo_Cirno_Body_BaseColor.png
-map_Ns  ../../../../../tmp/fumo-cirno/source/CirnoMat/Fumo_Cirno_Body_Roughness.png
+map_Kd Fumo_Cirno_Body_BaseColor.png
+map_Ns /home/sanakan/g/tmp/fumo-cirno/source/CirnoMat/Fumo_Cirno_Body_Roughness.png
 
 newmtl Cloth
 Ns 250.000000
@@ -22,9 +22,9 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 2
-map_Kd  Fumo_Cirno_Cloth_BaseColor.png
-map_Ns  ../../../../../tmp/fumo-cirno/source/CirnoMat/Fumo_Cirno_Cloth_Roughness.png
-map_refl  ../../../../../tmp/fumo-cirno/source/CirnoMat/Fumo_Cirno_Cloth_Metallic.png
+map_Kd Fumo_Cirno_Cloth_BaseColor.png
+map_Ns /home/sanakan/g/tmp/fumo-cirno/source/CirnoMat/Fumo_Cirno_Cloth_Roughness.png
+refl /home/sanakan/g/tmp/fumo-cirno/source/CirnoMat/Fumo_Cirno_Cloth_Metallic.png
 
 newmtl Face
 Ns 250.000000
@@ -35,9 +35,9 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 2
-map_Kd  Fumo_Cirno_Face_BaseColor.png
-map_Ns  ../../../../../tmp/fumo-cirno/source/CirnoMat/Fumo_Cirno_Face_Roughness.png
-map_refl  ../../../../../tmp/fumo-cirno/source/CirnoMat/Fumo_Cirno_Face_Metallic.png
+map_Kd Fumo_Cirno_Face_BaseColor.png
+map_Ns /home/sanakan/g/tmp/fumo-cirno/source/CirnoMat/Fumo_Cirno_Face_Roughness.png
+refl /home/sanakan/g/tmp/fumo-cirno/source/CirnoMat/Fumo_Cirno_Face_Metallic.png
 
 newmtl Hair
 Ns 250.000000
@@ -48,5 +48,5 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 2
-map_Kd  Fumo_Cirno_Hair_BaseColor.png
-map_Ns  ../../../../../tmp/fumo-cirno/source/CirnoMat/Fumo_Cirno_Hair_Roughness.png
+map_Kd Fumo_Cirno_Hair_BaseColor.png
+map_Ns /home/sanakan/g/tmp/fumo-cirno/source/CirnoMat/Fumo_Cirno_Hair_Roughness.png

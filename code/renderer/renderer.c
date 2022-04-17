@@ -29,7 +29,7 @@ bool renderer_init(renderer_t *renderer)
   basic_shader_bind(&renderer->basic_shader);
   
   renderer_init_projection_matrix(renderer);
-  renderer_load_model(renderer, &renderer->cg_models[CGMDL_FUMO_CIRNO], "../../assets/mdl/fumo_cirno.mdl");
+  renderer_load_model(renderer, &renderer->cg_models[CGMDL_FUMO_CIRNO], "assets/mdl/fumo_cirno.mdl");
   renderer->cg_models_vertex_ptr = mesh_pool_vertex_pointer(&renderer->mesh_pool);
   
   renderer->map_model = (r_model_t) {0};
