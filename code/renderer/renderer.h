@@ -2,10 +2,10 @@
 #define RENDERER_H
 
 #include "texture.h"
-#include "mesh-pool.h"
-#include "basic-shader.h"
-#include "../cgame/cgame.h"
-#include "../game/map-file.h"
+#include "mesh_pool.h"
+#include "basic_shader.h"
+#include "../client/cgame.h"
+#include "../game/map_file.h"
 #include <stdbool.h>
 
 typedef struct {
@@ -34,8 +34,8 @@ typedef struct {
   
   r_model_t       map_model;
   
-  r_model_t       cg_models[MAX_CG_MODEL];
-  int             cg_models_vertex_ptr;
+  r_model_t       bg_models[MAX_BG_MODEL];
+  int             bg_models_vertex_ptr;
 } renderer_t;
 
 bool renderer_load_model(renderer_t *renderer, r_model_t *model, const char *path);

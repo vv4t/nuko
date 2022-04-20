@@ -1,7 +1,7 @@
 #ifndef VERTEX_H
 #define VERTEX_H
 
-#include "../common/nk-math.h"
+#include "../common/nk_math.h"
 
 #define VERTEX_ATTRIB_0 3
 #define VERTEX_ATTRIB_1 2

@@ -19,7 +19,7 @@ static void in_right_up(void *client)     { key_state((client_t*) client, IN_RIG
 static void in_jump_down(void *client)    { key_state((client_t*) client, IN_JUMP,    1.0f); }
 static void in_jump_up(void *client)      { key_state((client_t*) client, IN_JUMP,    0.0f); }
 
-void client_input_init(client_t *client)
+void cl_input_init(client_t *client)
 {
   cmd_add_command("+forward", in_forward_down, client);
   cmd_add_command("-forward", in_forward_up, client);
@@ -33,13 +33,13 @@ void client_input_init(client_t *client)
   cmd_add_command("-jump", in_jump_up, client);
 }
 
-void client_mouse_move(client_t *client, int dx, int dy)
+void cl_mouse_move(client_t *client, int dx, int dy)
 {
   client->mouse_x += dx;
   client->mouse_y += dy;
 }
 
-void client_base_move(client_t *client)
+void cl_base_move(client_t *client)
 {
   float forward = client->buttons[IN_FORWARD];
   float left = client->buttons[IN_LEFT];

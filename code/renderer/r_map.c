@@ -63,7 +63,7 @@ static bool renderer_map_load_meshes(renderer_t *renderer, const map_t *map)
 
 bool renderer_new_map(renderer_t *renderer, const map_t *map)
 {
-  mesh_pool_reset(&renderer->mesh_pool, renderer->cg_models_vertex_ptr);
+  mesh_pool_reset(&renderer->mesh_pool, renderer->bg_models_vertex_ptr);
   
   if (!renderer_map_load_materials(renderer, map)) {
     log_printf(LOG_ERROR, "renderer_new_map(): failed to load materials");

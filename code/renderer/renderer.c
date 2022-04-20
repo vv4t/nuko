@@ -29,18 +29,18 @@ bool renderer_init(renderer_t *renderer)
   basic_shader_bind(&renderer->basic_shader);
   
   renderer_init_projection_matrix(renderer);
-  renderer_load_model(renderer, &renderer->cg_models[CGMDL_FUMO_CIRNO], "assets/mdl/fumo_cirno.mdl");
-  renderer->cg_models_vertex_ptr = mesh_pool_vertex_pointer(&renderer->mesh_pool);
+  renderer_load_model(renderer, &renderer->bg_models[BG_MDL_FUMO_CIRNO], "assets/mdl/fumo_cirno.mdl");
+  renderer->bg_models_vertex_ptr = mesh_pool_vertex_pointer(&renderer->mesh_pool);
   
   renderer->map_model = (r_model_t) {0};
   
   return true;
 }
 
-void renderer_setup_view_projection_matrix(renderer_t *renderer, const cgame_t *cgame)
+void renderer_setup_view_projection_matrix(renderer_t *renderer, const cgame_t *cg)
 {
-  vec3_t view_origin = cgame->bgame.transform[cgame->player_entity].position;
-  quat_t view_angle = cgame->bgame.transform[cgame->player_entity].rotation;
+  vec3_t view_origin = cg->bg.transform[cg->player_entity].position;
+  quat_t view_angle = cg->bg.transform[cg->player_entity].rotation;
   
   vec3_t inverted_view_origin = vec3_mulf(view_origin, -1);
   quat_t inverted_view_angle = quat_conjugate(view_angle);
@@ -53,22 +53,22 @@ void renderer_setup_view_projection_matrix(renderer_t *renderer, const cgame_t *
   renderer->view_projection_matrix = mat4x4_mul(view_matrix, renderer->projection_matrix);
 }
 
-#define R_MASK_DRAW_ENTITIES (BGC_TRANSFORM | CGC_MODEL)
-void renderer_draw_entities(renderer_t *renderer, const cgame_t *cgame)
+#define R_MASK_DRAW_ENTITIES (BGC_TRANSFORM | BGC_MODEL)
+void renderer_draw_entities(renderer_t *renderer, const cgame_t *cg)
 {
-  for (int i = 0; i < cgame->edict.num_entities; i++) {
-    if ((cgame->edict.entities[i] & R_MASK_DRAW_ENTITIES) != R_MASK_DRAW_ENTITIES)
+  for (int i = 0; i < cg->edict.num_entities; i++) {
+    if ((cg->edict.entities[i] & R_MASK_DRAW_ENTITIES) != R_MASK_DRAW_ENTITIES)
       continue;
     
-    mat4x4_t translation_matrix = mat4x4_init_translation(cgame->bgame.transform[i].position);
-    mat4x4_t rotation_matrix = mat4x4_init_rotation(cgame->bgame.transform[i].rotation);
+    mat4x4_t translation_matrix = mat4x4_init_translation(cg->bg.transform[i].position);
+    mat4x4_t rotation_matrix = mat4x4_init_rotation(cg->bg.transform[i].rotation);
     
-    mat4x4_t model_matrix = mat4x4_mul(translation_matrix, rotation_matrix);
+    mat4x4_t model_matrix = mat4x4_mul(rotation_matrix, translation_matrix);
     mat4x4_t model_view_projection_matrix = mat4x4_mul(model_matrix, renderer->view_projection_matrix);
     
     basic_shader_set_mvp(&renderer->basic_shader, model_view_projection_matrix);
     
-    renderer_draw_model(renderer, &renderer->cg_models[cgame->model[i]]);
+    renderer_draw_model(renderer, &renderer->bg_models[cg->bg.model[i]]);
   }
 }
 
@@ -78,12 +78,12 @@ void renderer_draw_map(renderer_t *renderer)
   renderer_draw_model(renderer, &renderer->map_model);
 }
 
-void renderer_render_player_view(renderer_t *renderer, const cgame_t *cgame)
+void renderer_render_player_view(renderer_t *renderer, const cgame_t *cg)
 {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   
-  renderer_setup_view_projection_matrix(renderer, cgame);
+  renderer_setup_view_projection_matrix(renderer, cg);
   
   renderer_draw_map(renderer);
-  renderer_draw_entities(renderer, cgame);
+  renderer_draw_entities(renderer, cg);
 }

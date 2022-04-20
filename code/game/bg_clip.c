@@ -1,4 +1,4 @@
-#include "bg-local.h"
+#include "bg_local.h"
 
 static void capsule_clip_bsp_R(
   bg_clip_t             *clip,
@@ -37,19 +37,19 @@ static void capsule_clip_bsp_R(
 
 
 #define BG_MASK_CLIP_CAPSULE_BSP (BGC_TRANSFORM | BGC_CLIP | BGC_CAPSULE)
-void bgame_clip_capsule_bsp(bgame_t *bgame)
+void bg_clip_capsule_bsp(bgame_t *bg)
 {
-  for (int i = 0; i < bgame->edict->num_entities; i++) {
-    if ((bgame->edict->entities[i] & BG_MASK_CLIP_CAPSULE_BSP) != BG_MASK_CLIP_CAPSULE_BSP)
+  for (int i = 0; i < bg->edict->num_entities; i++) {
+    if ((bg->edict->entities[i] & BG_MASK_CLIP_CAPSULE_BSP) != BG_MASK_CLIP_CAPSULE_BSP)
       continue;
     
-    bgame->clip[i].num_planes = 0;
+    bg->clip[i].num_planes = 0;
     capsule_clip_bsp_R(
-      &bgame->clip[i],
-      &bgame->capsule[i],
-      &bgame->transform[i],
-      bgame->bsp,
-      &bgame->bsp->plane,
+      &bg->clip[i],
+      &bg->capsule[i],
+      &bg->transform[i],
+      bg->bsp,
+      &bg->bsp->plane,
       -100);
   }
 }

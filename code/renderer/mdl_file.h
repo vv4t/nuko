@@ -2,7 +2,7 @@
 #define MDL_FILE_H
 
 #include "../common/lump.h"
-#include "../common/nk-math.h"
+#include "../common/nk_math.h"
 #include <stdio.h>
 #include <stdbool.h>
 

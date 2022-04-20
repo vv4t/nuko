@@ -6,17 +6,6 @@ import express from "express";
 import Module from "../server.cjs";
 import { WebSocketServer } from "ws";
 
-class ws_client_t {
-  constructor(ws)
-  {
-    this.ws = ws;
-  }
-};
-
-Module.sv_clients = [];
-Module.sv_clients_tail = 0;
-Module.sv_clients_head = 0;
-
 function http_init()
 {
   const app = express();
@@ -31,25 +20,21 @@ function http_init()
   });
 
   wss.on("connection", function(ws) {
-    const id = Module.sv_clients_head++;
-    Module.sv_clients[id] = new ws_client_t(ws);
+    const sock = new Module.socket_t((payload) => ws.send(payload));
     
-    console.log(`[${id}] connected`);
+    sock.on_open();
+    ws.on("message", (payload) => sock.on_recv(payload));
+    ws.on("close", () => sock.on_close());
     
-    ws.on("message", function(message) {
-      const payload = Buffer.from(message);
-      console.log(`[${id}] received:`, message, payload);
-    });
+    const sock_id = Module.net_add_sock(sock);
     
-    ws.on("close", function() {
-      console.log(`[${id}] disconnected`);
-    });
+    console.log(`[${sock_id}] connected`);
     
-    ws.send("hi");
+    Module.net_serve(sock_id);
   });
 
   server.listen(8000);
-  console.log("Listening on localhosts:8000");
+  console.log("Listening on localhost:8000");
 }
 
 function game_init()

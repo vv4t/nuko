@@ -26,7 +26,7 @@ static void load_map_f(void *d)
     return;
   }
   
-  client_load_map(&client, cmd_argv(1));
+  cl_load_map(&client, cmd_argv(1));
 }
 
 void key_bind_f(void *d)
@@ -65,7 +65,7 @@ void sys_event_loop()
       sys_console_key_press(event->data.key_press.key, event->data.key_press.action);
       break;
     case SYS_MOUSE_MOVE:
-      client_mouse_move(&client, event->data.mouse_move.dx, event->data.mouse_move.dy);
+      cl_mouse_move(&client, event->data.mouse_move.dx, event->data.mouse_move.dy);
       break;
     case SYS_QUIT:
       sys_quit();
@@ -82,7 +82,7 @@ void sys_init()
   if (!sys_win_init(1280, 720, "nuko"))
     log_printf(LOG_FATAL, "sys_init(): failed to initialise window");
   
-  client_init(&client);
+  cl_init(&client);
 }
 
 void sys_update()
@@ -90,7 +90,7 @@ void sys_update()
   sys_win_poll();
   cmd_execute();
   sys_event_loop();
-  client_update(&client);
+  cl_update(&client);
   sys_win_swap();
 }
 
@@ -105,7 +105,7 @@ int main(int argc, char* argv[])
   sys_init();
 
 #ifdef EMSCRIPTEN
-  emscripten_set_main_loop(sys_update, 0, true);
+  emscripten_set_main_loop(sys_update, 60, true);
 #else
   while (1)
     sys_update();

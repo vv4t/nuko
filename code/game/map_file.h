@@ -3,7 +3,7 @@
 
 #include "bsp.h"
 #include "../common/lump.h"
-#include "../common/nk-math.h"
+#include "../common/nk_math.h"
 #include <stdio.h>
 #include <stdbool.h>
 

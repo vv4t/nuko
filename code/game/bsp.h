@@ -1,7 +1,7 @@
 #ifndef BSP_H
 #define BSP_H
 
-#include "../common/nk-math.h"
+#include "../common/nk_math.h"
 
 typedef enum {
   BSP_BRUSH_EMPTY,

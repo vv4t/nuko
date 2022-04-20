@@ -1,4 +1,4 @@
-#include "map-file.h"
+#include "map_file.h"
 
 #include "../common/log.h"
 #include "../common/zone.h"

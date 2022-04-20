@@ -1,26 +1,26 @@
-#include "bg-local.h"
+#include "bg_local.h"
 
-void bgame_init(bgame_t *bgame, edict_t *edict)
+void bg_init(bgame_t *bg, edict_t *edict)
 {
-  bgame->edict = edict;
-  bgame->bsp = NULL;
+  bg->edict = edict;
+  bg->bsp = NULL;
 }
 
-void bgame_new_map(bgame_t *bgame, const map_t *map)
+void bg_new_map(bgame_t *bg, const map_t *map)
 {
-  if (bgame->bsp)
-    map_free_bsp(bgame->bsp);
+  if (bg->bsp)
+    map_free_bsp(bg->bsp);
   
-  bgame->bsp = map_load_bsp(map);
+  bg->bsp = map_load_bsp(map);
 }
 
-void bgame_update(bgame_t *bgame)
+void bg_update(bgame_t *bg)
 {
-  bgame_motion_gravity(bgame);
-  bgame_player_look(bgame);
-  bgame_player_move(bgame);
-  bgame_motion_integrate(bgame);
-  bgame_clip_capsule_bsp(bgame);
-  bgame_motion_clip(bgame);
-  bgame_player_test_grounded(bgame);
+  bg_motion_gravity(bg);
+  bg_player_look(bg);
+  bg_player_move(bg);
+  bg_motion_integrate(bg);
+  bg_clip_capsule_bsp(bg);
+  bg_motion_clip(bg);
+  bg_player_test_grounded(bg);
 }

@@ -2,7 +2,7 @@
 #define BASIC_SHADER_H
 
 #include "shader.h"
-#include "../common/nk-math.h"
+#include "../common/nk_math.h"
 #include <stdbool.h>
 
 typedef struct {

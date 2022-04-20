@@ -1,35 +1,46 @@
-function emc_sock_new()
+
+function cl_get_host_address(host_ptr, max)
 {
+  const loc = window.location;
+  const protocol = loc.protocol == "https:" ? "wss:" : "ws:";
+  const host_address = protocol + "//" + loc.host + "/socket";
   
+  const host_len = Math.min(host_address.length, max);
+  
+  for (let i = 0; i < host_len; i++)
+    Module.HEAP8[host_ptr + i] = host_address.charCodeAt(i);
+  
+  Module.HEAP8[host_ptr + host_len] = 0;
 }
 
-function emc_sock_connect(host_ptr)
+function cl_net_connect(host_ptr)
 {
   const host = read_heap_string(host_ptr);
-  const sid = Module.sockets.push(new socket_t(host)) - 1;
-  return sid;
+  const ws = new WebSocket(host);
+  ws.binaryType = "arraybuffer";
+  
+  const sock = new Module.socket_t((payload) => ws.send(payload));
+  
+  ws.onopen = () => sock.on_open();
+  ws.onclose = () => sock.on_close();
+  ws.onmessage = (e) => sock.on_recv(new Uint8Array(e.data));
+  
+  return Module.net_add_sock(sock);
 }
 
-function emc_sock_send(sid, payload_ptr, len)
+function cl_net_sock_send(sock_id, payload_ptr, len)
 {
-  const ws = Module.sockets[sid];
-  const payload = new Uint8Array(len);
-  
-  for (let i = 0; i < len; i++)
-    payload[i] = Module.HEAP8[payload_ptr + i];
-  
-  if (ws.ws.readyState == 1)
-    ws.ws.send(payload);
+  return Module.net_sock_send(sock_id, payload_ptr, len);
 }
 
-function emc_sock_recv(sid, payload_ptr, len)
+function cl_net_sock_recv(sock_id, payload_ptr, max)
 {
-  
+  return Module.net_sock_recv(sock_id, payload_ptr, max);
 }
 
 mergeInto(LibraryManager.library, {
-  sock_new: emc_sock_new,
-  sock_connect: emc_sock_connect,
-  sock_send: emc_sock_send,
-  sock_recv: emc_sock_recv
+  cl_get_host_address: cl_get_host_address,
+  net_connect: cl_net_connect,
+  net_sock_send: cl_net_sock_send,
+  net_sock_recv: cl_net_sock_recv
 });
