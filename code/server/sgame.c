@@ -33,10 +33,17 @@ void sg_build_snapshot(snapshot_t *snapshot, const sgame_t *sg)
 entity_t sg_add_client(sgame_t *sg)
 {
   entity_t entity = edict_add_entity(&sg->edict, SG_ES_SV_CLIENT);
+  sg->bg.transform[entity] = (bg_transform_t) {0};
+  sg->bg.motion[entity] = (bg_motion_t) {0};
   sg->bg.capsule[entity].radius = 0.5f;
   sg->bg.capsule[entity].height = 1.0f;
   sg->bg.transform[entity].position.y = 3;
   sg->bg.model[entity] = BG_MDL_FUMO_CIRNO;
   
   return entity;
+}
+
+void sg_remove_client(sgame_t *sg, entity_t entity)
+{
+  edict_remove_entity(&sg->edict, entity);
 }

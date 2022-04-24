@@ -7,8 +7,9 @@
 
 void sv_init(server_t *sv)
 {
-  net_listen(8000);
+  *sv = (server_t) {0};
   
+  net_listen(8000);
   sg_init(&sv->sg);
   
   const char *map_path = "assets/map/nk_construct.map";
@@ -22,6 +23,7 @@ void sv_init(server_t *sv)
 
 void sv_update(server_t *sv)
 {
+  sv_cull(sv);
   sv_accept(sv);
   sv_poll(sv);
   

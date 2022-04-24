@@ -1,15 +1,45 @@
 #include "sv_local.h"
 
+void sv_cull(server_t *sv)
+{
+  for (int i = 0; i < sv->num_clients; i++) {
+    if (net_sock_status(sv->clients[i].sock) == NET_SOCK_DISCONNECTED) {
+      sg_remove_client(&sv->sg, sv->clients[i].entity);
+      sv->clients[i].connected = false;
+    }
+  }
+}
+
+sv_client_t *sv_new_client(server_t *sv, sock_t sock, entity_t entity)
+{
+  sv_client_t *client = NULL;
+  
+  for (int i = 0; i < sv->num_clients; i++) {
+    if (!sv->clients[i].connected) {
+      client = &sv->clients[i];
+      break;
+    }
+  }
+  
+  if (!client)
+    client = &sv->clients[sv->num_clients++];
+  
+  client->sock = sock;
+  client->entity = entity;
+  client->frame_tail = 0;
+  client->frame_head = 0;
+  client->connected = true;
+  
+  return client;
+}
+
 void sv_accept(server_t *sv)
 {
-  sv_client_t *client = &sv->clients[sv->num_clients];
-  
-  while (net_accept(&client->sock)) {
-    client->entity = sg_add_client(&sv->sg);
-    client->frame_tail = 0;
-    client->frame_head = 0;
-    sv->num_clients++;
+  sock_t sock;
+  while (net_accept(&sock)) {
+    entity_t entity = sg_add_client(&sv->sg);
     
+    sv_client_t *client = sv_new_client(sv, sock, entity);
     sv_send_open(sv, client);
   }
 }

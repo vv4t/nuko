@@ -1,5 +1,8 @@
 "use strict";
 
+const NET_SOCK_DISCONNECTED = 0;
+const NET_SOCK_CONNECTED = 1;
+
 Module.socket_t = function(fn_send)
 {
   this.b_recv = [];
@@ -32,29 +35,41 @@ Module.socket_t.prototype.on_close = function()
   this.connected = false;
 };
 
-Module.net_sockets = [];
+Module.net_sockets = {};
 Module.net_incoming_sockets = [];
+Module.net_sock_uid = 0;
 
 Module.net_add_sock = function(sock)
 {
-  return Module.net_sockets.push(sock) - 1;
+  const uid = Module.net_sock_uid++;
+  Module.net_sockets[uid] = sock;
+  
+  return uid;
 }
 
 Module.net_sock_send = function(sock_id, payload_ptr, len)
 {
   const sock = Module.net_sockets[sock_id];
   
-  const payload = new Uint8Array(len);
-  for (let i = 0; i < len; i++)
-    payload[i] = Module.HEAP8[payload_ptr + i];
+  if (!sock)
+    return;
   
-  if (sock.connected)
+  if (sock.connected) {
+    const payload = new Uint8Array(len);
+    
+    for (let i = 0; i < len; i++)
+      payload[i] = Module.HEAP8[payload_ptr + i];
+    
     sock.send(payload);
+  }
 }
 
 Module.net_sock_recv = function(sock_id, payload_ptr, max)
 {
   const sock = Module.net_sockets[sock_id];
+  
+  if (!sock)
+    return;
   
   const payload = sock.recv();
   if (payload) {
@@ -66,6 +81,21 @@ Module.net_sock_recv = function(sock_id, payload_ptr, max)
   }
   
   return 0;
+}
+
+Module.net_sock_status = function(sock_id)
+{
+  const sock = Module.net_sockets[sock_id];
+  
+  if (!sock)
+    return NET_SOCK_DISCONNECTED;
+  
+  if (sock.connected) {
+    return NET_SOCK_CONNECTED;
+  } else {
+    delete Module.net_sockets[sock_id];
+    return NET_SOCK_DISCONNECTED;
+  }
 }
 
 Module.net_listen = function(port)

@@ -16,6 +16,7 @@ typedef struct {
 void      sg_init(sgame_t *sg);
 void      sg_new_map(sgame_t *sg, const map_t *map);
 entity_t  sg_add_client(sgame_t *sg);
+void      sg_remove_client(sgame_t *sg, entity_t entity);
 void      sg_build_snapshot(snapshot_t *snapshot, const sgame_t *sg);
 void      sg_update(sgame_t *sg);
 

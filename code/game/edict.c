@@ -21,3 +21,8 @@ entity_t edict_add_entity(edict_t *edict, int state)
   
   return edict->num_entities++;
 }
+
+void edict_remove_entity(edict_t *edict, entity_t entity)
+{
+  edict->entities[entity] = 0;
+}

@@ -12,5 +12,6 @@ typedef int entity_t;
 
 void      edict_init(edict_t *edict);
 entity_t  edict_add_entity(edict_t *edict, int state);
+void      edict_remove_entity(edict_t *edict, entity_t entity);
 
 #endif

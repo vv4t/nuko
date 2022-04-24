@@ -12,6 +12,8 @@ typedef struct {
   sock_t    sock;
   entity_t  entity;
   
+  bool      connected;
+  
   frame_t   frame_queue[MAX_FRAME_QUEUE];
   int       frame_head;
   int       frame_tail;
