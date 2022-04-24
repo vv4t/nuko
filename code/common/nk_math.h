@@ -160,7 +160,7 @@ inline static mat4x4_t mat4x4_mul(mat4x4_t a, mat4x4_t b)
   return m;
 }
 
-inline mat4x4_t mat4x4_init_rotation(quat_t q)
+inline static mat4x4_t mat4x4_init_rotation(quat_t q)
 {
   mat4x4_t m;
   m.m[0]  = 1-2*q.y*q.y - 2*q.z*q.z;  m.m[4]  = 2*q.x*q.y - 2*q.z*q.w;    m.m[8]  = 2*q.x*q.z + 2*q.y*q.w;    m.m[12] = 0;
@@ -171,7 +171,7 @@ inline mat4x4_t mat4x4_init_rotation(quat_t q)
   return m;
 }
 
-inline mat4x4_t mat4x4_init_perspective(float aspect_ratio, float fov, float near, float far)
+inline static mat4x4_t mat4x4_init_perspective(float aspect_ratio, float fov, float near, float far)
 {
   float tan_fov = 1 / tan(fov / 2);
   float ar_tan_fov = aspect_ratio * tan_fov;
