@@ -8,7 +8,7 @@
 
 void cl_init(client_t *client)
 {
-#ifndef EMSCRIPTEN
+#ifndef __EMSCRIPTEN__
   if (!gl_init())
     log_printf(LOG_FATAL, "cl_init(): failed to initialise OpenGL");
 #endif

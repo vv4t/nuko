@@ -9,7 +9,7 @@ void sv_init(server_t *sv)
 {
   *sv = (server_t) {0};
   
-  net_listen(8000);
+  net_listen();
   sg_init(&sv->sg);
   
   const char *map_path = "assets/map/nk_construct.map";
@@ -23,7 +23,6 @@ void sv_init(server_t *sv)
 
 void sv_update(server_t *sv)
 {
-  sv_cull(sv);
   sv_accept(sv);
   sv_poll(sv);
   
@@ -35,6 +34,5 @@ void sv_update(server_t *sv)
   }
   
   sg_update(&sv->sg);
-  
   sv_send_all_snapshot(sv);
 }

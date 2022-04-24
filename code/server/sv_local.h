@@ -4,7 +4,6 @@
 #include "server.h"
 #include "../game/protocol.h"
 
-void sv_cull(server_t *sv);
 void sv_accept(server_t *sv);
 void sv_poll(server_t *sv);
 void sv_send_all_snapshot(server_t *sv);

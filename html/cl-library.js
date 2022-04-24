@@ -33,14 +33,14 @@ function cl_net_sock_send(sock_id, payload_ptr, len)
   return Module.net_sock_send(sock_id, payload_ptr, len);
 }
 
-function cl_net_sock_recv(sock_id, payload_ptr, max)
+function cl_net_sock_read(sock_id, payload_ptr, len)
 {
-  return Module.net_sock_recv(sock_id, payload_ptr, max);
+  return Module.net_sock_read(sock_id, payload_ptr, len);
 }
 
 mergeInto(LibraryManager.library, {
   cl_get_host_address: cl_get_host_address,
   net_connect: cl_net_connect,
   net_sock_send: cl_net_sock_send,
-  net_sock_recv: cl_net_sock_recv
+  net_sock_read: cl_net_sock_read
 });

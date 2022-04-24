@@ -23,8 +23,8 @@ void sg_build_snapshot(snapshot_t *snapshot, const sgame_t *sg)
 {
   memcpy(&snapshot->edict, &sg->edict, sizeof(edict_t));
   
-  memcpy(&snapshot->sv_transform, sg->bg.transform, sizeof(sg->bg.transform));
-  memcpy(&snapshot->sv_capsule, sg->bg.capsule, sizeof(sg->bg.client));
+  memcpy(&snapshot->sv_transform[0], sg->bg.transform, sizeof(sg->bg.transform));
+  memcpy(&snapshot->sv_capsule[0], sg->bg.capsule, sizeof(sg->bg.capsule));
   
   for (int i = 0; i < snapshot->edict.num_entities; i++)
     snapshot->edict.entities[i] &= SG_SNAPSHOT_MASK;

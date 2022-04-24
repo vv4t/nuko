@@ -19,7 +19,7 @@ typedef enum {
 typedef struct {
   cgame_t     cg;
   renderer_t  renderer;
-  sock_t      sock;
+  int         sock_id;
   
   usercmd_t   usercmd;
   

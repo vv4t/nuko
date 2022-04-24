@@ -9,7 +9,7 @@
 #define MAX_FRAME_QUEUE 128
 
 typedef struct {
-  sock_t    sock;
+  int       sock_id;
   entity_t  entity;
   
   bool      connected;
