@@ -28,9 +28,12 @@ void sv_update(server_t *sv)
   
   for (int i = 0; i < sv->num_clients; i++) {
     sv_client_t *client = &sv->clients[i];
-    frame_t *frame = &client->frame_queue[(client->frame_tail++) % MAX_FRAME_QUEUE];
-    sv->sg.bg.client[client->entity].usercmd = frame->data.usercmd;
-    client->incoming_seq = frame->outgoing_seq;
+    
+    if (client->frame_tail < client->frame_head) {
+      frame_t *frame = &client->frame_queue[(client->frame_tail++) % MAX_FRAME_QUEUE];
+      sv->sg.bg.client[client->entity].usercmd = frame->data.usercmd;
+      client->incoming_seq = frame->outgoing_seq;
+    }
   }
   
   sg_update(&sv->sg);

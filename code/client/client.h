@@ -23,6 +23,8 @@ typedef struct {
   
   usercmd_t   usercmd;
   
+  bool        connected;
+  
   cl_button_t buttons[MAX_BUTTONS];
   
   float       mouse_x;

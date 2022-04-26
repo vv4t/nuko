@@ -23,11 +23,13 @@ void cl_net_init(client_t *client)
   char host_address[256];
   cl_get_host_address(host_address, 256);
   
+  client->connected = false;
   client->sock_id = net_connect(host_address);
 }
 
 void cl_recv_open(client_t *client, const frame_t *frame)
 {
+  client->connected = true;
   cg_set_player(&client->cg, frame->data.client_entity);
 }
 
@@ -56,10 +58,12 @@ void cl_poll(client_t *client)
 
 void cl_send_cmd(client_t *client)
 {
-  frame_t frame;
-  frame.netcmd = NETCMD_USERCMD;
-  frame.outgoing_seq = client->cg.outgoing_seq++;
-  frame.data.usercmd = client->usercmd;
-  
-  net_sock_send(client->sock_id, &frame, sizeof(frame_t));
+  if (client->connected) {
+    frame_t frame;
+    frame.netcmd = NETCMD_USERCMD;
+    frame.outgoing_seq = client->cg.outgoing_seq++;
+    frame.data.usercmd = client->usercmd;
+    
+    net_sock_send(client->sock_id, &frame, sizeof(frame_t));
+  }
 }
