@@ -18,37 +18,37 @@ void cl_get_host_address(char *host_address, int len)
 
 #endif
 
-void cl_net_init(client_t *client)
+void cl_net_init(client_t *cl)
 {
   char host_address[256];
   cl_get_host_address(host_address, 256);
   
-  client->connected = false;
-  client->sock_id = net_connect(host_address);
+  cl->connected = false;
+  cl->sock_id = net_connect(host_address);
 }
 
-void cl_recv_open(client_t *client, const frame_t *frame)
+void cl_recv_open(client_t *cl, const frame_t *frame)
 {
-  client->connected = true;
-  cg_set_player(&client->cg, frame->data.client_entity);
+  cl->connected = true;
+  cg_set_player(&cl->cg, frame->data.client_entity);
 }
 
-void cl_recv_snapshot(client_t *client, const frame_t *frame)
+void cl_recv_snapshot(client_t *cl, const frame_t *frame)
 {
-  client->cg.snapshot = frame->data.snapshot;
-  client->cg.incoming_ack = frame->outgoing_ack;
+  cl->snapshot = frame->data.snapshot;
+  cl->incoming_ack = frame->outgoing_ack;
 }
 
-void cl_poll(client_t *client)
+void cl_net_recv(client_t *cl)
 {
   frame_t frame;
-  while (net_sock_read(client->sock_id, &frame, sizeof(frame_t)) > 0) {
+  while (net_sock_read(cl->sock_id, &frame, sizeof(frame_t)) > 0) {
     switch (frame.netcmd) {
     case NETCMD_OPEN:
-      cl_recv_open(client, &frame);
+      cl_recv_open(cl, &frame);
       break;
     case NETCMD_SNAPSHOT:
-      cl_recv_snapshot(client, &frame);
+      cl_recv_snapshot(cl, &frame);
       break;
     case NETCMD_USERCMD:
       break;
@@ -56,14 +56,17 @@ void cl_poll(client_t *client)
   }
 }
 
-void cl_send_cmd(client_t *client)
+void cl_send_cmd(client_t *cl)
 {
-  if (client->connected) {
+  if (cl->connected) {
     frame_t frame;
     frame.netcmd = NETCMD_USERCMD;
-    frame.outgoing_seq = client->cg.outgoing_seq++;
-    frame.data.usercmd = client->usercmd;
+    frame.data.usercmd = cl->usercmd;
+    frame.outgoing_seq = cl->outgoing_seq;
     
-    net_sock_send(client->sock_id, &frame, sizeof(frame_t));
+    net_sock_send(cl->sock_id, &frame, sizeof(frame_t));
+    
+    cl->cmd_queue[frame.outgoing_seq % MAX_USERCMDS] = cl->usercmd;
+    cl->outgoing_seq++;
   }
 }

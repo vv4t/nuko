@@ -3,54 +3,51 @@
 #include "../common/cmd.h"
 #include <stdbool.h>
 
-static void key_state(client_t *client, cl_button_t button, float state)
+static float  in_forward  = 0.0f;
+static float  in_left     = 0.0f;
+static float  in_back     = 0.0f;
+static float  in_right    = 0.0f;
+static float  in_jump     = 0.0f;
+
+static float  in_mouse_x = 0.0f;
+static float  in_mouse_y = 0.0f;
+
+static void in_forward_down(void *cl) { in_forward  = 1.0f; }
+static void in_forward_up(void *cl)   { in_forward  = 0.0f; }
+static void in_left_down(void *cl)    { in_left     = 1.0f; }
+static void in_left_up(void *cl)      { in_left     = 0.0f; }
+static void in_back_down(void *cl)    { in_back     = 1.0f; }
+static void in_back_up(void *cl)      { in_back     = 0.0f; }
+static void in_right_down(void *cl)   { in_right    = 1.0f; }
+static void in_right_up(void *cl)     { in_right    = 0.0f; }
+static void in_jump_down(void *cl)    { in_jump     = 1.0f; }
+static void in_jump_up(void *cl)      { in_jump     = 0.0f; }
+
+void cl_input_init(client_t *cl)
 {
-  client->buttons[button] = state;
+  cmd_add_command("+forward", in_forward_down, NULL);
+  cmd_add_command("-forward", in_forward_up, NULL);
+  cmd_add_command("+left", in_left_down, NULL);
+  cmd_add_command("-left", in_left_up, NULL);
+  cmd_add_command("+back", in_back_down, NULL);
+  cmd_add_command("-back", in_back_up, NULL);
+  cmd_add_command("+right", in_right_down, NULL);
+  cmd_add_command("-right", in_right_up, NULL);
+  cmd_add_command("+jump", in_jump_down, NULL);
+  cmd_add_command("-jump", in_jump_up, NULL);
 }
 
-static void in_forward_down(void *client) { key_state((client_t*) client, IN_FORWARD, 1.0f); }
-static void in_forward_up(void *client)   { key_state((client_t*) client, IN_FORWARD, 0.0f); }
-static void in_left_down(void *client)    { key_state((client_t*) client, IN_LEFT,    1.0f); }
-static void in_left_up(void *client)      { key_state((client_t*) client, IN_LEFT,    0.0f); }
-static void in_back_down(void *client)    { key_state((client_t*) client, IN_BACK,    1.0f); }
-static void in_back_up(void *client)      { key_state((client_t*) client, IN_BACK,    0.0f); }
-static void in_right_down(void *client)   { key_state((client_t*) client, IN_RIGHT,   1.0f); }
-static void in_right_up(void *client)     { key_state((client_t*) client, IN_RIGHT,   0.0f); }
-static void in_jump_down(void *client)    { key_state((client_t*) client, IN_JUMP,    1.0f); }
-static void in_jump_up(void *client)      { key_state((client_t*) client, IN_JUMP,    0.0f); }
-
-void cl_input_init(client_t *client)
+void cl_mouse_move(client_t *cl, int dx, int dy)
 {
-  cmd_add_command("+forward", in_forward_down, client);
-  cmd_add_command("-forward", in_forward_up, client);
-  cmd_add_command("+left", in_left_down, client);
-  cmd_add_command("-left", in_left_up, client);
-  cmd_add_command("+back", in_back_down, client);
-  cmd_add_command("-back", in_back_up, client);
-  cmd_add_command("+right", in_right_down, client);
-  cmd_add_command("-right", in_right_up, client);
-  cmd_add_command("+jump", in_jump_down, client);
-  cmd_add_command("-jump", in_jump_up, client);
+  in_mouse_x += dx;
+  in_mouse_y += dy;
 }
 
-void cl_mouse_move(client_t *client, int dx, int dy)
+void cl_base_move(client_t *cl)
 {
-  client->mouse_x += dx;
-  client->mouse_y += dy;
-}
-
-void cl_base_move(client_t *client)
-{
-  float forward = client->buttons[IN_FORWARD];
-  float left = client->buttons[IN_LEFT];
-  float back = client->buttons[IN_BACK];
-  float right = client->buttons[IN_RIGHT];
-  float jump = client->buttons[IN_JUMP];
-  
-  client->usercmd.forward = forward - back;
-  client->usercmd.right = right - left;
-  client->usercmd.jump = jump;
-  
-  client->usercmd.yaw = client->mouse_x;
-  client->usercmd.pitch = client->mouse_y;
+  cl->usercmd.forward = in_forward - in_back;
+  cl->usercmd.right   = in_right - in_left;
+  cl->usercmd.jump    = in_jump;
+  cl->usercmd.yaw     = in_mouse_x;
+  cl->usercmd.pitch   = in_mouse_y;
 }

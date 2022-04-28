@@ -16,19 +16,15 @@ typedef struct {
   edict_t         edict;
   bgame_t         bg;
   
-  snapshot_t      snapshot;
-  
-  int             incoming_ack;
-  int             outgoing_seq;
-  
   entity_t        player_entity;
 } cgame_t;
 
 void cg_init(cgame_t *cg);
-void cg_send_cmd(cgame_t *cg, const usercmd_t *usercmd);
 void cg_new_map(cgame_t *cg, const map_t *map);
-void cg_set_player(cgame_t *cg, entity_t player);
-void cg_reconcile(cgame_t *cg);
+void cg_reconcile(cgame_t *cg, const snapshot_t *snapshot);
 void cg_update(cgame_t *cg);
+
+void cg_set_cmd(cgame_t *cg, const usercmd_t *usercmd);
+void cg_set_player(cgame_t *cg, entity_t player);
 
 #endif

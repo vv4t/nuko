@@ -24,16 +24,6 @@
 
 static client_t client;
 
-static void load_map_f(void *d)
-{
-  if (cmd_argc() != 2) {
-    log_printf(LOG_ERROR, "load_map_f(): usage: %s [map_name]", cmd_argv(0));
-    return;
-  }
-  
-  cl_load_map(&client, cmd_argv(1));
-}
-
 void key_bind_f(void *d)
 {
   if (cmd_argc() != 3) {
@@ -50,7 +40,6 @@ void key_bind_f(void *d)
 static void sys_config()
 {
   cmd_add_command("bind", key_bind_f, NULL);
-  cmd_add_command("map", load_map_f, NULL);
   cmd_add_command("open_console", sys_console_input, NULL);
   
   sys_bind("+forward", 'w');

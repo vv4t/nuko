@@ -6,40 +6,47 @@
 #include "../game/map_file.h"
 #include "../renderer/gl.h"
 
-void cl_init(client_t *client)
+void cl_init(client_t *cl)
 {
 #ifndef __EMSCRIPTEN__
   if (!gl_init())
     log_printf(LOG_FATAL, "cl_init(): failed to initialise OpenGL");
 #endif
   
-  if (!renderer_init(&client->renderer))
+  if (!renderer_init(&cl->renderer))
     log_printf(LOG_FATAL, "cl_init(): failed to initialize renderer");
   
-  *client = (client_t) {0};
+  *cl = (client_t) {0};
   
-  cl_net_init(client);
-  cl_input_init(client);
-  cg_init(&client->cg);
-  renderer_init(&client->renderer);
+  cl_net_init(cl);
+  cl_input_init(cl);
+  cg_init(&cl->cg);
+  renderer_init(&cl->renderer);
   
-  cl_load_map(client, "nk_construct");
+  cl_load_map(cl, "nk_construct");
 }
 
-void cl_update(client_t *client)
+void cl_update(client_t *cl)
 {
-  cl_poll(client);
+  cl_net_recv(cl);
+  cl_base_move(cl);
+  cl_send_cmd(cl);
+  cl_predict(cl);
   
-  cl_base_move(client);
-  cg_send_cmd(&client->cg, &client->usercmd);
-  cl_send_cmd(client);
-  
-  cg_update(&client->cg);
-  
-  renderer_render_player_view(&client->renderer, &client->cg);
+  renderer_render_player_view(&cl->renderer, &cl->cg);
 }
 
-void cl_load_map(client_t *client, const char *name)
+void cl_predict(client_t *cl)
+{
+  cg_reconcile(&cl->cg, &cl->snapshot);
+  
+  for (int i = cl->incoming_ack + 1; i < cl->outgoing_seq; i++) {
+    cg_set_cmd(&cl->cg, &cl->cmd_queue[i % MAX_USERCMDS]);
+    cg_update(&cl->cg);
+  }
+}
+
+void cl_load_map(client_t *cl, const char *name)
 {
   char map_path[256];
   sprintf(map_path, "assets/map/%s.map", name);
@@ -48,8 +55,8 @@ void cl_load_map(client_t *client, const char *name)
   if (!map_load(&map, map_path))
     log_printf(LOG_FATAL, "cl_load_map(): failed to load %s", map_path);
   
-  if (!renderer_new_map(&client->renderer, &map))
+  if (!renderer_new_map(&cl->renderer, &map))
     log_printf(LOG_FATAL, "cl_load_map(): renderer failed to load new map");
   
-  cg_new_map(&client->cg, &map);
+  cg_new_map(&cl->cg, &map);
 }
