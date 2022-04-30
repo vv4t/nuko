@@ -5,37 +5,61 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-void sv_init(server_t *sv)
+server_t  sv;
+
+int       host_frametime = 15;
+
+void sv_init()
 {
-  *sv = (server_t) {0};
+  sv.num_clients = 0;
   
   net_listen();
-  sg_init(&sv->sg);
+  sg_init(&sv.sg);
   
-  const char *map_path = "assets/map/nk_construct.map";
-  
-  map_t map;
-  if (!map_load(&map, map_path))
-    log_printf(LOG_FATAL, "client_load_map(): failed to load %s", map_path);
-  
-  sg_new_map(&sv->sg, &map);
+  sv_load_map("nk_flatgrass");
 }
 
-void sv_update(server_t *sv)
+static int lag_time = 0;
+
+void sv_update(int delta_time)
 {
-  sv_accept(sv);
-  sv_poll(sv);
+  lag_time += delta_time;
   
-  for (int i = 0; i < sv->num_clients; i++) {
-    sv_client_t *client = &sv->clients[i];
+  while (lag_time > 0) {
+    lag_time -= host_frametime;
+    sv_fixed_update();
+  }
+}
+
+void sv_fixed_update()
+{
+  sv_accept();
+  sv_parse();
+  sv_game_update();
+  sv_send_snapshot();
+}
+
+void sv_game_update()
+{
+  for (int i = 0; i < sv.num_clients; i++) {
+    sv_client_t *client = &sv.clients[i];
     
-    if (client->frame_tail < client->frame_head) {
-      frame_t *frame = &client->frame_queue[(client->frame_tail++) % MAX_FRAME_QUEUE];
-      sv->sg.bg.client[client->entity].usercmd = frame->data.usercmd;
-      client->incoming_seq = frame->outgoing_seq;
-    }
+    if (client->cmd_tail < client->cmd_head)
+      sg_set_cmd(&sv.sg, client->entity, sv_client_get_usercmd(client));
   }
   
-  sg_update(&sv->sg);
-  sv_send_all_snapshot(sv);
+  sg_update(&sv.sg);
+}
+
+void sv_load_map(const char *name)
+{
+  char map_path[256];
+  sprintf(map_path, "assets/map/%s.map", name);
+  
+  map_t map;
+  
+  if (!map_load(&map, map_path))
+    log_printf(LOG_FATAL, "cl_load_map(): failed to load %s", map_path);
+  
+  sg_new_map(&sv.sg, &map);
 }

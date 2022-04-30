@@ -17,7 +17,8 @@ typedef enum {
   BGC_MOTION    = (1 << 4),
   BGC_PMOVE     = (1 << 5),
   BGC_MODEL     = (1 << 5),
-  AUX_BGC       = (1 << 6)
+  BGC_SHOOT     = (1 << 6),
+  AUX_BGC       = (1 << 7)
 } bg_component_t;
 
 typedef enum {
@@ -31,11 +32,12 @@ typedef struct {
 } bg_transform_t;
 
 typedef struct {
-  float forward;
-  float right;
-  float yaw;
-  float pitch;
-  bool  jump;
+  float     forward;
+  float     right;
+  float     yaw;
+  float     pitch;
+  float     jump;
+  float     attack;
 } usercmd_t;
 
 typedef struct {
@@ -58,7 +60,8 @@ typedef struct {
 
 typedef struct {
   quat_t    move_rot;
-  bool      is_grounded;
+  bool      grounded;
+  bool      attack;
 } bg_pmove_t;
 
 typedef struct {
@@ -66,6 +69,7 @@ typedef struct {
   
   bg_pmove_t      cl_pmove;
   bg_motion_t     cl_motion;
+  entity_t        cl_entity;
   
   bg_transform_t  sv_transform[MAX_ENTITIES];
   bg_capsule_t    sv_capsule[MAX_ENTITIES];

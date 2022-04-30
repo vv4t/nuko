@@ -18,19 +18,32 @@ void sg_update(sgame_t *sg)
   bg_update(&sg->bg);
 }
 
-#define SG_SNAPSHOT_MASK (BGC_TRANSFORM | BGC_CAPSULE | BGC_CLIP | BGC_MODEL)
-void sg_build_snapshot(snapshot_t *snapshot, const sgame_t *sg)
+void sg_set_cmd(sgame_t *sg, entity_t entity, const usercmd_t *usercmd)
 {
-  memcpy(&snapshot->edict, &sg->edict, sizeof(edict_t));
-  
-  memcpy(&snapshot->sv_transform[0], sg->bg.transform, sizeof(sg->bg.transform));
-  memcpy(&snapshot->sv_capsule[0], sg->bg.capsule, sizeof(sg->bg.capsule));
-  
-  for (int i = 0; i < snapshot->edict.num_entities; i++)
-    snapshot->edict.entities[i] &= SG_SNAPSHOT_MASK;
+  sg->bg.client[entity].usercmd = *usercmd;
 }
 
-entity_t sg_add_client(sgame_t *sg)
+#define SG_CLIENT_SNAPSHOT_MASK (BGC_TRANSFORM | BGC_CLIENT | BGC_CAPSULE | BGC_CLIP | BGC_MOTION | BGC_PMOVE | BGC_MODEL)
+void sg_client_snapshot(snapshot_t *snapshot, entity_t entity, const sgame_t *sg)
+{
+  memcpy(&snapshot->cl_pmove, &sg->bg.pmove[entity], sizeof(bg_pmove_t));
+  memcpy(&snapshot->cl_motion, &sg->bg.motion[entity], sizeof(bg_motion_t));
+  
+  snapshot->cl_entity = sg->edict.entities[entity] & SG_CLIENT_SNAPSHOT_MASK;
+}
+
+#define SG_SERVER_SNAPSHOT_MASK (BGC_TRANSFORM | BGC_CAPSULE | BGC_MODEL)
+void sg_server_snapshot(snapshot_t *snapshot, const sgame_t *sg)
+{
+  memcpy(&snapshot->edict, &sg->edict, sizeof(edict_t));
+  memcpy(&snapshot->sv_transform, &sg->bg.transform, sizeof(sg->bg.transform));
+  memcpy(&snapshot->sv_capsule, &sg->bg.capsule, sizeof(sg->bg.capsule));
+  
+  for (int i = 0; i < snapshot->edict.num_entities; i++)
+    snapshot->edict.entities[i] &= SG_SERVER_SNAPSHOT_MASK;
+}
+
+entity_t sg_new_client(sgame_t *sg)
 {
   entity_t entity = edict_add_entity(&sg->edict, SG_ES_SV_CLIENT);
   sg->bg.transform[entity] = (bg_transform_t) {0};

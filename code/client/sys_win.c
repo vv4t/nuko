@@ -1,7 +1,8 @@
-#include "win.h"
-
 #include "sys.h"
+
+#include "input.h"
 #include "../common/log.h"
+#include "../common/cmd.h"
 #include <SDL2/SDL.h>
 
 static SDL_Window     *win_sdl_window;
@@ -23,11 +24,11 @@ bool sys_win_init(int width, int height, const char *title)
   SDL_SetRelativeMouseMode(true);
   
   win_sdl_window = SDL_CreateWindow(
-    title,
+    NUKO_TITLE,
     SDL_WINDOWPOS_CENTERED,
     SDL_WINDOWPOS_CENTERED,
-    width,
-    height,
+    NUKO_WIDTH,
+    NUKO_HEIGHT,
     SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
   
   if (!win_sdl_window) {
@@ -45,45 +46,44 @@ bool sys_win_init(int width, int height, const char *title)
   return true;
 }
 
-void sys_win_poll()
+void sys_poll()
 {
   SDL_Event event;
   while (SDL_PollEvent(&event)) {
-    sys_event_t sys_event = {0};
     switch (event.type) {
     case SDL_QUIT:
-      sys_event.type = SYS_QUIT;
+      sys_quit();
       break;
     case SDL_KEYUP:
-      sys_event.type = SYS_KEY_PRESS;
-      sys_event.data.key_press.key = event.key.keysym.sym;
-      sys_event.data.key_press.action = 0;
+      in_key_event(event.key.keysym.sym, 0);
       break;
     case SDL_KEYDOWN:
-      sys_event.type = SYS_KEY_PRESS;
-      sys_event.data.key_press.key = event.key.keysym.sym;
-      sys_event.data.key_press.action = 1;
+      in_key_event(event.key.keysym.sym, 1);
+      break;
+    case SDL_MOUSEBUTTONDOWN:
+      in_mouse_event(0, 1);
+      break;
+    case SDL_MOUSEBUTTONUP:
+      in_mouse_event(0, 0);
       break;
     case SDL_MOUSEMOTION:
-      sys_event.type = SYS_MOUSE_MOVE;
-      sys_event.data.mouse_move.dx = event.motion.xrel;
-      sys_event.data.mouse_move.dy = event.motion.yrel;
+      in_mouse_move(event.motion.xrel, event.motion.yrel);
       break;
     }
-    
-    sys_queue_event(&sys_event);
   }
+  
+  cmd_execute();
 }
 
-void sys_win_quit()
+void sys_quit()
 {
   SDL_GL_DeleteContext(win_gl_context);
   SDL_DestroyWindow(win_sdl_window);
   SDL_Quit();
+  exit(0);
 }
 
-void sys_win_swap()
+void sys_swap()
 {
   SDL_GL_SwapWindow(win_sdl_window);
 }
-

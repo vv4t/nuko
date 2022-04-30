@@ -1,92 +1,60 @@
 #include "sv_local.h"
 
-sv_client_t *sv_new_client(server_t *sv, int sock_id, entity_t entity)
+void sv_accept()
+{
+  sock_t sock;
+  while ((sock = net_accept()) != -1) {
+    sv_client_t *client = sv_new_client(sv);
+    sv_client_init(client, sock);
+    
+    client->entity = sg_new_client(&sv.sg);
+    
+    sv_client_send_client_info(client);
+  }
+}
+
+sv_client_t *sv_new_client()
 {
   sv_client_t *client = NULL;
   
-  for (int i = 0; i < sv->num_clients; i++) {
-    if (!sv->clients[i].connected) {
-      client = &sv->clients[i];
-      break;
-    }
+  for (int i = 0; i < sv.num_clients; i++) {
+    if (!sv.clients[i].connected)
+      return &sv.clients[i];
   }
   
-  if (!client)
-    client = &sv->clients[sv->num_clients++];
-  
-  client->sock_id = sock_id;
-  client->entity = entity;
-  client->frame_tail = 0;
-  client->frame_head = 0;
-  client->connected = true;
-  
-  return client;
+  return &sv.clients[sv.num_clients++];
 }
 
-void sv_accept(server_t *sv)
+void sv_parse()
 {
-  int sock;
-  while ((sock = net_accept()) != -1) {
-    entity_t entity = sg_add_client(&sv->sg);
+  for (int i = 0; i < sv.num_clients; i++) {
+    sv_client_t *client = &sv.clients[i];
     
-    sv_client_t *client = sv_new_client(sv, sock, entity);
-    sv_send_open(sv, client);
-  }
-}
-
-void sv_send_all_snapshot(server_t *sv)
-{
-  frame_t frame = {0};
-  frame.netcmd = NETCMD_SNAPSHOT;
-  
-  sg_build_snapshot(&frame.data.snapshot, &sv->sg);
-  
-  for (int i = 0; i < sv->num_clients; i++) {
-    frame.outgoing_ack = sv->clients[i].incoming_seq;
-    frame.data.snapshot.cl_pmove = sv->sg.bg.pmove[sv->clients[i].entity];
-    frame.data.snapshot.cl_motion = sv->sg.bg.motion[sv->clients[i].entity];
-    
-    net_sock_send(sv->clients[i].sock_id, &frame, sizeof(frame_t));
-  }
-}
-
-void sv_send_open(server_t *sv, sv_client_t *client)
-{
-  frame_t frame;
-  frame.netcmd = NETCMD_OPEN;
-  frame.data.client_entity = client->entity;
-  
-  net_sock_send(client->sock_id, &frame, sizeof(frame_t));
-}
-
-void sv_recv_usercmd(server_t *sv, sv_client_t *client, const frame_t *frame)
-{
-  client->frame_queue[(client->frame_head++) % MAX_FRAME_QUEUE] = *frame;
-}
-
-void sv_poll(server_t *sv)
-{
-  for (int i = 0; i < sv->num_clients; i++) {
-    sv_client_t *client = &sv->clients[i];
-    
-    int bytes_read;
+    int read;
     frame_t frame;
     
-    while ((bytes_read = net_sock_read(client->sock_id, &frame, sizeof(frame_t))) > 0) {
-      switch (frame.netcmd) {
-      case NETCMD_OPEN:
-        break;
-      case NETCMD_SNAPSHOT:
-        break;
-      case NETCMD_USERCMD:
-        sv_recv_usercmd(sv, client, &frame);
-        break;
-      }
-    }
+    while ((read = net_sock_read(client->sock, &frame, sizeof(frame_t))) > 0)
+      sv_client_parse_frame(client, &frame);
     
-    if (!bytes_read) {
-      sg_remove_client(&sv->sg, sv->clients[i].entity);
-      sv->clients[i].connected = false;
+    if (!read) {
+      sg_remove_client(&sv.sg, sv.clients[i].entity);
+      sv.clients[i].connected = false;
     }
+  }
+}
+
+void sv_send_snapshot()
+{
+  frame_t frame;
+  frame.netcmd = NETCMD_SNAPSHOT;
+  
+  sg_server_snapshot(&frame.data.snapshot.d, &sv.sg);
+  
+  for (int i = 0; i < sv.num_clients; i++) {
+    sv_client_t *client = &sv.clients[i];
+    
+    frame.data.snapshot.ack = client->cmd_tail - 1;
+    sg_client_snapshot(&frame.data.snapshot.d, client->entity, &sv.sg);
+    net_sock_send(client->sock, &frame, sizeof(frame_t));
   }
 }

@@ -6,17 +6,11 @@
 #include "../game/edict.h"
 #include "../game/bgame.h"
 
-#define MAX_USERCMD_CACHE 1024
-
-typedef enum {
-  CG_ES_CL_CLIENT = BGC_TRANSFORM | BGC_CLIENT | BGC_CAPSULE | BGC_CLIP | BGC_MOTION | BGC_PMOVE | BGC_MODEL,
-} cg_entitystate_t;
-
 typedef struct {
   edict_t         edict;
   bgame_t         bg;
   
-  entity_t        player_entity;
+  entity_t        ent_player;
 } cgame_t;
 
 void cg_init(cgame_t *cg);
@@ -25,6 +19,6 @@ void cg_reconcile(cgame_t *cg, const snapshot_t *snapshot);
 void cg_update(cgame_t *cg);
 
 void cg_set_cmd(cgame_t *cg, const usercmd_t *usercmd);
-void cg_set_player(cgame_t *cg, entity_t player);
+void cg_set_ent_player(cgame_t *cg, entity_t ent_player);
 
 #endif

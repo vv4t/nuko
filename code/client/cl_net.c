@@ -1,54 +1,25 @@
-#include "client.h"
+#include "cl_local.h"
 
+#include "input.h"
 #include "../common/net.h"
 #include "../game/protocol.h"
 #include <string.h>
 
-#ifdef __EMSCRIPTEN__
-
-void cl_get_host_address(char *host_address, int len);
-
-#else
-
-void cl_get_host_address(char *host_address, int len)
+void cl_connect(const char *host)
 {
-  const char *str_host = "127.0.0.1";
-  memcpy(host_address, str_host, strlen(str_host) + 1);
+  cl.sock = net_connect(host);
 }
 
-#endif
-
-void cl_net_init(client_t *cl)
-{
-  char host_address[256];
-  cl_get_host_address(host_address, 256);
-  
-  cl->connected = false;
-  cl->sock_id = net_connect(host_address);
-}
-
-void cl_recv_open(client_t *cl, const frame_t *frame)
-{
-  cl->connected = true;
-  cg_set_player(&cl->cg, frame->data.client_entity);
-}
-
-void cl_recv_snapshot(client_t *cl, const frame_t *frame)
-{
-  cl->snapshot = frame->data.snapshot;
-  cl->incoming_ack = frame->outgoing_ack;
-}
-
-void cl_net_recv(client_t *cl)
+void cl_parse()
 {
   frame_t frame;
-  while (net_sock_read(cl->sock_id, &frame, sizeof(frame_t)) > 0) {
+  while (net_sock_read(cl.sock, &frame, sizeof(frame_t)) > 0) {
     switch (frame.netcmd) {
-    case NETCMD_OPEN:
-      cl_recv_open(cl, &frame);
+    case NETCMD_CLIENT_INFO:
+      cl_parse_client_info(&frame);
       break;
     case NETCMD_SNAPSHOT:
-      cl_recv_snapshot(cl, &frame);
+      cl_parse_snapshot(&frame);
       break;
     case NETCMD_USERCMD:
       break;
@@ -56,17 +27,31 @@ void cl_net_recv(client_t *cl)
   }
 }
 
-void cl_send_cmd(client_t *cl)
+void cl_parse_client_info(const frame_t *frame)
 {
-  if (cl->connected) {
+  cl.connected = true;
+  cg_set_ent_player(&cl.cg, frame->data.client_info.entity);
+}
+
+void cl_parse_snapshot(const frame_t *frame)
+{
+  cl.cmd_tail = frame->data.snapshot.ack;
+  cl.snapshot = frame->data.snapshot.d;
+}
+
+void cl_send_cmd()
+{
+  usercmd_t usercmd;
+  
+  if (cl.connected) {
+    in_base_move(&usercmd);
+    
     frame_t frame;
     frame.netcmd = NETCMD_USERCMD;
-    frame.data.usercmd = cl->usercmd;
-    frame.outgoing_seq = cl->outgoing_seq;
+    frame.data.usercmd = usercmd;
     
-    net_sock_send(cl->sock_id, &frame, sizeof(frame_t));
+    net_sock_send(cl.sock, &frame, sizeof(frame_t));
     
-    cl->cmd_queue[frame.outgoing_seq % MAX_USERCMDS] = cl->usercmd;
-    cl->outgoing_seq++;
+    cl.cmd_queue[(cl.cmd_head++) % MAX_CMD_QUEUE] = usercmd;
   }
 }

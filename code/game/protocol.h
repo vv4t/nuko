@@ -4,19 +4,22 @@
 #include "bgame.h"
 
 typedef enum {
-  NETCMD_OPEN,
+  NETCMD_CLIENT_INFO,
   NETCMD_USERCMD,
   NETCMD_SNAPSHOT
 } netcmd_t;
 
 typedef struct {
-  netcmd_t  netcmd;
-  int       outgoing_seq;
-  int       outgoing_ack;
+  netcmd_t netcmd;
   union {
-    entity_t    client_entity;
+    struct {
+      entity_t  entity;
+    } client_info;
     usercmd_t   usercmd;
-    snapshot_t  snapshot;
+    struct {
+      int         ack;
+      snapshot_t  d;
+    } snapshot;
   } data;
 } frame_t;
 

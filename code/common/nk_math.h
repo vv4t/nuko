@@ -57,6 +57,14 @@ inline static vec3_t vec3_add(vec3_t a, vec3_t b)
     a.z + b.z);
 }
 
+inline static vec3_t vec3_sub(vec3_t a, vec3_t b)
+{
+  return vec3_init(
+    a.x - b.x,
+    a.y - b.y,
+    a.z - b.z);
+}
+
 inline static vec3_t vec3_mulf(vec3_t a, float b)
 {
   return vec3_init(
@@ -68,6 +76,21 @@ inline static vec3_t vec3_mulf(vec3_t a, float b)
 inline static float vec3_dot(vec3_t a, vec3_t b)
 {
   return a.x * b.x + a.y * b.y + a.z * b.z;
+}
+
+inline static float vec3_length(vec3_t v)
+{
+  return sqrt(vec3_dot(v, v));
+}
+
+inline static vec3_t vec3_normalize(vec3_t v)
+{
+  float l = vec3_length(v);
+  
+  if (l == 0)
+    return vec3_init(0.0f, 0.0f, 0.0f);
+  
+  return vec3_mulf(v, 1.0 / l);
 }
 
 inline static quat_t quat_init(float x, float y, float z, float w)

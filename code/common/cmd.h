@@ -5,7 +5,6 @@
 
 typedef void (*xcommand_t)(void *d);
 
-void        cmd_init();
 bool        cmd_execute();
 void        cmd_puts(const char *text);
 void        cmd_bind(int key, const char *cmd);

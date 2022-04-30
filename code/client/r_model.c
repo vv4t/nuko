@@ -1,10 +1,10 @@
-#include "renderer.h"
+#include "r_local.h"
 
 #include "mdl_file.h"
 #include "../common/log.h"
 #include "../common/zone.h"
 
-bool renderer_load_model(renderer_t *renderer, r_model_t *model, const char *path)
+bool r_load_model(r_model_t *model, const char *path)
 {
   mdl_t mdl;
   if (!mdl_load(&mdl, path)) {
@@ -29,8 +29,8 @@ bool renderer_load_model(renderer_t *renderer, r_model_t *model, const char *pat
     
     vertex_t *vertices = (vertex_t*) &mdl_vertices[vertexofs];
     
-    if (!mesh_pool_new_mesh(&renderer->mesh_pool, &model->mesh_groups[i].mesh, vertices, vertexlen)) {
-      log_printf(LOG_ERROR, "renderer_load_brushes(): failed to load mesh");
+    if (!r_new_mesh(&model->mesh_groups[i].mesh, vertices, vertexlen)) {
+      log_printf(LOG_ERROR, "r_load_brushes(): failed to load mesh");
       return false;
     }
   }
@@ -45,8 +45,8 @@ bool renderer_load_model(renderer_t *renderer, r_model_t *model, const char *pat
     char full_name[128];
     sprintf(full_name, "assets/tex/%s.png", mdl_materials[i].name); // buffer overflow somehow? rumao
     
-    if (!texture_load(&model->materials[i].texture, full_name)) {
-      log_printf(LOG_ERROR, "renderer_load_materials(): failed to load texture '%s'", full_name);
+    if (!gl_load_texture(&model->materials[i].texture, full_name)) {
+      log_printf(LOG_ERROR, "r_load_materials(): failed to load texture '%s'", full_name);
       return false;
     }
   }
@@ -57,12 +57,11 @@ bool renderer_load_model(renderer_t *renderer, r_model_t *model, const char *pat
   return true;
 }
 
-void renderer_draw_model(renderer_t *renderer, const r_model_t *model)
+void r_draw_model(const r_model_t *model)
 {
   for (int i = 0; i < model->num_mesh_groups; i++) {
     int material_id = model->mesh_groups[i].material_id;
-    texture_bind(model->materials[material_id].texture);
-    
-    mesh_draw(&model->mesh_groups[i].mesh);
+    glBindTexture(GL_TEXTURE_2D, model->materials[material_id].texture);
+    r_draw_mesh(&model->mesh_groups[i].mesh);
   }
 }

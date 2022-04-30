@@ -17,22 +17,14 @@ typedef struct {
   xcommand_t  xcommand;
 } cmd_function_t;
 
-static char            cmd_text[MAX_TEXT];
-static char            *cmd_text_ptr;
+static char            cmd_text[MAX_TEXT]           = {0};
+static char            *cmd_text_ptr                = cmd_text;
 
-static int             cmd_arg_count;
-static char            *cmd_arg_value[MAX_ARGS];
+static char            *cmd_arg_value[MAX_ARGS]     = {0};
+static int             cmd_arg_count                = 0;
 
-static cmd_function_t  cmd_functions[MAX_FUNCTIONS];
-static int             cmd_num_functions;
-
-void cmd_init()
-{
-  cmd_text_ptr = cmd_text;
-  cmd_num_functions = 0;
-  
-  memset(cmd_text, 0, sizeof(cmd_text));
-}
+static cmd_function_t  cmd_functions[MAX_FUNCTIONS] = {0};
+static int             cmd_num_functions            = 0;
 
 bool cmd_execute()
 {

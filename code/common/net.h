@@ -1,11 +1,13 @@
 #ifndef NET_H
 #define NET_H
 
-int   net_connect(const char *host);
-void  net_sock_send(int sock_id, void *buf, int len);
-int   net_sock_read(int sock_id, void *buf, int len);
+typedef int sock_t;
 
-int   net_listen();
-int   net_accept();
+sock_t  net_connect(const char *host);
+void    net_sock_send(sock_t sock, void *buf, int len);
+int     net_sock_read(sock_t sock, void *buf, int len);
+
+int     net_listen();
+sock_t  net_accept();
 
 #endif

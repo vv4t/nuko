@@ -6,7 +6,7 @@ COM_SRC=code/common/*.c code/game/*.c
 COM_CFLAGS=-s WASM=1 -O3
 COM_LDFLAGS=--pre-js web/lib/net.js
 
-CL_SRC=$(wildcard code/client/*.c code/renderer/*.c $(COM_SRC))
+CL_SRC=$(wildcard code/client/*.c $(COM_SRC))
 CL_OUT=build/web/client/index.html
 CL_CFLAGS=$(COM_CLFAGS) --shell-file web/client/index.html
 CL_LDFLAGS=$(COM_LDFLAGS) -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s USE_WEBGL2=1 --js-library web/client/library.js --post-js web/client/main.js

@@ -22,5 +22,6 @@ void bg_update(bgame_t *bg)
   bg_motion_integrate(bg);
   bg_clip_capsule_bsp(bg);
   bg_motion_clip(bg);
+  bg_player_attack(bg);
   bg_player_test_grounded(bg);
 }

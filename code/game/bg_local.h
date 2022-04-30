@@ -12,4 +12,5 @@ void bg_clip_capsule_bsp(bgame_t *bg);
 void bg_motion_gravity(bgame_t *bg);
 void bg_motion_clip(bgame_t *bg);
 void bg_motion_integrate(bgame_t *bg);
+void bg_player_attack(bgame_t *bg);
 void bg_player_test_grounded(bgame_t *bg);

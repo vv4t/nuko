@@ -10,10 +10,10 @@
 #include <fcntl.h>
 #include <arpa/inet.h>
 
-#define PORT 8000
-#define MAX_CONNECTIONS 32
+#define PORT      8000
+#define MAX_CONN  32
 
-static int  net_sockets[MAX_CONNECTIONS];
+static int  net_sockets[MAX_CONN];
 static int  net_num_sockets = 0;
 
 static int  net_server_fd;
@@ -53,29 +53,29 @@ int net_connect(const char *host)
   
   fcntl(conn_fd, F_SETFL, O_NONBLOCK);
   
-  int sock_id = net_add_sock();
-  net_sockets[sock_id] = conn_fd;
+  sock_t sock = net_add_sock();
+  net_sockets[sock] = conn_fd;
   
-  return sock_id;
+  return sock;
 }
 
-void net_sock_send(int sock_id, void *buf, int len)
+void net_sock_send(sock_t sock, void *buf, int len)
 {
-  if (!net_sockets[sock_id])
+  if (!net_sockets[sock])
     return;
   
-  send(net_sockets[sock_id], buf, len, MSG_NOSIGNAL);
+  send(net_sockets[sock], buf, len, MSG_NOSIGNAL);
 }
 
-int net_sock_read(int sock_id, void *buf, int len)
+int net_sock_read(sock_t sock, void *buf, int len)
 {
-  if (!net_sockets[sock_id])
+  if (!net_sockets[sock])
     return 0;
   
-  int n = read(net_sockets[sock_id], buf, len);
+  int n = read(net_sockets[sock], buf, len);
   
   if (!n)
-    net_sockets[sock_id] = 0;
+    net_sockets[sock] = 0;
   
   return n;
 }
@@ -119,10 +119,10 @@ int net_accept()
   if (sock_fd > 0) {
     fcntl(sock_fd, F_SETFL, O_NONBLOCK);
     
-    int sock_id = net_add_sock();
-    net_sockets[sock_id] = sock_fd;
+    sock_t sock = net_add_sock();
+    net_sockets[sock] = sock_fd;
     
-    return sock_id;
+    return sock;
   } else {
     return -1;
   }
