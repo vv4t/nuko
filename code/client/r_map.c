@@ -1,8 +1,5 @@
 #include "r_local.h"
 
-#include "../common/log.h"
-#include "../common/zone.h"
-
 bool r_map_load_materials(const map_t *map)
 {
   if (r.map_model.materials)

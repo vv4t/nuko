@@ -1,16 +1,27 @@
 #include "sv_local.h"
 
-#include <string.h>
-
-void sv_client_init(sv_client_t *client, sock_t sock)
+entity_t sv_new_client(sock_t sock)
 {
-  memset(client, 0, sizeof(sv_client_t));
+  entity_t entity = edict_add_entity(&sv.edict, SV_ES_CLIENT);
   
-  client->sock = sock;
-  client->connected = true;
+  sv.bg.transform[entity] = (bg_transform_t) {0};
+  sv.bg.motion[entity] = (bg_motion_t) {0};
+  
+  sv.bg.transform[entity].position.y = 3;
+  
+  sv.bg.capsule[entity].radius = 0.5f;
+  sv.bg.capsule[entity].height = 1.0f;
+  sv.bg.model[entity] = BG_MDL_FUMO_CIRNO;
+  
+  sv.client[entity].sock = sock;
+  sv.client[entity].cmd_tail = 0;
+  sv.client[entity].cmd_head = 0;
+  sv.client[entity].snapshot_ack = 0;
+  
+  return entity;
 }
 
-void sv_client_parse_frame(sv_client_t *client, const frame_t *frame)
+void sv_client_parse_frame(entity_t entity, const frame_t *frame)
 {
   switch (frame->netcmd) {
   case NETCMD_CLIENT_INFO:
@@ -18,26 +29,27 @@ void sv_client_parse_frame(sv_client_t *client, const frame_t *frame)
   case NETCMD_SNAPSHOT:
     break;
   case NETCMD_USERCMD:
-    sv_client_parse_usercmd(client, frame);
+    sv_client_parse_usercmd(entity, frame);
     break;
   }
 }
 
-void sv_client_parse_usercmd(sv_client_t *client, const frame_t *frame)
+void sv_client_parse_usercmd(entity_t entity, const frame_t *frame)
 {
-  client->cmd_queue[(client->cmd_head++) % MAX_CMD_QUEUE] = frame->data.usercmd;
+  sv_client_t *svc = &sv.client[entity];
+  
+  svc->cmd_queue[svc->cmd_head++ % MAX_CMD_QUEUE] = frame->data.usercmd.d;
+  if (svc->cmd_head - svc->cmd_tail >= MAX_CMD_QUEUE)
+    svc->cmd_tail = svc->cmd_head - MAX_CMD_QUEUE + 1;
+  
+  svc->snapshot_ack = frame->data.usercmd.ack;
 }
 
-const usercmd_t *sv_client_get_usercmd(sv_client_t *client)
-{
-  return &client->cmd_queue[(client->cmd_tail++) % MAX_CMD_QUEUE];
-}
-
-void sv_client_send_client_info(sv_client_t *client)
+void sv_client_send_client_info(entity_t entity)
 {
   frame_t frame;
   frame.netcmd = NETCMD_CLIENT_INFO;
-  frame.data.client_info.entity = client->entity;
+  frame.data.client_info.entity = entity;
   
-  net_sock_send(client->sock, &frame, sizeof(frame_t));
+  net_sock_send(sv.client[entity].sock, &frame, sizeof(frame_t));
 }

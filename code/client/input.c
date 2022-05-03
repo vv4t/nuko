@@ -1,10 +1,5 @@
 #include "input.h"
 
-#include "../common/string.h"
-#include "../common/log.h"
-#include "../common/cmd.h"
-#include <stdbool.h>
-
 #define MAX_KEYBINDS  32
 
 typedef struct {
@@ -127,6 +122,6 @@ void in_base_move(usercmd_t *usercmd)
   usercmd->right    = in_right - in_left;
   usercmd->jump     = in_jump;
   usercmd->attack   = in_attack;
-  usercmd->yaw      = in_mouse_x;
-  usercmd->pitch    = in_mouse_y;
+  usercmd->yaw      = in_mouse_x * IN_SENSITIVITY;
+  usercmd->pitch    = in_mouse_y * IN_SENSITIVITY;
 }

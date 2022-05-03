@@ -1,10 +1,10 @@
 #include "bg_local.h"
 
-#define BG_MASK_MOTION_CLIP (BGC_MOTION | BGC_CLIP | BGC_CAPSULE)
+#define BG_MOTION_CLIP (BGC_MOTION | BGC_CLIP | BGC_CAPSULE)
 void bg_motion_clip(bgame_t *bg)
 {
   for (int i = 0; i < bg->edict->num_entities; i++) {
-    if ((bg->edict->entities[i] & BG_MASK_MOTION_CLIP) != BG_MASK_MOTION_CLIP)
+    if ((bg->edict->entities[i] & BG_MOTION_CLIP) != BG_MOTION_CLIP)
       continue;
     
     for (int j = 0; j < bg->clip[i].num_planes; j++) {
@@ -29,26 +29,26 @@ void bg_motion_clip(bgame_t *bg)
   }
 }
 
-#define BG_MASK_MOTION_GRAVITY (BGC_MOTION)
+#define BG_MOTION_GRAVITY (BGC_MOTION)
 void bg_motion_gravity(bgame_t *bg)
 {
   for (int i = 0; i < bg->edict->num_entities; i++) {
-    if ((bg->edict->entities[i] & BG_MASK_MOTION_GRAVITY) != BG_MASK_MOTION_GRAVITY)
+    if ((bg->edict->entities[i] & BG_MOTION_GRAVITY) != BG_MOTION_GRAVITY)
       continue;
     
     bg->motion[i].velocity.y -= BG_GRAVITY * BG_TIMESTEP;
   }
 }
 
-#define BG_MASK_MOTION_INTEGRATE (BGC_MOTION | BGC_TRANSFORM)
+#define BG_MOTION_INTEGRATE (BGC_MOTION | BGC_TRANSFORM)
 void bg_motion_integrate(bgame_t *bg)
 {
   for (int i = 0; i < bg->edict->num_entities; i++) {
-    if ((bg->edict->entities[i] & BG_MASK_MOTION_INTEGRATE) != BG_MASK_MOTION_INTEGRATE)
+    if ((bg->edict->entities[i] & BG_MOTION_INTEGRATE) != BG_MOTION_INTEGRATE)
       continue;
     
-    bg->transform[i].position.x += bg->motion[i].velocity.x * BG_TIMESTEP;
-    bg->transform[i].position.y += bg->motion[i].velocity.y * BG_TIMESTEP;
-    bg->transform[i].position.z += bg->motion[i].velocity.z * BG_TIMESTEP;
+    vec3_t delta_pos = vec3_mulf(bg->motion[i].velocity, BG_TIMESTEP);
+    
+    bg->transform[i].position = vec3_add(bg->transform[i].position, delta_pos);
   }
 }

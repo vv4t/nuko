@@ -1,18 +1,33 @@
 #ifndef SV_LOCAL_H
 #define SV_LOCAL_H
 
-#include "sgame.h"
-#include "../game/protocol.h"
-#include "../common/net.h"
+#include "server.h"
 
-#define MAX_CLIENTS   4
-#define MAX_CMD_QUEUE 128
+#include "../game/bgame.h"
+#include "../game/protocol.h"
+#include "../game/map_file.h"
+#include "../common/net.h"
+#include "../common/log.h"
+#include <stdbool.h>
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
+
+#define MAX_CMD_QUEUE       4
+#define MAX_SNAPSHOT_QUEUE  64
+
+typedef enum {
+  SVC_CLIENT = (AUX_BGC << 0)
+} sv_component_t;
+
+typedef enum {
+  SV_ES_CLIENT = (BGC_TRANSFORM | BGC_CLIENT | BGC_CAPSULE | BGC_CLIP | BGC_MOTION | BGC_MODEL | BGC_PMOVE) | SVC_CLIENT
+} sv_entitystate_t;
 
 typedef struct {
   sock_t    sock;
-  entity_t  entity;
   
-  bool      connected;
+  int       snapshot_ack;
   
   int       cmd_head;
   int       cmd_tail;
@@ -20,36 +35,41 @@ typedef struct {
 } sv_client_t;
 
 typedef struct {
-  sgame_t     sg;
+  edict_t     edict;
+  bgame_t     bg;
   
-  sv_client_t clients[MAX_CLIENTS];
-  int         num_clients;
+  sv_client_t client[MAX_ENTITIES];
+  
+  int         snapshot_head;
+  snapshot_t  snapshot_queue[MAX_SNAPSHOT_QUEUE];
 } server_t;
 
-//
-// sv_main.c
-//
-void            sv_fixed_update();
+extern server_t sv;
+
+// sv_game.c
+bool            intersect_ray_capsule(
+  vec3_t              origin,
+  vec3_t              ray,
+  vec3_t              offset,
+  const bg_capsule_t  *capsule);
+
 void            sv_game_update();
+void            sv_client_move();
+void            sv_client_shoot();
+void            sv_server_snapshot(snapshot_t *snapshot);
+void            sv_client_snapshot(snapshot_t *snapshot, entity_t entity);
 void            sv_load_map(const char *map);
 
-//
 // sv_net.c
-//
 void            sv_accept();
 void            sv_parse();
 void            sv_send_snapshot();
-sv_client_t     *sv_new_client();
 
-//
 // sv_client.c
-//
-void            sv_client_init(sv_client_t *client, sock_t sock);
-void            sv_client_parse_frame(sv_client_t *client, const frame_t *frame);
-void            sv_client_parse_usercmd(sv_client_t *client, const frame_t *frame);
-void            sv_client_send_client_info(sv_client_t *client);
-const usercmd_t *sv_client_get_usercmd(sv_client_t *client);
-
-extern server_t sv;
+entity_t        sv_new_client(sock_t sock);
+void            sv_client_parse_frame(entity_t entity, const frame_t *frame);
+void            sv_client_parse_usercmd(entity_t entity, const frame_t *frame);
+void            sv_client_send_client_info(entity_t entity);
+// const usercmd_t *sv_client_get_usercmd(sv_client_t *client);
 
 #endif

@@ -33,8 +33,9 @@ function http_init()
     Module.net_serve(sock_id);
   });
 
-  server.listen(8000);
-  console.log("Listening on localhost:8000");
+  const PORT = process.env.PORT || 8000;
+  server.listen(PORT);
+  console.log(`Listening on ::${PORT}`);
 }
 
 function game_init()

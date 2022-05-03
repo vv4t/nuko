@@ -16,12 +16,11 @@ void bg_new_map(bgame_t *bg, const map_t *map)
 
 void bg_update(bgame_t *bg)
 {
+  bg_pm_free_look(bg);
+  bg_pm_walk_move(bg);
   bg_motion_gravity(bg);
-  bg_player_look(bg);
-  bg_player_move(bg);
   bg_motion_integrate(bg);
   bg_clip_capsule_bsp(bg);
   bg_motion_clip(bg);
-  bg_player_attack(bg);
-  bg_player_test_grounded(bg);
+  bg_pm_check_pos(bg);
 }

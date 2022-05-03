@@ -1,6 +1,8 @@
 #ifndef MDL_FILE_H
 #define MDL_FILE_H
 
+#include "../common/log.h"
+#include "../common/zone.h"
 #include "../common/lump.h"
 #include "../common/nk_math.h"
 #include <stdio.h>

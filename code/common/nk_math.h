@@ -167,6 +167,15 @@ inline static mat4x4_t mat4x4_init_translation(vec3_t v) {
   return m;
 }
 
+inline static mat4x4_t mat4x4_init_scale(vec3_t v) {
+  mat4x4_t m;
+  m.m[0]  = v.x;  m.m[4]  = 0;    m.m[8]  = 0;    m.m[12] = 0;
+  m.m[1]  = 0;    m.m[5]  = v.y;  m.m[9]  = 0;    m.m[13] = 0;
+  m.m[2]  = 0;    m.m[6]  = 0;    m.m[10] = v.z;  m.m[14] = 0;
+  m.m[3]  = 0;    m.m[7]  = 0;    m.m[11] = 0;    m.m[15] = 1;
+  return m;
+}
+
 inline static mat4x4_t mat4x4_mul(mat4x4_t a, mat4x4_t b)
 {
   mat4x4_t m;

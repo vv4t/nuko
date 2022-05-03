@@ -16,8 +16,7 @@ typedef enum {
   BGC_CAPSULE   = (1 << 3),
   BGC_MOTION    = (1 << 4),
   BGC_PMOVE     = (1 << 5),
-  BGC_MODEL     = (1 << 5),
-  BGC_SHOOT     = (1 << 6),
+  BGC_MODEL     = (1 << 6),
   AUX_BGC       = (1 << 7)
 } bg_component_t;
 
@@ -27,11 +26,6 @@ typedef enum {
 } bg_model_t;
 
 typedef struct {
-  vec3_t    position;
-  quat_t    rotation;
-} bg_transform_t;
-
-typedef struct {
   float     forward;
   float     right;
   float     yaw;
@@ -39,6 +33,11 @@ typedef struct {
   float     jump;
   float     attack;
 } usercmd_t;
+
+typedef struct {
+  vec3_t    position;
+  quat_t    rotation;
+} bg_transform_t;
 
 typedef struct {
   usercmd_t usercmd;
@@ -55,14 +54,12 @@ typedef struct {
 } bg_clip_t;
 
 typedef struct {
-  vec3_t    velocity;
-} bg_motion_t;
+  bool      on_ground;
+} bg_pmove_t;
 
 typedef struct {
-  quat_t    move_rot;
-  bool      grounded;
-  bool      attack;
-} bg_pmove_t;
+  vec3_t    velocity;
+} bg_motion_t;
 
 typedef struct {
   edict_t         edict;
@@ -88,8 +85,12 @@ typedef struct {
   bg_model_t      model[MAX_ENTITIES];
 } bgame_t;
 
-void bg_init(bgame_t *bg, edict_t *edict);
-void bg_new_map(bgame_t *bg, const map_t *map);
-void bg_update(bgame_t *bg);
+// bg_pmove.c
+void  pm_free_look(bg_transform_t *transform, float yaw, float pitch);
+
+// bg_main.c
+void  bg_init(bgame_t *bg, edict_t *edict);
+void  bg_new_map(bgame_t *bg, const map_t *map);
+void  bg_update(bgame_t *bg);
 
 #endif

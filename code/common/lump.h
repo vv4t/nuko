@@ -1,6 +1,7 @@
 #ifndef LUMP_H
 #define LUMP_H
 
+#include "zone.h"
 #include <stdio.h>
 
 typedef struct {

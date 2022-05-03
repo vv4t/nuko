@@ -1,16 +1,29 @@
 #include "bgame.h"
 
-#define BG_MAX_INCLINE (45.0f * M_PI / 180.0f)
-#define BG_TIMESTEP 0.015
-#define BG_SENSITIVITY 0.005
-#define BG_DRAG 0.9
-#define BG_GRAVITY 18.0
+#define BG_MIN_INCLINE  0.7
+#define BG_TIMESTEP     0.050
+#define BG_FRICTION     4.0
+#define BG_GRAVITY      18.0
 
-void bg_player_move(bgame_t *bg);
-void bg_player_look(bgame_t *bg);
-void bg_clip_capsule_bsp(bgame_t *bg);
-void bg_motion_gravity(bgame_t *bg);
-void bg_motion_clip(bgame_t *bg);
-void bg_motion_integrate(bgame_t *bg);
-void bg_player_attack(bgame_t *bg);
-void bg_player_test_grounded(bgame_t *bg);
+// bg_motion.c
+void  bg_motion_gravity(bgame_t *bg);
+void  bg_motion_clip(bgame_t *bg);
+void  bg_motion_integrate(bgame_t *bg);
+
+// bg_pmove.c
+void  pm_accelerate(bg_motion_t *motion, vec3_t wish_dir, float accel, float wish_speed);
+
+void  bg_pm_check_pos(bgame_t *bg);
+void  bg_pm_walk_move(bgame_t *bg);
+void  bg_pm_free_look(bgame_t *bg);
+
+// bg_clip.c
+void  clip_capsule_bsp_R(
+  bg_clip_t             *clip,
+  const bg_capsule_t    *capsule,
+  const bg_transform_t  *transform,
+  const bsp_node_t      *node,
+  const plane_t         *min_plane,
+  float                 min_dist);
+
+void  bg_clip_capsule_bsp(bgame_t *bg);

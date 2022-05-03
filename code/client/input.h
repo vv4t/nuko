@@ -2,6 +2,12 @@
 #define INPUT_H
 
 #include "../game/bgame.h"
+#include "../common/string.h"
+#include "../common/log.h"
+#include "../common/cmd.h"
+#include <stdbool.h>
+
+#define IN_SENSITIVITY  0.005
 
 //
 // input.c

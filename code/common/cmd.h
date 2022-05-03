@@ -1,7 +1,12 @@
 #ifndef CMD_H
 #define CMD_H
 
+#include "log.h"
+#include "string.h"
 #include <stdbool.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 
 typedef void (*xcommand_t)(void *d);
 

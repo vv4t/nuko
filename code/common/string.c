@@ -1,8 +1,5 @@
 #include "string.h"
 
-#include "zone.h"
-#include <string.h>
-
 char *string_copy(const char *str)
 {
   int len = strlen(str) + 1;

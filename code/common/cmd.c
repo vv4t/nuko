@@ -1,11 +1,5 @@
 #include "cmd.h"
 
-#include "log.h"
-#include "string.h"
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-
 #define MAX_TEXT        256
 #define MAX_STR         256
 #define MAX_ARGS        8

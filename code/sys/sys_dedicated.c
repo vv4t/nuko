@@ -1,6 +1,4 @@
-#include "sys.h"
-
-#include "server.h"
+#include "../server/server.h"
 #include <stdlib.h>
 #include <stdbool.h>
 #include <time.h>
@@ -8,6 +6,11 @@
 #ifdef __EMSCRIPTEN__
   #include <emscripten.h>
 #endif
+
+void  sys_init();
+void  sys_update();
+void  sys_quit();
+int   sys_time();
 
 void sys_init()
 {

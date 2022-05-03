@@ -1,16 +1,10 @@
 #include "cl_local.h"
 
-#include "sys.h"
-#include "../common/cmd.h"
-#include "../common/log.h"
-#include "../game/map_file.h"
-#include <string.h>
-#include <time.h>
-#include <stdlib.h>
+client_t    cl;
+cgame_t     cg;
 
-client_t  cl;
-
-int       host_frametime = 15;
+static int  host_frametime  = 50;
+static int  host_framecount = 0;
 
 #ifdef __EMSCRIPTEN__
 void cl_get_host_address(char *host_address, int len);
@@ -28,7 +22,8 @@ void cl_init()
   cl.cmd_tail = 0;
   cl.cmd_head = 0;
   
-  cg_init(&cl.cg);
+  edict_init(&cg.edict);
+  bg_init(&cg.bg, &cg.edict);
   
   if (!r_init())
     log_printf(LOG_FATAL, "cl_init(): failed to initialize renderer");
@@ -40,52 +35,33 @@ void cl_init()
   cl_load_map("nk_flatgrass");
 }
 
-static int lag_time = 0;
+static int next_frame = 0;
 
 void cl_update(int delta_time)
 {
-  lag_time += delta_time;
+  in_base_move(&cl.usercmd);
   
-  while (lag_time > 0) {
-    lag_time -= host_frametime;
-    cl_fixed_update();
+  float interp = ((float) next_frame / (float) host_frametime) + 1.0f;
+  
+  cl_view_look();
+  cl_interpolate(interp);  
+  
+  next_frame += delta_time;
+  if (next_frame > 0) {
+    next_frame -= host_frametime;
+    
+    cl_parse();
+    cl_send_cmd();
+    cl_predict();
+    
+    cl_snapshot();
+    
+    host_framecount++;
+    
+    if (host_framecount % (1000 / host_frametime) == 0) {
+      printf("cmd_queue: %i, cmd_head: %i, cmd_tail: %i\n", cl.cmd_head - cl.cmd_tail, cl.cmd_head, cl.cmd_tail);
+    }
   }
-}
-
-void cl_fixed_update()
-{
-  cl_parse();
-  if (!cl.connected)
-    return;
   
-  cl_send_cmd();
-  cl_predict();
-  
-  r_render_player_view(&cl.cg);
-}
-
-void cl_predict()
-{
-  cg_reconcile(&cl.cg, &cl.snapshot);
-  
-  for (int i = cl.cmd_tail + 1; i < cl.cmd_head; i++) {
-    cg_set_cmd(&cl.cg, &cl.cmd_queue[i % MAX_CMD_QUEUE]);
-    cg_update(&cl.cg);
-  }
-}
-
-void cl_load_map(const char *name)
-{
-  char map_path[256];
-  sprintf(map_path, "assets/map/%s.map", name);
-  
-  map_t map;
-  
-  if (!map_load(&map, map_path))
-    log_printf(LOG_FATAL, "cl_load_map(): failed to load %s", map_path);
-  
-  if (!r_new_map(&map))
-    log_printf(LOG_FATAL, "cl_load_map(): renderer failed to load new map");
-  
-  cg_new_map(&cl.cg, &map);
+  r_render_client_view();
 }

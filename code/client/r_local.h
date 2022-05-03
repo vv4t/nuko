@@ -1,12 +1,13 @@
 #ifndef R_LOCAL_H
 #define R_LOCAL_H
 
-#include "gl.h"
-#include "cgame.h"
-#include "../game/map_file.h"
-#include <stdbool.h>
+#include "renderer.h"
 
-#include <stdbool.h>
+#include "gl.h"
+#include "client.h"
+#include "mdl_file.h"
+#include "../common/log.h"
+#include "../common/zone.h"
 
 #define VERTEX_ATTRIB_0 3
 #define VERTEX_ATTRIB_1 2
@@ -23,14 +24,6 @@ typedef struct {
   vec3_t pos;
   vec2_t uv;
 } vertex_t;
-
-void  mesh_draw(const mesh_t *mesh);
-
-bool  texture_load(texture_t *texture, const char *path);
-void  texture_bind(texture_t texture);
-
-bool  shader_init(shader_t *shader, const char *src_vertex, const char *src_fragment);
-void  shader_bind(shader_t shader);
 
 typedef struct {
   texture_t       texture;
@@ -59,6 +52,8 @@ typedef struct {
   
   mat4x4_t        projection_matrix;
   mat4x4_t        view_projection_matrix;
+  
+  mesh_t          crosshair_mesh;
   
   r_model_t       map_model;
   

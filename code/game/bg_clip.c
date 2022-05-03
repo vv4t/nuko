@@ -1,6 +1,6 @@
 #include "bg_local.h"
 
-static void capsule_clip_bsp_R(
+void clip_capsule_bsp_R(
   bg_clip_t             *clip,
   const bg_capsule_t    *capsule,
   const bg_transform_t  *transform,
@@ -18,7 +18,7 @@ static void capsule_clip_bsp_R(
   float max_plane_dist = fmax(top_plane_dist, bottom_plane_dist) + capsule->radius;
   
   if (max_plane_dist > 0.0f)
-    capsule_clip_bsp_R(clip, capsule, transform, node->ahead, min_plane, min_dist);
+    clip_capsule_bsp_R(clip, capsule, transform, node->ahead, min_plane, min_dist);
   
   if (min_plane_dist < 0.0f) {
     if (min_plane_dist > min_dist) {
@@ -31,20 +31,20 @@ static void capsule_clip_bsp_R(
       clip->num_planes++;
     }
     
-    capsule_clip_bsp_R(clip, capsule, transform, node->behind, min_plane, min_dist);
+    clip_capsule_bsp_R(clip, capsule, transform, node->behind, min_plane, min_dist);
   }
 }
 
 
-#define BG_MASK_CLIP_CAPSULE_BSP (BGC_TRANSFORM | BGC_CLIP | BGC_CAPSULE)
+#define BG_CLIP_CAPSULE_BSP (BGC_TRANSFORM | BGC_CLIP | BGC_CAPSULE)
 void bg_clip_capsule_bsp(bgame_t *bg)
 {
   for (int i = 0; i < bg->edict->num_entities; i++) {
-    if ((bg->edict->entities[i] & BG_MASK_CLIP_CAPSULE_BSP) != BG_MASK_CLIP_CAPSULE_BSP)
+    if ((bg->edict->entities[i] & BG_CLIP_CAPSULE_BSP) != BG_CLIP_CAPSULE_BSP)
       continue;
     
     bg->clip[i].num_planes = 0;
-    capsule_clip_bsp_R(
+    clip_capsule_bsp_R(
       &bg->clip[i],
       &bg->capsule[i],
       &bg->transform[i],

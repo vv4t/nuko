@@ -1,8 +1,5 @@
 #include "gl.h"
 
-#include "../common/log.h"
-#include <SDL2/SDL_image.h>
-
 bool gl_init()
 {
 #ifndef __EMSCRIPTEN__

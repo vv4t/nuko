@@ -10,13 +10,17 @@ typedef enum {
 } netcmd_t;
 
 typedef struct {
-  netcmd_t netcmd;
+  netcmd_t  netcmd;
   union {
     struct {
-      entity_t  entity;
+      entity_t    entity;
     } client_info;
-    usercmd_t   usercmd;
     struct {
+      int         ack;
+      usercmd_t   d;
+    } usercmd;
+    struct {
+      int         seq;
       int         ack;
       snapshot_t  d;
     } snapshot;

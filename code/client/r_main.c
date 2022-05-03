@@ -1,8 +1,5 @@
 #include "r_local.h"
 
-#include "../common/log.h"
-#include "../common/zone.h"
-
 renderer_t r;
 
 bool r_shader_init()
@@ -52,6 +49,22 @@ void r_init_projection_matrix()
   r.projection_matrix = mat4x4_init_perspective(720.0 / 1280.0, 90 * M_PI / 180.0, 0.1, 1000);
 }
 
+void r_init_crosshair()
+{
+  vertex_t vertices[] = {
+    { .pos = vec3_init(0.0f, 0.0f, 0.0f), .uv = vec2_init(0.0f, 0.0f) },
+    { .pos = vec3_init(0.0f, 1.0f, 0.0f), .uv = vec2_init(0.0f, 0.0f) },
+    { .pos = vec3_init(1.0f, 0.0f, 0.0f), .uv = vec2_init(0.0f, 0.0f) },
+    
+    { .pos = vec3_init(0.0f, 1.0f, 0.0f), .uv = vec2_init(0.0f, 0.0f) },
+    { .pos = vec3_init(1.0f, 1.0f, 0.0f), .uv = vec2_init(0.0f, 0.0f) },
+    { .pos = vec3_init(1.0f, 0.0f, 0.0f), .uv = vec2_init(0.0f, 0.0f) }
+  };
+  
+  if (!r_new_mesh(&r.crosshair_mesh, vertices, sizeof(vertices) / sizeof(vertex_t)))
+    log_printf(LOG_ERROR, "r_init_crosshair(): failed to load crosshair");
+}
+
 bool r_init()
 {
   glClearColor(0.2f, 0.7f, 1.0f, 1.0f);
@@ -67,6 +80,7 @@ bool r_init()
   
   r_vbo_init(32000);
   r_init_projection_matrix();
+  r_init_crosshair();
   
   r_load_model(&r.bg_models[BG_MDL_FUMO_CIRNO], "assets/mdl/fumo_cirno.mdl");
   r.bg_models_vbo_ptr = r.vbo_ptr;
@@ -76,10 +90,10 @@ bool r_init()
   return true;
 }
 
-void r_setup_view_projection_matrix(const cgame_t *cg)
+void r_setup_view_projection_matrix()
 {
-  vec3_t view_origin = cg->bg.transform[cg->ent_player].position;
-  quat_t view_angle = cg->bg.transform[cg->ent_player].rotation;
+  vec3_t view_origin = cg.tween.transform[cg.ent_client].position;
+  quat_t view_angle = cg.bg.transform[cg.ent_client].rotation;
   
   vec3_t inverted_view_origin = vec3_mulf(view_origin, -1);
   quat_t inverted_view_angle = quat_conjugate(view_angle);
@@ -93,21 +107,21 @@ void r_setup_view_projection_matrix(const cgame_t *cg)
 }
 
 #define R_MASK_DRAW_ENTITIES (BGC_TRANSFORM | BGC_MODEL)
-void r_draw_entities(const cgame_t *cg)
+void r_draw_entities()
 {
-  for (int i = 0; i < cg->edict.num_entities; i++) {
-    if ((cg->edict.entities[i] & R_MASK_DRAW_ENTITIES) != R_MASK_DRAW_ENTITIES)
+  for (int i = 0; i < cg.edict.num_entities; i++) {
+    if ((cg.edict.entities[i] & R_MASK_DRAW_ENTITIES) != R_MASK_DRAW_ENTITIES)
       continue;
     
-    mat4x4_t translation_matrix = mat4x4_init_translation(cg->bg.transform[i].position);
-    mat4x4_t rotation_matrix = mat4x4_init_rotation(cg->bg.transform[i].rotation);
+    mat4x4_t translation_matrix = mat4x4_init_translation(cg.tween.transform[i].position);
+    mat4x4_t rotation_matrix = mat4x4_init_rotation(cg.bg.transform[i].rotation);
     
     mat4x4_t model_matrix = mat4x4_mul(rotation_matrix, translation_matrix);
     mat4x4_t model_view_projection_matrix = mat4x4_mul(model_matrix, r.view_projection_matrix);
     
     glUniformMatrix4fv(r.shader.ul_mvp, 1, GL_FALSE, model_view_projection_matrix.m);
     
-    r_draw_model(&r.bg_models[cg->bg.model[i]]);
+    r_draw_model(&r.bg_models[cg.bg.model[i]]);
   }
 }
 
@@ -117,12 +131,24 @@ void r_draw_map()
   r_draw_model(&r.map_model);
 }
 
-void r_render_player_view(const cgame_t *cg)
+void r_draw_crosshair()
+{
+  float aspect_ratio = 720.0 / 1280.0;
+  float crosshair_scale = 0.025f;
+  
+  mat4x4_t m = mat4x4_init_scale(vec3_init(crosshair_scale * aspect_ratio, crosshair_scale, 1.0f));
+  
+  glUniformMatrix4fv(r.shader.ul_mvp, 1, GL_FALSE, m.m);
+  r_draw_mesh(&r.crosshair_mesh);
+}
+
+void r_render_client_view()
 {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   
-  r_setup_view_projection_matrix(cg);
+  r_setup_view_projection_matrix();
   
   r_draw_map();
-  r_draw_entities(cg);
+  r_draw_entities();
+  r_draw_crosshair();
 }

@@ -1,9 +1,5 @@
 #include "log.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
-
 void log_printf(log_level_t level, const char *fmt, ...)
 {
   va_list args;

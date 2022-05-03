@@ -1,8 +1,5 @@
 #include "mdl_file.h"
 
-#include "../common/log.h"
-#include "../common/zone.h"
-
 bool mdl_load(mdl_t *mdl, const char *path)
 {
   mdl->file = fopen(path, "rb");

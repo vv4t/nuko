@@ -1,9 +1,5 @@
 #include "r_local.h"
 
-#include "mdl_file.h"
-#include "../common/log.h"
-#include "../common/zone.h"
-
 bool r_load_model(r_model_t *model, const char *path)
 {
   mdl_t mdl;

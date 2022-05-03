@@ -1,7 +1,5 @@
 #include "lump.h"
 
-#include "zone.h"
-
 void *lump_load(FILE *file, const lump_t *lump, int stride, int *count)
 {
   void *data = zone_alloc(lump->filelen);
