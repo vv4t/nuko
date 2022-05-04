@@ -1,4 +1,4 @@
-.PHONY: all build server client
+.PHONY: default clean
 
 EM_CC=emcc
 
@@ -20,30 +20,25 @@ SV_LDFLAGS=$(COM_LDFLAGS) --js-library web/server/library.js
 SV_ASSETS_SRC=$(wildcard assets/map/*)
 SV_ASSETS=$(patsubst %, --preload-file %, $(SV_ASSETS_SRC)) --use-preload-plugins
 
-all: init build
+default: $(CL_OUT) $(SV_OUT)
 
-build: server client
-
-server: $(SV_OUT)
-
-client: $(CL_OUT)
-
-$(CL_OUT): $(CL_SRC) $(CL_ASSETS_SRC) web/client/index.html web/client/library.js web/client/main.js web/lib/net.js
+$(CL_OUT): $(CL_SRC) $(CL_ASSETS_SRC) web/client/index.html web/client/library.js web/client/main.js web/lib/net.js build/web/client
 	$(EM_CC) $(CL_SRC) $(CL_CFLAGS) $(CL_LDFLAGS) $(CL_ASSETS) -o $(CL_OUT)
 
-$(SV_OUT): $(SV_SRC) $(SV_ASSETS_SRC) build/web/index.js build/web/package.json web/client/library.js web/client/main.js web/lib/net.js
+$(SV_OUT): $(SV_SRC) $(SV_ASSETS_SRC) build/web/index.js build/web/package.json web/client/library.js web/client/main.js web/lib/net.js build/web
 	$(EM_CC) $(SV_SRC) $(SV_CFLAGS) $(SV_LDFLAGS) $(SV_ASSETS) -o $(SV_OUT)
 
-build/web/index.js: web/server/index.js
+build/web/index.js: web/server/index.js build/web
 	cp $< $@
 
-build/web/package.json: web/server/package.json
+build/web/package.json: web/server/package.json build/web
 	cp $< $@
 
-init:
-	-mkdir build
-	-mkdir build/web
-	-mkdir build/web/client
+build/web/client: | build/web
+	mkdir $@
 
-clean:
-	-rm build/web/*
+build/web: | build
+	mkdir $@
+
+build:
+	mkdir $@

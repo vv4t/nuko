@@ -1,28 +1,52 @@
-.PHONY: all build clean
+.PHONY: default clean
 
+C_CC=gcc
+C_FLAGS=-O3 -g
+
+HEADERS=$(wildcard */*/*.h)
 ASSETS=$(patsubst assets/%, build/linux/assets/%, $(wildcard assets/*/*.*))
 
-all: init build
+CL_SRC=$(wildcard code/common/*.c code/client/*.c code/game/*.c)
+CL_OBJ=$(patsubst code/%.c, build/linux/bin/%.o, $(CL_SRC))
+CL_LIBS=-lSDL2 -lSDL2_image -lGL -lGLEW -lm 
 
-build: $(ASSETS)
-	$(MAKE) -C code
+SV_SRC=$(wildcard code/common/*.c code/server/*.c code/game/*.c)
+SV_OBJ=$(patsubst code/%.c, build/linux/bin/%.o, $(SV_SRC))
+SV_LIBS=-lm 
 
-init:
-	-mkdir build
-	-mkdir build/linux
-	-mkdir build/linux/bin
-	-mkdir build/linux/bin/server
-	-mkdir build/linux/bin/client
-	-mkdir build/linux/bin/game
-	-mkdir build/linux/bin/common
-	-mkdir build/linux/assets
-	-mkdir build/linux/assets/map
-	-mkdir build/linux/assets/mdl
-	-mkdir build/linux/assets/mtl
-	-mkdir build/linux/assets/tex
+default: build/linux $(ASSETS) build/linux/nuko build/linux/nuko_dedicated
 
-build/linux/assets/%: assets/%
+build/linux/nuko: $(CL_OBJ)
+	$(C_CC) $(C_FLAGS) $(CL_LIBS) $^ code/sys/sys_sdl.c -o $@
+
+build/linux/nuko_dedicated: $(SV_OBJ)
+	$(C_CC) $(C_FLAGS) $(SV_LIBS) $^ code/sys/sys_dedicated.c -o $@
+
+build/linux/bin/%.o: code/%.c $(HEADERS) build/linux/bin
+	$(C_CC) $(C_FLAGS) -c -o $@ $<
+
+build/linux/assets/%: assets/% | build/linux/assets
 	cp $< $@
+
+build/linux/bin: | build/linux
+	mkdir $@
+	mkdir $@/server
+	mkdir $@/client
+	mkdir $@/game
+	mkdir $@/common
+
+build/linux/assets: | build/linux
+	mkdir $@
+	mkdir $@/map
+	mkdir $@/mdl
+	mkdir $@/mtl
+	mkdir $@/tex
+
+build/linux: | build
+	mkdir $@
+
+build:
+	mkdir $@
 
 clean:
 	rm -rf build/linux/*
