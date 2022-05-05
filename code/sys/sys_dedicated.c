@@ -42,6 +42,8 @@ int sys_time()
 
 int main(int argc, char *argv[])
 {
+  srand(time(0));
+  
   sys_init();
   
   prev_time = sys_time();

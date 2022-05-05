@@ -14,6 +14,8 @@
 
 #ifdef __EMSCRIPTEN__
   #include <emscripten.h>
+  int main_gets(char *buf, int len);
+  void main_focus_input();
 #endif
 
 #define NUKO_WIDTH   1280
@@ -29,18 +31,27 @@ bool  sys_init_win();
 void  sys_poll();
 void  sys_quit();
 void  sys_swap();
+void  sys_focus();
+void  sys_unfocus();
 
 static SDL_Window     *win_sdl_window;
 static SDL_GLContext  win_gl_context;
 
+static bool           sys_focused = false;
+
 static void console_input_f(void *d)
 {
+#ifdef __EMSCRIPTEN__
+  sys_unfocus();
+  main_focus_input();
+#else
   char text_buf[256];
   
   printf(":");
   const char *text = fgets(text_buf, 256, stdin);
   
   cmd_puts(text);
+#endif
 }
 
 void sys_config()
@@ -52,7 +63,7 @@ void sys_config()
   in_key_bind('s', "+back");
   in_key_bind('d', "+right");
   in_key_bind(' ', "+jump");
-  in_key_bind('`', "open_console");
+  in_key_bind('y', "open_console");
 }
 
 int sys_time()
@@ -87,8 +98,6 @@ bool sys_init_win()
   
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-  
-  SDL_SetRelativeMouseMode(true);
   
   win_sdl_window = SDL_CreateWindow(
     NUKO_TITLE,
@@ -128,6 +137,9 @@ void sys_poll()
       in_key_event(event.key.keysym.sym, 1);
       break;
     case SDL_MOUSEBUTTONDOWN:
+      if (!sys_focused)
+        sys_focus();
+      
       in_mouse_event(0, 1);
       break;
     case SDL_MOUSEBUTTONUP:
@@ -138,8 +150,40 @@ void sys_poll()
       break;
     }
   }
+
+#ifdef __EMSCRIPTEN__
+  char text[128];
+  int len = main_gets(text, 256);
+  if (len) {
+    char cmd[128];
+    snprintf(cmd, sizeof(cmd), "say \"%s\"", text);
+    cmd_puts(cmd);
+  }
+#endif
   
   cmd_execute();
+}
+
+void sys_focus()
+{
+  SDL_EventState(SDL_TEXTINPUT, SDL_ENABLE);
+  SDL_EventState(SDL_KEYDOWN, SDL_ENABLE);
+  SDL_EventState(SDL_KEYUP, SDL_ENABLE);
+  
+  SDL_SetRelativeMouseMode(true);
+  
+  sys_focused = true;
+}
+
+void sys_unfocus()
+{
+  SDL_EventState(SDL_TEXTINPUT, SDL_DISABLE);
+  SDL_EventState(SDL_KEYDOWN, SDL_DISABLE);
+  SDL_EventState(SDL_KEYUP, SDL_DISABLE);
+  
+  SDL_SetRelativeMouseMode(false);
+  
+  sys_focused = false;
 }
 
 void sys_quit()
@@ -165,6 +209,8 @@ int main(int argc, char* argv[])
   
   if (!gl_init())
     log_printf(LOG_FATAL, "main(): failed to initialise OpenGL");
+  
+  sys_focus();
   
   cl_init();
   

@@ -29,24 +29,24 @@ build/linux/assets/%: assets/% | build/linux/assets
 	cp $< $@
 
 build/linux/bin: | build/linux
-	mkdir $@
-	mkdir $@/server
-	mkdir $@/client
-	mkdir $@/game
-	mkdir $@/common
+	-mkdir $@
+	-mkdir $@/server
+	-mkdir $@/client
+	-mkdir $@/game
+	-mkdir $@/common
 
 build/linux/assets: | build/linux
-	mkdir $@
-	mkdir $@/map
-	mkdir $@/mdl
-	mkdir $@/mtl
-	mkdir $@/tex
+	-mkdir $@
+	-mkdir $@/map
+	-mkdir $@/mdl
+	-mkdir $@/mtl
+	-mkdir $@/tex
 
 build/linux: | build
-	mkdir $@
+	-mkdir $@
 
 build:
-	mkdir $@
+	-mkdir $@
 
 clean:
 	rm -rf build/linux/*

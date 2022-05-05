@@ -16,14 +16,14 @@ void sv_init()
   sv_load_map("nk_flatgrass");
 }
 
-static int lag_time = 0;
+static int next_frame = 0;
 
 void sv_update(int delta_time)
 {
-  lag_time += delta_time;
+  next_frame += delta_time;
   
-  while (lag_time > 0) {
-    lag_time -= host_frametime;
+  while (next_frame > 0) {
+    next_frame -= host_frametime;
     
     sv_accept();
     sv_parse();

@@ -45,6 +45,8 @@ void  cl_connect(const char *host);
 void  cl_parse();
 void  cl_parse_snapshot(const frame_t *frame);
 void  cl_parse_client_info(const frame_t *frame);
+void  cl_parse_chat(const frame_t *frame);
 void  cl_send_cmd();
+void  cl_send_chat(const char *text);
 
 #endif

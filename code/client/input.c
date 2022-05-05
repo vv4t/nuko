@@ -1,5 +1,6 @@
 #include "input.h"
 
+#define MAX_PITCH     1.57
 #define MAX_KEYBINDS  32
 
 typedef struct {
@@ -17,8 +18,8 @@ static float  in_right;
 static float  in_jump;
 static float  in_attack;
 
-static float in_mouse_x;
-static float in_mouse_y;
+static float  in_pitch;
+static float  in_yaw;
 
 static void in_forward_down(void *d) { in_forward = 1.0f; }
 static void in_forward_up(void *d)   { in_forward = 0.0f; }
@@ -69,8 +70,8 @@ void in_init()
   in_right    = 0.0f;
   in_jump     = 0.0f;
   
-  in_mouse_x  = 0.0f;
-  in_mouse_y  = 0.0f;
+  in_yaw      = 0.0f;
+  in_pitch    = 0.0f;
 }
 
 void in_key_bind(int key, const char *text)
@@ -112,8 +113,12 @@ void in_mouse_event(int button, int action)
 
 void in_mouse_move(int dx, int dy)
 {
-  in_mouse_x += dx;
-  in_mouse_y += dy;
+  in_yaw += dx * IN_SENSITIVITY;
+  
+  float new_pitch = in_pitch + dy * IN_SENSITIVITY;
+  
+  if (fabs(new_pitch) < MAX_PITCH)
+    in_pitch = new_pitch;
 }
 
 void in_base_move(usercmd_t *usercmd)
@@ -122,6 +127,6 @@ void in_base_move(usercmd_t *usercmd)
   usercmd->right    = in_right - in_left;
   usercmd->jump     = in_jump;
   usercmd->attack   = in_attack;
-  usercmd->yaw      = in_mouse_x * IN_SENSITIVITY;
-  usercmd->pitch    = in_mouse_y * IN_SENSITIVITY;
+  usercmd->yaw      = in_yaw;
+  usercmd->pitch    = in_pitch;
 }

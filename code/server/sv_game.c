@@ -44,6 +44,8 @@ void sv_client_move()
 
 void sv_load_map(const char *name)
 {
+  sv.map_name = name;
+  
   char map_path[256];
   sprintf(map_path, "assets/map/%s.map", name);
   
@@ -85,12 +87,17 @@ void sv_client_shoot()
         &snapshot->sv_capsule[j]);
       
       if (hit) {
-        int range = 40;
+        int range = 30;
         sv.bg.transform[j].position.x = (rand() % range) - range / 2;
         sv.bg.transform[j].position.y = 40;
         sv.bg.transform[j].position.z = (rand() % range) - range / 2;
         
         sv.bg.motion[j] = (bg_motion_t) {0};
+        
+        char msg[128];
+        snprintf(msg, 128, "[SERVER] %s killed %s.", sv.client[i].name, sv.client[j].name);
+        
+        sv_send_chat(msg);
       }
     }
   }

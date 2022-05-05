@@ -29,12 +29,8 @@ void pm_air_accelerate(bg_motion_t *motion, vec3_t wish_dir, float wish_speed)
 
 void pm_friction(bg_motion_t *motion)
 {
-  float speed = vec3_length(motion->velocity);
-  
-  if (speed != 0) {
-    float drop = 1.0f - BG_FRICTION * BG_TIMESTEP;
-    motion->velocity = vec3_mulf(motion->velocity, drop);
-  }
+  float drop = 1.0f - BG_FRICTION * BG_TIMESTEP;
+  motion->velocity = vec3_mulf(motion->velocity, drop);
 }
 
 void pm_free_look(bg_transform_t *transform, float yaw, float pitch)
@@ -88,7 +84,7 @@ void bg_pm_walk_move(bgame_t *bg)
       if (bg->pmove[i].on_ground)
         pm_accelerate(&bg->motion[i], wish_dir, 5.5f, 7.0f);
       else
-        pm_air_accelerate(&bg->motion[i], wish_dir, 2.0f);
+        pm_air_accelerate(&bg->motion[i], wish_dir, 4.0f);
     }
     
     if (bg->pmove[i].on_ground) {

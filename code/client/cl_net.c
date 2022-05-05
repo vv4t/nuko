@@ -16,6 +16,9 @@ void cl_parse()
     case NETCMD_SNAPSHOT:
       cl_parse_snapshot(&frame);
       break;
+    case NETCMD_CHAT:
+      cl_parse_chat(&frame);
+      break;
     case NETCMD_USERCMD:
       break;
     }
@@ -26,6 +29,8 @@ void cl_parse_client_info(const frame_t *frame)
 {
   cl.connected = true;
   cg.ent_client = frame->data.client_info.entity;
+  
+  cl_load_map(frame->data.client_info.map_name);
 }
 
 void cl_parse_snapshot(const frame_t *frame)
@@ -35,19 +40,43 @@ void cl_parse_snapshot(const frame_t *frame)
   cl.snapshot = frame->data.snapshot.d;
 }
 
+void cl_parse_chat(const frame_t *frame)
+{
+  printf("%s\n", frame->data.chat.content);
+}
+
 void cl_send_cmd()
 {
-  if (cl.connected) {
-    frame_t frame;
-    frame.netcmd = NETCMD_USERCMD;
-    frame.data.usercmd.ack = cl.snapshot_ack;
-    frame.data.usercmd.d = cl.usercmd;
-    
-    net_sock_send(cl.sock, &frame, sizeof(frame_t));
-    cl.cmd_queue[cl.cmd_head++ % MAX_CMD_QUEUE] = cl.usercmd;
-    
-    if (cl.cmd_head - cl.cmd_tail >= MAX_CMD_QUEUE) {
-      log_printf(LOG_WARNING, "cl_send_cmd(): too many usercmds %i/%i %i %i", cl.cmd_head - cl.cmd_tail, MAX_CMD_QUEUE, cl.cmd_tail, cl.cmd_head);
-    }
+  if (!cl.connected)
+    return;
+  
+  frame_t frame;
+  frame.netcmd = NETCMD_USERCMD;
+  frame.data.usercmd.ack = cl.snapshot_ack;
+  frame.data.usercmd.d = cl.usercmd;
+  
+  net_sock_send(cl.sock, &frame, sizeof(frame_t));
+  
+  cl.cmd_queue[cl.cmd_head++ % MAX_CMD_QUEUE] = cl.usercmd;
+  if (cl.cmd_head - cl.cmd_tail >= MAX_CMD_QUEUE) {
+    log_printf(
+      LOG_WARNING,
+      "cl_send_cmd(): too many usercmds %i/%i %i %i",
+      cl.cmd_head - cl.cmd_tail,
+      MAX_CMD_QUEUE,
+      cl.cmd_tail,
+      cl.cmd_head);
   }
+}
+
+void cl_send_chat(const char *text)
+{
+  if (!cl.connected)
+    return;
+  
+  frame_t frame;
+  frame.netcmd = NETCMD_CHAT;
+  strncpy(frame.data.chat.content, text, sizeof(frame.data.chat.content));
+  
+  net_sock_send(cl.sock, &frame, sizeof(frame_t));
 }

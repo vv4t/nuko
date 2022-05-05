@@ -33,14 +33,29 @@ void sv_send_snapshot()
   frame.data.snapshot.seq = sv.snapshot_head;
   sv_server_snapshot(&frame.data.snapshot.d);
   
+  sv.snapshot_queue[sv.snapshot_head++ % MAX_SNAPSHOT_QUEUE] = frame.data.snapshot.d; 
+  
   for (int i = 0; i < sv.edict.num_entities; i++) {
     if ((sv.edict.entities[i] & SVC_CLIENT) != SVC_CLIENT)
       continue;
     
     frame.data.snapshot.ack = sv.client[i].cmd_tail - 1;
     sv_client_snapshot(&frame.data.snapshot.d, i);
+    
     net_sock_send(sv.client[i].sock, &frame, sizeof(frame_t));
   }
+}
+
+void sv_send_chat(const char *text)
+{
+  frame_t frame;
+  frame.netcmd = NETCMD_CHAT;
+  strncpy(frame.data.chat.content, text, sizeof(frame.data.chat.content));
   
-  sv.snapshot_queue[sv.snapshot_head++ % MAX_SNAPSHOT_QUEUE] = frame.data.snapshot.d; 
+  for (int i = 0; i < sv.edict.num_entities; i++) {
+    if ((sv.edict.entities[i] & SVC_CLIENT) != SVC_CLIENT)
+      continue;
+    
+    net_sock_send(sv.client[i].sock, &frame, sizeof(frame_t));
+  }
 }

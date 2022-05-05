@@ -38,7 +38,24 @@ function cl_net_sock_read(sock_id, payload_ptr, len)
   return Module.net_sock_read(sock_id, payload_ptr, len);
 }
 
+function main_gets(buf_ptr, len)
+{
+  let read = write_heap_string(buf_ptr, main_in_buf, len);
+  
+  if (read > 0)
+    main_in_buf = "";
+  
+  return read;
+}
+
+function main_focus_input()
+{
+  main_in.focus();
+}
+
 mergeInto(LibraryManager.library, {
+  main_gets: main_gets,
+  main_focus_input: main_focus_input,
   cl_get_host_address: cl_get_host_address,
   net_connect: cl_net_connect,
   net_sock_send: cl_net_sock_send,

@@ -7,6 +7,29 @@
         border: 1px solid;
       }
       
+      #stdio {
+        display: inline-block;
+        border: 1px solid;
+      }
+      
+      #stdout {
+        width: 300px;
+        height: 693px;
+        display: block;
+        resize: none;
+        font-size: 10px;
+        font-family: Consolas,monaco,monospace;
+      }
+      
+      #stdin {
+        width: 300px;
+        height: 15px;
+        display: block;
+        resize: none;
+        font-size: 10px;
+        font-family: consolas,monaco,monospace;
+      }
+      
       body {
         color: white;
         background-color: black;
@@ -15,7 +38,12 @@
     </style>
   </head>
   <body>
+    <div id="stdio">
+      <textarea id="stdout" readonly></textarea>
+      <textarea id="stdin" row=1></textarea>
+    </div>
     <canvas width="1280" height="720" id="canvas"></canvas>
+    <script src="main.js"></script>
     {{{ SCRIPT }}}
   </body>
 </html>

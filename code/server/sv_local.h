@@ -29,6 +29,8 @@ typedef struct {
   
   int       snapshot_ack;
   
+  char      name[32];
+  
   int       cmd_head;
   int       cmd_tail;
   usercmd_t cmd_queue[MAX_CMD_QUEUE];
@@ -38,6 +40,8 @@ typedef struct {
   edict_t     edict;
   bgame_t     bg;
   
+  const char  *map_name;
+  
   sv_client_t client[MAX_ENTITIES];
   
   int         snapshot_head;
@@ -46,7 +50,9 @@ typedef struct {
 
 extern server_t sv;
 
+//
 // sv_game.c
+//
 bool            intersect_ray_capsule(
   vec3_t              origin,
   vec3_t              ray,
@@ -60,16 +66,22 @@ void            sv_server_snapshot(snapshot_t *snapshot);
 void            sv_client_snapshot(snapshot_t *snapshot, entity_t entity);
 void            sv_load_map(const char *map);
 
+//
 // sv_net.c
+//
 void            sv_accept();
 void            sv_parse();
 void            sv_send_snapshot();
+void            sv_send_chat(const char *text);
 
+//
 // sv_client.c
+//
 entity_t        sv_new_client(sock_t sock);
 void            sv_client_parse_frame(entity_t entity, const frame_t *frame);
 void            sv_client_parse_usercmd(entity_t entity, const frame_t *frame);
+void            sv_client_parse_chat(entity_t entity, const frame_t *frame);
 void            sv_client_send_client_info(entity_t entity);
-// const usercmd_t *sv_client_get_usercmd(sv_client_t *client);
+void            sv_client_send_chat(entity_t entity, const char *text);
 
 #endif
