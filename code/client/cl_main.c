@@ -49,15 +49,16 @@ void cl_update(int delta_time)
 {
   in_base_move(&cl.usercmd);
   
-  float interp = ((float) next_cmd / (float) cl_cmdrate) + 1.0f;
+  float interp = ((float) next_cmd / (float) cl_cmdrate);
   
   cl_view_look();
   cl_interpolate(interp);  
   cl_parse();
   
   next_cmd += delta_time;
-  if (next_cmd > 0) {
-    next_cmd -= cl_cmdrate;
+  
+  if (next_cmd > cl_cmdrate) {
+    next_cmd = next_cmd % cl_cmdrate;
     
     cl_send_cmd();
     cl_predict();

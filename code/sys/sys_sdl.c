@@ -139,7 +139,6 @@ void sys_poll()
     case SDL_MOUSEBUTTONDOWN:
       if (!sys_focused)
         sys_focus();
-      
       in_mouse_event(0, 1);
       break;
     case SDL_MOUSEBUTTONUP:
