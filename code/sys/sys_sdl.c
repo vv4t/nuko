@@ -14,44 +14,61 @@
 
 #ifdef __EMSCRIPTEN__
   #include <emscripten.h>
-  int main_gets(char *buf, int len);
-  void main_focus_input();
+  int ems_gets(char *buf, int len);
+  void ems_focus();
 #endif
 
 #define NUKO_WIDTH   1280
 #define NUKO_HEIGHT  720
 #define NUKO_TITLE   "nuko"
 
-void  sys_config();
-int   sys_time();
-void  sys_quit();
-void  sys_poll();
-void  sys_update();
-bool  sys_init_win();
-void  sys_poll();
-void  sys_quit();
-void  sys_swap();
-void  sys_focus();
-void  sys_unfocus();
+void                  sys_config();
+int                   sys_time();
+void                  sys_quit();
+void                  sys_poll();
+void                  sys_update();
+bool                  sys_init_win();
+void                  sys_poll();
+void                  sys_quit();
+void                  sys_swap();
+void                  sys_focus();
+void                  sys_unfocus();
 
 static SDL_Window     *win_sdl_window;
 static SDL_GLContext  win_gl_context;
+static bool           win_focused = false;
 
-static bool           sys_focused = false;
+static char           sys_in[256];
+static bool           sys_in_empty = true;
 
 static void console_input_f(void *d)
 {
 #ifdef __EMSCRIPTEN__
   sys_unfocus();
-  main_focus_input();
+  ems_focus();
 #else
-  char text_buf[256];
-  
-  printf(":");
-  const char *text = fgets(text_buf, 256, stdin);
-  
-  cmd_puts(text);
+  printf("> ");
+  if (fgets(sys_in, sizeof(sys_in), stdin)) {
+    sys_in[strcspn(sys_in, "\n")] = 0;
+    sys_in_empty = false;
+  }
 #endif
+}
+
+#ifdef __EMSCRIPTEN__
+static void ems_console_input()
+{
+  sys_in_empty = ems_gets(sys_in, sizeof(sys_in)) == 0;
+}
+#endif
+
+const char *sys_read_in()
+{
+  if (!sys_in_empty) {
+    sys_in_empty = true;
+    return sys_in;
+  } else
+    return NULL;
 }
 
 void sys_config()
@@ -137,7 +154,7 @@ void sys_poll()
       in_key_event(event.key.keysym.sym, 1);
       break;
     case SDL_MOUSEBUTTONDOWN:
-      if (!sys_focused)
+      if (!win_focused)
         sys_focus();
       in_mouse_event(0, 1);
       break;
@@ -149,18 +166,12 @@ void sys_poll()
       break;
     }
   }
-
-#ifdef __EMSCRIPTEN__
-  char text[128];
-  int len = main_gets(text, 256);
-  if (len) {
-    char cmd[128];
-    snprintf(cmd, sizeof(cmd), "say \"%s\"", text);
-    cmd_puts(cmd);
-  }
-#endif
   
   cmd_execute();
+
+#ifdef __EMSCRIPTEN__
+  ems_console_input();
+#endif
 }
 
 void sys_focus()
@@ -171,7 +182,7 @@ void sys_focus()
   
   SDL_SetRelativeMouseMode(true);
   
-  sys_focused = true;
+  win_focused = true;
 }
 
 void sys_unfocus()
@@ -182,7 +193,7 @@ void sys_unfocus()
   
   SDL_SetRelativeMouseMode(false);
   
-  sys_focused = false;
+  win_focused = false;
 }
 
 void sys_quit()

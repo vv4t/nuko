@@ -17,8 +17,10 @@ void cl_get_host_address(char *host_address, int len)
 
 void say_f(void *d)
 {
-  if (cmd_argc() != 2)
+  if (cmd_argc() != 2) {
+    log_printf(LOG_ERROR, "say_f(): usage: %s [msg]", cmd_argv(0));
     return;
+  }
   
   cl_send_chat(cmd_argv(1));
 }
@@ -43,6 +45,21 @@ void cl_init()
   cl_connect(host_address);
 }
 
+void cl_console()
+{
+  const char *in_cmd = sys_read_in();
+  
+  if (in_cmd) {
+    if (in_cmd[0] == '!') {
+      cmd_puts(&in_cmd[1]);
+      cmd_puts("\n");
+      cmd_execute();
+    } else {
+      cl_send_chat(in_cmd);
+    }
+  }
+}
+
 static int  next_cmd = 0;
 
 void cl_update(int delta_time)
@@ -51,6 +68,7 @@ void cl_update(int delta_time)
   
   float interp = ((float) next_cmd / (float) cl_cmdrate);
   
+  cl_console();
   cl_view_look();
   cl_interpolate(interp);  
   cl_parse();

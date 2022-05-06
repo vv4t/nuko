@@ -28,26 +28,26 @@ bool cmd_execute()
   char *cmd_queue = cmd_text;
   
   char *str_cmd;
-  while ((str_cmd = strtok_r(cmd_queue, ";\n", &cmd_queue))) {
+  while ((str_cmd = strtok_r(cmd_queue, "\n", &cmd_queue))) {
     cmd_arg_count = 0;
     
     while ((cmd_arg_value[cmd_arg_count] = strtok_r(str_cmd, " ", &str_cmd))) {
       cmd_arg_count++;
-      
-      if (*str_cmd == '"') {
-        ++str_cmd;
-        cmd_arg_value[cmd_arg_count] = str_cmd;
+      while (*str_cmd == '"') {
+        cmd_arg_value[cmd_arg_count++] = ++str_cmd;
         
         while (*str_cmd != '"') {
           if (*str_cmd == '\n' || *str_cmd == 0) {
             log_printf(LOG_ERROR, "cmd_execute(): unescaped '\"'");
             return false;
           }
-          ++str_cmd;
+          
+          str_cmd++;
         }
         
-        *str_cmd = 0;
-        cmd_arg_count++;
+        do
+          *str_cmd++ = 0;
+        while (*str_cmd == ' ');
       }
     }
     

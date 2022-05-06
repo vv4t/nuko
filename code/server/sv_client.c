@@ -40,34 +40,10 @@ void sv_client_parse_frame(entity_t entity, const frame_t *frame)
 
 void sv_client_parse_chat(entity_t entity, const frame_t *frame)
 {
-  const char *content = frame->data.chat.content;
+  char msg[128];
+  snprintf(msg, 128, "[CHAT] %s: %s", sv.client[entity].name, frame->data.chat.content);
   
-  if (content[0] == '/') {
-    char chat_cmd[sizeof(frame->data.chat.content)];
-    strcpy(chat_cmd, content);
-    
-    char *c_argv[8];
-    int c_argc = 0;
-    
-    char *str_cmd = chat_cmd;
-    while ((c_argv[c_argc] = strtok_r(str_cmd, " ", &str_cmd)))
-      c_argc++;
-    
-    if (strcmp(c_argv[0], "/name") == 0) {
-      if (c_argc != 2) {
-        sv_client_send_chat(entity, "[SERVER] usage: /name [name]");
-        return;
-      }
-      
-      strncpy(sv.client[entity].name, c_argv[1], sizeof(sv.client[entity].name));
-      sv_client_send_chat(entity, "[SERVER] your name has been changed.");
-    }
-  } else {
-    char msg[128];
-    snprintf(msg, 128, "[CHAT] %s: %s", sv.client[entity].name, frame->data.chat.content);
-    
-    sv_send_chat(msg);
-  }
+  sv_send_chat(msg);
 }
 
 void sv_client_parse_usercmd(entity_t entity, const frame_t *frame)

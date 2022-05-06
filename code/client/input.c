@@ -37,7 +37,7 @@ static void in_attack_up(void *d)    { in_attack  = 0.0f;  }
 static void key_bind_f(void *d)
 {
   if (cmd_argc() != 3) {
-    log_printf(LOG_ERROR, "in_bind_f(): usage %s [key] [command]", cmd_argv(0));
+    log_printf(LOG_ERROR, "in_bind_f(): usage: %s [key] [command]", cmd_argv(0));
     return;
   }
   

@@ -16,11 +16,11 @@ SV_LIBS=-lm
 
 default: build/linux $(ASSETS) build/linux/nuko build/linux/nuko_dedicated
 
-build/linux/nuko: $(CL_OBJ)
-	$(C_CC) $(C_FLAGS) $(CL_LIBS) $^ code/sys/sys_sdl.c -o $@
+build/linux/nuko: $(CL_OBJ) code/sys/sys_sdl.c
+	$(C_CC) $(C_FLAGS) $(CL_LIBS) $^ -o $@
 
-build/linux/nuko_dedicated: $(SV_OBJ)
-	$(C_CC) $(C_FLAGS) $(SV_LIBS) $^ code/sys/sys_dedicated.c -o $@
+build/linux/nuko_dedicated: $(SV_OBJ) code/sys/sys_dedicated.c
+	$(C_CC) $(C_FLAGS) $(SV_LIBS) $^ -o $@
 
 build/linux/bin/%.o: code/%.c $(HEADERS) build/linux/bin
 	$(C_CC) $(C_FLAGS) -c -o $@ $<

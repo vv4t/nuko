@@ -10,6 +10,7 @@
 #include "../common/net.h"
 #include "../common/cmd.h"
 #include "../common/log.h"
+#include "../common/sys.h"
 #include <string.h>
 #include <time.h>
 #include <stdlib.h>
@@ -31,6 +32,9 @@ typedef struct {
 } client_t;
 
 extern client_t cl;
+
+// cl_main.c
+void  cl_console();
 
 // cl_cgame.c
 void  cl_snapshot();
