@@ -52,5 +52,6 @@ void  cl_parse_client_info(const frame_t *frame);
 void  cl_parse_chat(const frame_t *frame);
 void  cl_send_cmd();
 void  cl_send_chat(const char *text);
+void  cl_send_name(const char *name);
 
 #endif

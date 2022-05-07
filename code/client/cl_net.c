@@ -80,3 +80,15 @@ void cl_send_chat(const char *text)
   
   net_sock_send(cl.sock, &frame, sizeof(frame_t));
 }
+
+void cl_send_name(const char *name)
+{
+  if (!cl.connected)
+    return;
+  
+  frame_t frame;
+  frame.netcmd = NETCMD_NAME;
+  strncpy(frame.data.name.name, name, sizeof(frame.data.name.name));
+  
+  net_sock_send(cl.sock, &frame, sizeof(frame_t));
+}

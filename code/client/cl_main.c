@@ -25,9 +25,20 @@ void say_f(void *d)
   cl_send_chat(cmd_argv(1));
 }
 
+void name_f(void *d)
+{
+  if (cmd_argc() != 2) {
+    log_printf(LOG_ERROR, "name_f(): usage: %s [name]", cmd_argv(0));
+    return;
+  }
+  
+  cl_send_name(cmd_argv(1));
+}
+
 void cl_init()
 {
   cmd_add_command("say", say_f, NULL);
+  cmd_add_command("name", name_f, NULL);
   
   cl.connected = false;
   cl.cmd_tail = 0;

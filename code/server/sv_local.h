@@ -37,6 +37,11 @@ typedef struct {
 } sv_client_t;
 
 typedef struct {
+  bool      attack;
+  int       next_attack;
+} sv_client_t;
+
+typedef struct {
   edict_t     edict;
   bgame_t     bg;
   
@@ -53,35 +58,36 @@ extern server_t sv;
 //
 // sv_game.c
 //
-bool            intersect_ray_capsule(
+bool      intersect_ray_capsule(
   vec3_t              origin,
   vec3_t              ray,
   vec3_t              offset,
   const bg_capsule_t  *capsule);
 
-void            sv_game_update();
-void            sv_client_move();
-void            sv_client_shoot();
-void            sv_server_snapshot(snapshot_t *snapshot);
-void            sv_client_snapshot(snapshot_t *snapshot, entity_t entity);
-void            sv_load_map(const char *map);
+void      sv_game_update();
+void      sv_client_move();
+void      sv_client_shoot();
+void      sv_server_snapshot(snapshot_t *snapshot);
+void      sv_client_snapshot(snapshot_t *snapshot, entity_t entity);
+void      sv_load_map(const char *map);
 
 //
 // sv_net.c
 //
-void            sv_accept();
-void            sv_parse();
-void            sv_send_snapshot();
-void            sv_send_chat(const char *text);
+void      sv_accept();
+void      sv_parse();
+void      sv_send_snapshot();
+void      sv_send_chat(const char *text);
 
 //
 // sv_client.c
 //
-entity_t        sv_new_client(sock_t sock);
-void            sv_client_parse_frame(entity_t entity, const frame_t *frame);
-void            sv_client_parse_usercmd(entity_t entity, const frame_t *frame);
-void            sv_client_parse_chat(entity_t entity, const frame_t *frame);
-void            sv_client_send_client_info(entity_t entity);
-void            sv_client_send_chat(entity_t entity, const char *text);
+entity_t  sv_new_client(sock_t sock);
+void      sv_client_parse_frame(entity_t entity, const frame_t *frame);
+void      sv_client_parse_usercmd(entity_t entity, const frame_t *frame);
+void      sv_client_parse_name(entity_t entity, const frame_t *frame);
+void      sv_client_parse_chat(entity_t entity, const frame_t *frame);
+void      sv_client_send_client_info(entity_t entity);
+void      sv_client_send_chat(entity_t entity, const char *text);
 
 #endif

@@ -7,6 +7,7 @@ typedef enum {
   NETCMD_CLIENT_INFO,
   NETCMD_USERCMD,
   NETCMD_SNAPSHOT,
+  NETCMD_NAME,
   NETCMD_CHAT
 } netcmd_t;
 
@@ -17,6 +18,9 @@ typedef struct {
       entity_t    entity;
       char        map_name[32];
     } client_info;
+    struct {
+      char        name[32];
+    } name;
     struct {
       char        content[128];
     } chat;

@@ -35,14 +35,22 @@ void sv_client_parse_frame(entity_t entity, const frame_t *frame)
   case NETCMD_CHAT:
     sv_client_parse_chat(entity, frame);
     break;
+  case NETCMD_NAME:
+    sv_client_parse_name(entity, frame);
+    break;
   }
+}
+
+void sv_client_parse_name(entity_t entity, const frame_t *frame)
+{
+  strncpy(sv.client[entity].name, frame->data.name.name, sizeof(sv.client[entity].name));
+  sv_client_send_chat(entity, "[SERVER] your name has been changed.");
 }
 
 void sv_client_parse_chat(entity_t entity, const frame_t *frame)
 {
-  char msg[128];
+  static char msg[128];
   snprintf(msg, 128, "[CHAT] %s: %s", sv.client[entity].name, frame->data.chat.content);
-  
   sv_send_chat(msg);
 }
 
