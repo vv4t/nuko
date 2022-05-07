@@ -17,11 +17,15 @@
 #define MAX_SNAPSHOT_QUEUE  64
 
 typedef enum {
-  SVC_CLIENT = (AUX_BGC << 0)
+  SVC_CLIENT  = (AUX_BGC << 0),
+  SVC_ATTACK  = (AUX_BGC << 1),
+  SVC_RESPAWN = (AUX_BGC << 2),
+  SVC_SCORE   = (AUX_BGC << 3)
 } sv_component_t;
 
 typedef enum {
-  SV_ES_CLIENT = (BGC_TRANSFORM | BGC_CLIENT | BGC_CAPSULE | BGC_CLIP | BGC_MOTION | BGC_MODEL | BGC_PMOVE) | SVC_CLIENT
+  SV_ES_CLIENT      = SVC_CLIENT | BG_ES_CLIENT | SVC_ATTACK | SVC_SCORE,
+  SV_ES_RESPAWN     = SVC_CLIENT | BGC_TRANSFORM | SVC_RESPAWN | SVC_SCORE
 } sv_entitystate_t;
 
 typedef struct {
@@ -37,23 +41,35 @@ typedef struct {
 } sv_client_t;
 
 typedef struct {
-  bool      attack;
-  int       next_attack;
-} sv_client_t;
+  bool      ready;
+} sv_attack_t;
 
 typedef struct {
-  edict_t     edict;
-  bgame_t     bg;
+  int       spawn_time;
+} sv_respawn_t;
+
+typedef struct {
+  int       kills;
+  int       deaths;
+} sv_score_t;
+
+typedef struct {
+  edict_t       edict;
+  bgame_t       bg;
   
-  const char  *map_name;
+  const char    *map_name;
   
-  sv_client_t client[MAX_ENTITIES];
+  sv_client_t   client[MAX_ENTITIES];
+  sv_attack_t   attack[MAX_ENTITIES];
+  sv_respawn_t  respawn[MAX_ENTITIES];
+  sv_score_t    score[MAX_ENTITIES];
   
-  int         snapshot_head;
-  snapshot_t  snapshot_queue[MAX_SNAPSHOT_QUEUE];
+  int           snapshot_head;
+  snapshot_t    snapshot_queue[MAX_SNAPSHOT_QUEUE];
 } server_t;
 
 extern server_t sv;
+extern int      host_frametime;
 
 //
 // sv_game.c
@@ -67,8 +83,10 @@ bool      intersect_ray_capsule(
 void      sv_game_update();
 void      sv_client_move();
 void      sv_client_shoot();
+void      sv_respawn();
 void      sv_server_snapshot(snapshot_t *snapshot);
 void      sv_client_snapshot(snapshot_t *snapshot, entity_t entity);
+bool      sv_print_score(char *dest, int len);
 void      sv_load_map(const char *map);
 
 //
@@ -87,6 +105,7 @@ void      sv_client_parse_frame(entity_t entity, const frame_t *frame);
 void      sv_client_parse_usercmd(entity_t entity, const frame_t *frame);
 void      sv_client_parse_name(entity_t entity, const frame_t *frame);
 void      sv_client_parse_chat(entity_t entity, const frame_t *frame);
+void      sv_client_parse_score(entity_t entity, const frame_t *frame);
 void      sv_client_send_client_info(entity_t entity);
 void      sv_client_send_chat(entity_t entity, const char *text);
 

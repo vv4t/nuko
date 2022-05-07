@@ -1,7 +1,7 @@
 #ifndef EDICT_H
 #define EDICT_H
 
-#define MAX_ENTITIES 4
+#define MAX_ENTITIES 8
 
 typedef struct {
   int entities[MAX_ENTITIES];

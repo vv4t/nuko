@@ -1,7 +1,8 @@
 #include "input.h"
 
-#define MAX_PITCH     1.57
-#define MAX_KEYBINDS  32
+#define MAX_PITCH       1.57
+#define MAX_KEYBINDS    32
+#define IN_SENSITIVITY  0.005
 
 typedef struct {
   int         key;
@@ -11,15 +12,15 @@ typedef struct {
 static keybind_t    in_keybinds[MAX_KEYBINDS];
 static int          in_num_keybinds = 0;
 
-static float  in_forward;
-static float  in_left;
-static float  in_back;
-static float  in_right;
-static float  in_jump;
-static float  in_attack;
+static float        in_forward;
+static float        in_left;
+static float        in_back;
+static float        in_right;
+static float        in_jump;
+static float        in_attack;
 
-static float  in_pitch;
-static float  in_yaw;
+static float        in_pitch;
+static float        in_yaw;
 
 static void in_forward_down(void *d) { in_forward = 1.0f; }
 static void in_forward_up(void *d)   { in_forward = 0.0f; }
@@ -31,8 +32,8 @@ static void in_right_down(void *d)   { in_right   = 1.0f; }
 static void in_right_up(void *d)     { in_right   = 0.0f; }
 static void in_jump_down(void *d)    { in_jump    = 1.0f; }
 static void in_jump_up(void *d)      { in_jump    = 0.0f; }
-static void in_attack_down(void *d)  { in_attack  = 1.0f;  }
-static void in_attack_up(void *d)    { in_attack  = 0.0f;  }
+static void in_attack_down(void *d)  { in_attack  = 1.0f; }
+static void in_attack_up(void *d)    { in_attack  = 0.0f; }
 
 static void key_bind_f(void *d)
 {

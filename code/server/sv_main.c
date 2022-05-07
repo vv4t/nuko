@@ -1,8 +1,8 @@
 #include "sv_local.h"
 
-server_t    sv;
+server_t  sv;
 
-static int  host_frametime = 50;
+int       host_frametime = 50;
 
 void sv_init()
 {

@@ -19,7 +19,11 @@ void cl_parse()
     case NETCMD_CHAT:
       cl_parse_chat(&frame);
       break;
+    case NETCMD_SCORE:
+      break;
     case NETCMD_USERCMD:
+      break;
+    case NETCMD_NAME:
       break;
     }
   }
@@ -78,6 +82,16 @@ void cl_send_chat(const char *text)
   frame.netcmd = NETCMD_CHAT;
   strncpy(frame.data.chat.content, text, sizeof(frame.data.chat.content));
   
+  net_sock_send(cl.sock, &frame, sizeof(frame_t));
+}
+
+void cl_send_score()
+{
+  if (!cl.connected)
+    return;
+  
+  frame_t frame;
+  frame.netcmd = NETCMD_SCORE;
   net_sock_send(cl.sock, &frame, sizeof(frame_t));
 }
 

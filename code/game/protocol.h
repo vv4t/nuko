@@ -8,7 +8,8 @@ typedef enum {
   NETCMD_USERCMD,
   NETCMD_SNAPSHOT,
   NETCMD_NAME,
-  NETCMD_CHAT
+  NETCMD_CHAT,
+  NETCMD_SCORE
 } netcmd_t;
 
 typedef struct {
@@ -19,10 +20,10 @@ typedef struct {
       char        map_name[32];
     } client_info;
     struct {
-      char        name[32];
+      char        name[16];
     } name;
     struct {
-      char        content[128];
+      char        content[256];
     } chat;
     struct {
       usercmd_t   d;

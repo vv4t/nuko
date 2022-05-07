@@ -21,6 +21,10 @@ typedef enum {
 } bg_component_t;
 
 typedef enum {
+  BG_ES_CLIENT = BGC_TRANSFORM | BGC_CLIENT | BGC_CAPSULE | BGC_CLIP | BGC_MOTION | BGC_MODEL | BGC_PMOVE
+} bg_entitystate_t;
+
+typedef enum {
   BG_MDL_FUMO_CIRNO,
   MAX_BG_MODEL
 } bg_model_t;

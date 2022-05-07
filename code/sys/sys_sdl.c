@@ -18,8 +18,10 @@
   void ems_focus();
 #endif
 
-#define NUKO_WIDTH   1280
-#define NUKO_HEIGHT  720
+#define NUKO_WIDTH   854
+#define NUKO_HEIGHT  480
+// #define NUKO_WIDTH   1280
+// #define NUKO_HEIGHT  720
 #define NUKO_TITLE   "nuko"
 
 void                  sys_config();
@@ -55,6 +57,11 @@ static void console_input_f(void *d)
 #endif
 }
 
+static void unfocus_f(void *d)
+{
+  sys_unfocus();
+}
+
 #ifdef __EMSCRIPTEN__
 static void ems_console_input()
 {
@@ -74,6 +81,7 @@ const char *sys_read_in()
 void sys_config()
 {
   cmd_add_command("open_console", console_input_f, NULL);
+  cmd_add_command("unfocus", unfocus_f, NULL);
   
   in_key_bind('w', "+forward");
   in_key_bind('a', "+left");
@@ -81,6 +89,7 @@ void sys_config()
   in_key_bind('d', "+right");
   in_key_bind(' ', "+jump");
   in_key_bind('y', "open_console");
+  in_key_bind(SDLK_ESCAPE, "unfocus");
 }
 
 int sys_time()
@@ -164,6 +173,16 @@ void sys_poll()
     case SDL_MOUSEMOTION:
       in_mouse_move(event.motion.xrel, event.motion.yrel);
       break;
+    case SDL_WINDOWEVENT:
+      switch(event.window.event) {
+      case SDL_WINDOWEVENT_FOCUS_GAINED:
+        sys_focus();
+        break;
+      case SDL_WINDOWEVENT_FOCUS_LOST:
+        sys_unfocus();
+        break;
+      }
+      break;
     }
   }
   
@@ -179,6 +198,7 @@ void sys_focus()
   SDL_EventState(SDL_TEXTINPUT, SDL_ENABLE);
   SDL_EventState(SDL_KEYDOWN, SDL_ENABLE);
   SDL_EventState(SDL_KEYUP, SDL_ENABLE);
+  SDL_EventState(SDL_MOUSEMOTION, SDL_ENABLE);
   
   SDL_SetRelativeMouseMode(true);
   
@@ -190,6 +210,7 @@ void sys_unfocus()
   SDL_EventState(SDL_TEXTINPUT, SDL_DISABLE);
   SDL_EventState(SDL_KEYDOWN, SDL_DISABLE);
   SDL_EventState(SDL_KEYUP, SDL_DISABLE);
+  SDL_EventState(SDL_MOUSEMOTION, SDL_DISABLE);
   
   SDL_SetRelativeMouseMode(false);
   

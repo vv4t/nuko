@@ -4,19 +4,25 @@ entity_t sv_new_client(sock_t sock)
 {
   entity_t entity = edict_add_entity(&sv.edict, SV_ES_CLIENT);
   
-  sv.bg.transform[entity] = (bg_transform_t) {0};
-  sv.bg.motion[entity] = (bg_motion_t) {0};
+  sv.bg.transform[entity]             = (bg_transform_t) {0};
+  sv.bg.motion[entity]                = (bg_motion_t) {0};
   
-  sv.bg.transform[entity].position.y = 3;
+  sv.bg.transform[entity].position.y  = 30;
   
-  sv.bg.capsule[entity].radius = 0.5f;
-  sv.bg.capsule[entity].height = 1.0f;
-  sv.bg.model[entity] = BG_MDL_FUMO_CIRNO;
+  sv.bg.capsule[entity].radius        = 0.5f;
+  sv.bg.capsule[entity].height        = 1.0f;
   
-  sv.client[entity].sock = sock;
-  sv.client[entity].cmd_tail = 0;
-  sv.client[entity].cmd_head = 0;
-  sv.client[entity].snapshot_ack = 0;
+  sv.bg.model[entity]                 = BG_MDL_FUMO_CIRNO;
+  
+  sv.attack[entity].ready             = true;
+  
+  sv.score[entity].kills              = 0;
+  sv.score[entity].deaths             = 0;
+  
+  sv.client[entity].sock              = sock;
+  sv.client[entity].cmd_tail          = 0;
+  sv.client[entity].cmd_head          = 0;
+  sv.client[entity].snapshot_ack      = 0;
   snprintf(sv.client[entity].name, sizeof(sv.client[entity].name), "GUEST%i", (rand() % 100000) + 100000);
   
   return entity;
@@ -25,24 +31,40 @@ entity_t sv_new_client(sock_t sock)
 void sv_client_parse_frame(entity_t entity, const frame_t *frame)
 {
   switch (frame->netcmd) {
-  case NETCMD_CLIENT_INFO:
-    break;
-  case NETCMD_SNAPSHOT:
-    break;
-  case NETCMD_USERCMD:
-    sv_client_parse_usercmd(entity, frame);
-    break;
   case NETCMD_CHAT:
     sv_client_parse_chat(entity, frame);
     break;
   case NETCMD_NAME:
     sv_client_parse_name(entity, frame);
     break;
+  case NETCMD_SCORE:
+    sv_client_parse_score(entity, frame);
+    break;
+  case NETCMD_USERCMD:
+    sv_client_parse_usercmd(entity, frame);
+    break;
+  case NETCMD_CLIENT_INFO:
+    break;
+  case NETCMD_SNAPSHOT:
+    break;
   }
+}
+
+void sv_client_parse_score(entity_t entity, const frame_t *frame)
+{
+  static char msg[sizeof(frame->data.chat.content)];
+  
+  if (sv_print_score(msg, sizeof(msg)))
+    sv_client_send_chat(entity, msg);
 }
 
 void sv_client_parse_name(entity_t entity, const frame_t *frame)
 {
+  if (strnlen(frame->data.name.name, sizeof(frame->data.name.name)) >= sizeof(frame->data.name.name)) {
+    sv_client_send_chat(entity, "[SERVER] name is too long.");
+    return;
+  }
+  
   strncpy(sv.client[entity].name, frame->data.name.name, sizeof(sv.client[entity].name));
   sv_client_send_chat(entity, "[SERVER] your name has been changed.");
 }

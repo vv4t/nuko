@@ -35,10 +35,21 @@ void name_f(void *d)
   cl_send_name(cmd_argv(1));
 }
 
+void score_f(void *d)
+{
+  if (cmd_argc() != 1) {
+    log_printf(LOG_ERROR, "score_f(): usage: %s");
+    return;
+  }
+  
+  cl_send_score();
+}
+
 void cl_init()
 {
   cmd_add_command("say", say_f, NULL);
   cmd_add_command("name", name_f, NULL);
+  cmd_add_command("score", score_f, NULL);
   
   cl.connected = false;
   cl.cmd_tail = 0;
