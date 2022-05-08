@@ -125,12 +125,6 @@ void r_draw_entities()
   }
 }
 
-void r_draw_map()
-{
-  glUniformMatrix4fv(r.shader.ul_mvp, 1, GL_FALSE, r.view_projection_matrix.m);
-  r_draw_model(&r.map_model);
-}
-
 void r_draw_crosshair()
 {
   float aspect_ratio = 720.0 / 1280.0;

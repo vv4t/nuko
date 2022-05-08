@@ -74,3 +74,9 @@ bool r_new_map(const map_t *map)
   
   return true;
 }
+
+void r_draw_map()
+{
+  glUniformMatrix4fv(r.shader.ul_mvp, 1, GL_FALSE, r.view_projection_matrix.m);
+  r_draw_model(&r.map_model);
+}

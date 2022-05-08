@@ -69,6 +69,9 @@ extern renderer_t r;
 
 bool  r_shader_init();
 
+bool  r_map_load_meshes(const map_t *map);
+bool  r_map_load_materials(const map_t *map);
+
 void  r_vbo_init();
 void  r_vbo_reset(int vbo_ptr);
 bool  r_new_mesh(mesh_t *mesh, const vertex_t *vertices, int num_vertices);

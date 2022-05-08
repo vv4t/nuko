@@ -226,7 +226,7 @@ function gen_bevel_planes(brush)
         const d = brush.faces[i].normal.dot(plane.normal);
         if (d < COS_MAX_THETA) {
           const normal = brush.faces[i].normal.add(plane.normal).normalize();
-          const distance = shared[0].pos.dot(normal) - 0.1;
+          const distance = shared[0].pos.dot(normal) - 0.05;
           
           bevel.push(new plane_t(normal, distance));
         }
