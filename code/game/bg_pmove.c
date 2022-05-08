@@ -84,7 +84,7 @@ void bg_pm_walk_move(bgame_t *bg)
       if (bg->pmove[i].on_ground)
         pm_accelerate(&bg->motion[i], wish_dir, 5.5f, 7.0f);
       else
-        pm_air_accelerate(&bg->motion[i], wish_dir, 4.0f);
+        pm_air_accelerate(&bg->motion[i], wish_dir, 2.5f);
     }
     
     if (bg->pmove[i].on_ground) {

@@ -7,7 +7,7 @@ entity_t sv_new_client(sock_t sock)
   sv.bg.transform[entity]             = (bg_transform_t) {0};
   sv.bg.motion[entity]                = (bg_motion_t) {0};
   
-  sv.bg.transform[entity].position.y  = 30;
+  sv.bg.transform[entity].position.y  = 10;
   
   sv.bg.capsule[entity].radius        = 0.5f;
   sv.bg.capsule[entity].height        = 1.0f;

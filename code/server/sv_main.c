@@ -13,7 +13,7 @@ void sv_init()
   
   net_listen();
   
-  sv_load_map("nk_flatgrass");
+  sv_load_map("nk_arena");
 }
 
 static int next_frame = 0;

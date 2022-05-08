@@ -122,12 +122,12 @@ void sv_respawn()
         sv_client_send_chat(i, msg);
       }
     } else {
-      int range = 30;
+      int range = 10;
       
       sv.edict.entities[i] = SV_ES_CLIENT;
       
       sv.bg.transform[i].position.x = (rand() % range) - range / 2;
-      sv.bg.transform[i].position.y = 40;
+      sv.bg.transform[i].position.y = 10;
       sv.bg.transform[i].position.z = (rand() % range) - range / 2;
       
       sv.bg.motion[i] = (bg_motion_t) {0};
