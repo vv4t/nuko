@@ -40,6 +40,27 @@ inline static vec2_t vec2_init(float x, float y)
   };
 }
 
+inline static vec2_t vec2_add(vec2_t a, vec2_t b)
+{
+  return vec2_init(
+    a.x + b.x,
+    a.y + b.y);
+}
+
+inline static vec2_t vec2_mul(vec2_t a, vec2_t b)
+{
+  return vec2_init(
+    a.x * b.x,
+    a.y * b.y);
+}
+
+inline static vec2_t vec2_mulf(vec2_t a, float b)
+{
+  return vec2_init(
+    a.x * b,
+    a.y * b);
+}
+
 inline static vec3_t vec3_init(float x, float y, float z)
 {
   return (vec3_t) {
@@ -71,6 +92,14 @@ inline static vec3_t vec3_mulf(vec3_t a, float b)
     a.x * b,
     a.y * b,
     a.z * b);
+}
+
+inline static vec3_t vec3_mul(vec3_t a, vec3_t b)
+{
+  return vec3_init(
+    a.x * b.x,
+    a.y * b.y,
+    a.z * b.z);
 }
 
 inline static float vec3_dot(vec3_t a, vec3_t b)

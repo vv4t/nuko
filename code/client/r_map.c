@@ -46,7 +46,7 @@ bool r_map_load_meshes(const map_t *map)
     
     vertex_t *vertices = (vertex_t*) &map_vertices[vertexofs];
     
-    if (!r_new_mesh(&r.map_model.mesh_groups[i].mesh, vertices, vertexlen)) {
+    if (!r_load_mesh(&r.map_model.mesh_groups[i].mesh, vertices, vertexlen)) {
       log_printf(LOG_ERROR, "r_load_brushes(): failed to load mesh");
       return false;
     }
@@ -60,7 +60,7 @@ bool r_map_load_meshes(const map_t *map)
 
 bool r_new_map(const map_t *map)
 {
-  r_vbo_reset(r.bg_models_vbo_ptr);
+  r_vbo_reset(r.static_vbo_ptr);
   
   if (!r_map_load_materials(map)) {
     log_printf(LOG_ERROR, "r_new_map(): failed to load materials");
@@ -77,6 +77,6 @@ bool r_new_map(const map_t *map)
 
 void r_draw_map()
 {
-  glUniformMatrix4fv(r.shader.ul_mvp, 1, GL_FALSE, r.view_projection_matrix.m);
+  glUniformMatrix4fv(r.cg_shader.ul_mvp, 1, GL_FALSE, r.view_projection_matrix.m);
   r_draw_model(&r.map_model);
 }

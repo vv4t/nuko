@@ -25,7 +25,7 @@ bool r_load_model(r_model_t *model, const char *path)
     
     vertex_t *vertices = (vertex_t*) &mdl_vertices[vertexofs];
     
-    if (!r_new_mesh(&model->mesh_groups[i].mesh, vertices, vertexlen)) {
+    if (!r_load_mesh(&model->mesh_groups[i].mesh, vertices, vertexlen)) {
       log_printf(LOG_ERROR, "r_load_brushes(): failed to load mesh");
       return false;
     }

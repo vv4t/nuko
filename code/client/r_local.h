@@ -12,18 +12,39 @@
 #define VERTEX_ATTRIB_0 3
 #define VERTEX_ATTRIB_1 2
 
-typedef GLuint texture_t;
-typedef GLuint shader_t;
+#define ASPECT_RATIO    ((float) (720.0 / 1280.0))
+
+#define HUD_GRID_SIZE   ((float) 32.0 / 128.0)
+
+typedef GLuint  texture_t;
+
+typedef enum {
+  HUD_ALIGN_CENTER,
+  HUD_ALIGN_BOTTOM_LEFT
+} hud_align_t;
 
 typedef struct {
-  GLuint offset;
-  GLuint size;
-} mesh_t;
+  hud_align_t     hud_align;
+  vec2_t          scr_pos;
+  vec2_t          scr_size;
+  vec2_t          uv_pos;
+  vec2_t          uv_size;
+} hud_def_t;
+
+typedef enum {
+  HUD_CROSSHAIR,
+  MAX_HUDS
+} r_hud_t;
 
 typedef struct {
-  vec3_t pos;
-  vec2_t uv;
+  vec3_t  pos;
+  vec2_t  uv;
 } vertex_t;
+
+typedef struct {
+  GLuint  offset;
+  GLuint  size;
+} r_mesh_t;
 
 typedef struct {
   texture_t       texture;
@@ -36,7 +57,7 @@ typedef struct {
 
 typedef struct {
   int             material_id;
-  mesh_t          mesh;
+  r_mesh_t        mesh;
 } r_mesh_group_t;
 
 typedef struct {
@@ -48,17 +69,19 @@ typedef struct {
 } r_model_t;
 
 typedef struct {
-  r_shader_t      shader;
-  
   mat4x4_t        projection_matrix;
   mat4x4_t        view_projection_matrix;
   
-  mesh_t          crosshair_mesh;
+  texture_t       hud_texture;
+  r_shader_t      hud_shader;
+  r_mesh_t        hud_mesh;
+  hud_def_t       hud_defs[MAX_HUDS];
   
   r_model_t       map_model;
+  r_shader_t      cg_shader;
+  r_model_t       cg_models[MAX_BG_MODEL];
   
-  r_model_t       bg_models[MAX_BG_MODEL];
-  int             bg_models_vbo_ptr;
+  int             static_vbo_ptr;
   
   GLuint          vbo;
   int             vbo_size;
@@ -69,15 +92,31 @@ extern renderer_t r;
 
 bool  r_shader_init();
 
+void  r_draw_map();
 bool  r_map_load_meshes(const map_t *map);
 bool  r_map_load_materials(const map_t *map);
 
 void  r_vbo_init();
 void  r_vbo_reset(int vbo_ptr);
-bool  r_new_mesh(mesh_t *mesh, const vertex_t *vertices, int num_vertices);
-void  r_draw_mesh(const mesh_t *mesh);
+bool  r_new_mesh(r_mesh_t *mesh, int num_vertices);
+bool  r_load_mesh(r_mesh_t *mesh, const vertex_t *vertices, int num_vertices);
+bool  r_sub_mesh(const r_mesh_t *mesh, const vertex_t *vertices, int offset, int num_vertices);
+void  r_draw_mesh(const r_mesh_t *mesh);
 
 bool  r_load_model(r_model_t *model, const char *path);
 void  r_draw_model(const r_model_t *model);
+
+bool  r_hud_init();
+bool  r_init_hud_shader();
+bool  r_init_hud_mesh();
+void  r_render_hud();
+void  hud_init_rect(vertex_t *vertices, const hud_def_t *hud_def);
+
+bool  r_cg_init();
+bool  r_init_cg_models();
+bool  r_init_cg_shader();
+void  r_render_cgame();
+void  r_setup_view_projection_matrix();
+void  r_draw_entities();
 
 #endif

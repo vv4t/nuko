@@ -37,12 +37,12 @@ void r_vbo_reset(int vbo_ptr)
   r.vbo_ptr = vbo_ptr;
 }
 
-bool r_new_mesh(mesh_t *mesh, const vertex_t *vertices, int num_vertices)
+bool r_new_mesh(r_mesh_t *mesh, int num_vertices)
 {
   if (r.vbo_ptr + num_vertices >= r.vbo_size) {
     log_printf(
       LOG_ERROR,
-      "r_new_mesh(): vertex buffer ran out of memory %i/%i",
+      "r_load_mesh(): vertex buffer ran out of memory %i/%i",
       r.vbo_ptr + num_vertices,
       r.vbo_size);
     return false;
@@ -52,16 +52,41 @@ bool r_new_mesh(mesh_t *mesh, const vertex_t *vertices, int num_vertices)
   mesh->size = num_vertices;
   r.vbo_ptr += num_vertices;
   
+  return true;
+}
+
+bool r_sub_mesh(const r_mesh_t *mesh, const vertex_t *vertices, int offset, int num_vertices)
+{
+  if (offset + num_vertices > mesh->size) {
+    log_printf(LOG_ERROR, "r_sub_mesh(): out of bounds %i/%i", offset + num_vertices, mesh->size);
+    return false;
+  }
+  
   glBufferSubData(
     GL_ARRAY_BUFFER,
-    mesh->offset * sizeof(vertex_t),
+    (mesh->offset + offset) * sizeof(vertex_t),
     num_vertices * sizeof(vertex_t),
     vertices);
   
   return true;
 }
 
-void r_draw_mesh(const mesh_t *mesh)
+bool r_load_mesh(r_mesh_t *mesh, const vertex_t *vertices, int num_vertices)
+{
+  if (!r_new_mesh(mesh, num_vertices)) {
+    log_printf(LOG_ERROR, "r_load_mesh(): failed to allocate mesh");
+    return false;
+  }
+  
+  if (!r_sub_mesh(mesh, vertices, 0, num_vertices)) {
+    log_printf(LOG_ERROR, "r_load_mesh(): failed to substitute mesh");
+    return false;
+  }
+  
+  return true;
+}
+
+void r_draw_mesh(const r_mesh_t *mesh)
 {
   glDrawArrays(GL_TRIANGLES, mesh->offset, mesh->size);
 }
