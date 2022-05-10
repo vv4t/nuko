@@ -12,6 +12,9 @@ entity_t sv_new_client(sock_t sock)
   sv.bg.capsule[entity].radius        = 0.5f;
   sv.bg.capsule[entity].height        = 1.0f;
   
+  sv.bg.health[entity].max            = 100;
+  sv.bg.health[entity].now            = sv.bg.health[entity].max;
+  
   sv.bg.model[entity]                 = BG_MDL_FUMO_CIRNO;
   
   sv.attack[entity].ready             = true;

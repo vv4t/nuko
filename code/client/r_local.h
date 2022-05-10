@@ -12,7 +12,8 @@
 #define VERTEX_ATTRIB_0 3
 #define VERTEX_ATTRIB_1 2
 
-#define ASPECT_RATIO    ((float) (720.0 / 1280.0))
+// #define ASPECT_RATIO    ((float) (720.0 / 1280.0))
+#define ASPECT_RATIO    ((float) (480.0 / 640.0))
 
 #define HUD_GRID_SIZE   ((float) 32.0 / 128.0)
 

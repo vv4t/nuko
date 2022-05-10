@@ -18,10 +18,10 @@
   void ems_focus();
 #endif
 
-// #define NUKO_WIDTH   854
-// #define NUKO_HEIGHT  480
-#define NUKO_WIDTH   1280
-#define NUKO_HEIGHT  720
+#define NUKO_WIDTH   640
+#define NUKO_HEIGHT  480
+// #define NUKO_WIDTH   1280
+// #define NUKO_HEIGHT  720
 #define NUKO_TITLE   "nuko"
 
 void                  sys_config();

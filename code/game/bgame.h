@@ -17,11 +17,12 @@ typedef enum {
   BGC_MOTION    = (1 << 4),
   BGC_PMOVE     = (1 << 5),
   BGC_MODEL     = (1 << 6),
-  AUX_BGC       = (1 << 7)
+  BGC_HEALTH    = (1 << 7),
+  AUX_BGC       = (1 << 8)
 } bg_component_t;
 
 typedef enum {
-  BG_ES_CLIENT = BGC_TRANSFORM | BGC_CLIENT | BGC_CAPSULE | BGC_CLIP | BGC_MOTION | BGC_MODEL | BGC_PMOVE
+  BG_ES_CLIENT = BGC_TRANSFORM | BGC_CLIENT | BGC_CAPSULE | BGC_CLIP | BGC_MOTION | BGC_MODEL | BGC_PMOVE | BGC_HEALTH
 } bg_entitystate_t;
 
 typedef enum {
@@ -66,12 +67,19 @@ typedef struct {
 } bg_motion_t;
 
 typedef struct {
+  int       now;
+  int       max;
+} bg_health_t;
+
+typedef struct {
   edict_t         edict;
   
+  int             cl_entity_state;
   bg_pmove_t      cl_pmove;
   bg_motion_t     cl_motion;
-  entity_t        cl_entity;
+  bg_health_t     cl_health;
   
+  bg_model_t      sv_model[MAX_ENTITIES];
   bg_transform_t  sv_transform[MAX_ENTITIES];
   bg_capsule_t    sv_capsule[MAX_ENTITIES];
 } snapshot_t;
@@ -87,12 +95,17 @@ typedef struct {
   bg_motion_t     motion[MAX_ENTITIES];
   bg_pmove_t      pmove[MAX_ENTITIES];
   bg_model_t      model[MAX_ENTITIES];
+  bg_health_t     health[MAX_ENTITIES];
 } bgame_t;
 
+//
 // bg_pmove.c
+//
 void  pm_free_look(bg_transform_t *transform, float yaw, float pitch);
 
+//
 // bg_main.c
+//
 void  bg_init(bgame_t *bg, edict_t *edict);
 void  bg_new_map(bgame_t *bg, const map_t *map);
 void  bg_update(bgame_t *bg);

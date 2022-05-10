@@ -33,10 +33,14 @@ typedef struct {
 
 extern client_t cl;
 
+//
 // cl_main.c
+//
 void  cl_console();
 
+//
 // cl_cgame.c
+//
 void  cl_snapshot();
 void  cl_interpolate(float interp);
 void  cl_view_look();

@@ -2,10 +2,11 @@
 
 void sv_game_update()
 {
-  sv_respawn();
+  sv_check_respawn();
   sv_client_move();
   bg_update(&sv.bg);
   sv_client_shoot();
+  sv_apply_damage();
 }
 
 void sv_load_map(const char *name)
@@ -23,20 +24,22 @@ void sv_load_map(const char *name)
   bg_new_map(&sv.bg, &map);
 }
 
+#define SV_CLIENT_SNAPSHOT (BG_ES_CLIENT)
 void sv_client_snapshot(snapshot_t *snapshot, entity_t entity)
 {
   memcpy(&snapshot->cl_pmove, &sv.bg.pmove[entity], sizeof(bg_pmove_t));
   memcpy(&snapshot->cl_motion, &sv.bg.motion[entity], sizeof(bg_motion_t));
   
-  snapshot->cl_entity = sv.edict.entities[entity] & BG_ES_CLIENT;
+  snapshot->cl_entity_state = sv.edict.entities[entity] & SV_CLIENT_SNAPSHOT;
 }
 
-#define SV_SERVER_SNAPSHOT (BGC_TRANSFORM | BGC_CAPSULE | BGC_MODEL)
+#define SV_SERVER_SNAPSHOT (BGC_TRANSFORM | BGC_MODEL | BGC_CAPSULE)
 void sv_server_snapshot(snapshot_t *snapshot)
 {
   memcpy(&snapshot->edict, &sv.edict, sizeof(edict_t));
   memcpy(&snapshot->sv_transform, &sv.bg.transform, sizeof(sv.bg.transform));
   memcpy(&snapshot->sv_capsule, &sv.bg.capsule, sizeof(sv.bg.capsule));
+  memcpy(&snapshot->sv_model, &sv.bg.model, sizeof(sv.bg.model));
   
   for (int i = 0; i < snapshot->edict.num_entities; i++)
     snapshot->edict.entities[i] = sv.edict.entities[i] & SV_SERVER_SNAPSHOT;
@@ -79,7 +82,6 @@ bool sv_print_score(char *dest, int dest_len)
       }
     }
   }
-  
     
   static char tmp[64];
   int dest_ptr = 0;
@@ -107,7 +109,7 @@ bool sv_print_score(char *dest, int dest_len)
 }
 
 #define SV_RESPAWN (SVC_RESPAWN)
-void sv_respawn()
+void sv_check_respawn()
 {
   for (int i = 0; i < sv.edict.num_entities; i++) {
     if ((sv.edict.entities[i] & SV_RESPAWN) != SV_RESPAWN)
@@ -131,7 +133,38 @@ void sv_respawn()
       sv.bg.transform[i].position.z = (rand() % range) - range / 2;
       
       sv.bg.motion[i] = (bg_motion_t) {0};
+      
+      sv.bg.health[i].now = sv.bg.health[i].max;
     }
+  }
+}
+
+#define SV_APPLY_DAMAGE (BGC_HEALTH | SVC_DAMAGE)
+void sv_apply_damage()
+{
+  for (int i = 0; i < sv.edict.num_entities; i++) {
+    if ((sv.edict.entities[i] & SV_APPLY_DAMAGE) != SV_APPLY_DAMAGE)
+      continue;
+    
+    for (int j = 0; j < sv.damage[i].num_dmg; j++) {
+      sv.bg.health[i].now -= sv.damage[i].dmg[j].amount;
+      
+      if (sv.bg.health[i].now < 0) {
+        sv.edict.entities[i] = SV_ES_RESPAWN;
+        sv.respawn[i].spawn_time = 5000;
+        
+        sv.score[i].kills++;
+        sv.score[i].deaths++;
+        
+        static char msg[128];
+        snprintf(msg, 128, "[SERVER] %s killed %s.", sv.client[i].name, sv.damage[i].dmg[j].src);
+        sv_send_chat(msg);
+        
+        break;
+      }
+    }
+    
+    sv.damage[i].num_dmg = 0;
   }
 }
 
@@ -169,19 +202,25 @@ void sv_client_shoot()
         snapshot->sv_transform[j].position,
         &snapshot->sv_capsule[j]);
       
-      if (hit) {
-        sv.edict.entities[j] = SV_ES_RESPAWN;
-        sv.respawn[j].spawn_time = 5000;
-        
-        sv.score[i].kills++;
-        sv.score[j].deaths++;
-        
-        char msg[128];
-        snprintf(msg, 128, "[SERVER] %s killed %s.", sv.client[i].name, sv.client[j].name);
-        sv_send_chat(msg);
-      }
+      if (hit)
+        dmg_add(&sv.damage[j], 10, sv.client[i].name);
     }
   }
+}
+
+void dmg_add(sv_damage_t *damage, int amount, const char *src)
+{
+  dmg_t *dmg = &damage->dmg[damage->num_dmg];
+  
+  if (damage->num_dmg + 1 >= MAX_DMG) {
+    log_printf(LOG_WARNING, "dmg_add(): too many dmg_t");
+    return;
+  }
+  
+  dmg->amount = amount;
+  dmg->src = src;
+  
+  damage->num_dmg++;
 }
 
 bool intersect_ray_capsule(
