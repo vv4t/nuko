@@ -28,7 +28,7 @@ $(CL_OUT): $(CL_SRC) $(CL_ASSETS_SRC) web/client/index.html web/client/library.j
 $(SV_OUT): $(SV_SRC) $(SV_ASSETS_SRC) build/web/index.js build/web/package.json web/lib/net.js build/web
 	$(EM_CC) $(SV_SRC) $(SV_CFLAGS) $(SV_LDFLAGS) $(SV_ASSETS) -o $(SV_OUT)
 
-build/web/client/main.js: web/client/main.js build/web
+build/web/client/main.js: web/client/main.js build/web/client
 	cp $< $@
 
 build/web/index.js: web/server/index.js build/web

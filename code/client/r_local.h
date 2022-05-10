@@ -12,8 +12,8 @@
 #define VERTEX_ATTRIB_0 3
 #define VERTEX_ATTRIB_1 2
 
-// #define ASPECT_RATIO    ((float) (720.0 / 1280.0))
-#define ASPECT_RATIO    ((float) (480.0 / 640.0))
+#define ASPECT_RATIO    ((float) (720.0 / 1280.0))
+// #define ASPECT_RATIO    ((float) (480.0 / 640.0))
 
 #define HUD_GRID_SIZE   ((float) 32.0 / 128.0)
 
@@ -34,7 +34,12 @@ typedef struct {
 
 typedef enum {
   HUD_CROSSHAIR,
-  MAX_HUDS
+  HUD_HEALTH_OVERLAY,
+  HUD_HEALTH_LABEL,
+  HUD_HEALTH_DIGIT_0,
+  HUD_HEALTH_DIGIT_1,
+  HUD_HEALTH_DIGIT_2,
+  MAX_HUD
 } r_hud_t;
 
 typedef struct {
@@ -76,7 +81,7 @@ typedef struct {
   texture_t       hud_texture;
   r_shader_t      hud_shader;
   r_mesh_t        hud_mesh;
-  hud_def_t       hud_defs[MAX_HUDS];
+  hud_def_t       hud_defs[MAX_HUD];
   
   r_model_t       map_model;
   r_shader_t      cg_shader;
@@ -110,6 +115,7 @@ void  r_draw_model(const r_model_t *model);
 bool  r_hud_init();
 bool  r_init_hud_shader();
 bool  r_init_hud_mesh();
+void  r_hud_update_health();
 void  r_render_hud();
 void  hud_init_rect(vertex_t *vertices, const hud_def_t *hud_def);
 

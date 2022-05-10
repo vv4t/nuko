@@ -28,6 +28,7 @@ void cl_reconcile()
   memcpy(&cg.edict, &cl.snapshot.edict, sizeof(edict_t));
   memcpy(&cg.bg.pmove[cg.ent_client], &cl.snapshot.cl_pmove, sizeof(cl.snapshot.cl_pmove));
   memcpy(&cg.bg.motion[cg.ent_client], &cl.snapshot.cl_motion, sizeof(cl.snapshot.cl_motion));
+  memcpy(&cg.bg.health[cg.ent_client], &cl.snapshot.cl_health, sizeof(cl.snapshot.cl_health));
   
   memcpy(&cg.bg.model, &cl.snapshot.sv_model, sizeof(cl.snapshot.sv_model));
   memcpy(&cg.bg.transform, &cl.snapshot.sv_transform, sizeof(cl.snapshot.sv_transform));

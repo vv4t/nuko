@@ -19,6 +19,7 @@ bool r_cg_init()
 
 void r_render_cgame()
 {
+  glEnable(GL_DEPTH_TEST);
   glUseProgram(r.cg_shader.program);
   
   r_setup_view_projection_matrix();

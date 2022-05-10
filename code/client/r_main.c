@@ -7,7 +7,6 @@ bool r_init()
   glClearColor(0.2f, 0.7f, 1.0f, 1.0f);
   
   glEnable(GL_CULL_FACE);
-  glEnable(GL_DEPTH_TEST);
   glEnable(GL_BLEND);
   
   glCullFace(GL_FRONT);

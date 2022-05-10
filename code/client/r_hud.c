@@ -1,12 +1,12 @@
 #include "r_local.h"
 
 static const vertex_t hud_rect[] = {
-  { .pos = { 0.0f, 0.0f, 0.0f }, .uv = { 0.0f, 0.0f } },
-  { .pos = { 0.0f, 1.0f, 0.0f }, .uv = { 0.0f, 1.0f } },
-  { .pos = { 1.0f, 0.0f, 0.0f }, .uv = { 1.0f, 0.0f } },
-  { .pos = { 0.0f, 1.0f, 0.0f }, .uv = { 0.0f, 1.0f } },
-  { .pos = { 1.0f, 1.0f, 0.0f }, .uv = { 1.0f, 1.0f } },
-  { .pos = { 1.0f, 0.0f, 0.0f }, .uv = { 1.0f, 0.0f } }
+  { .pos = { 0.0f, 0.0f, 0.0f }, .uv = { 0.0f, 1.0f } },
+  { .pos = { 0.0f, 1.0f, 0.0f }, .uv = { 0.0f, 0.0f } },
+  { .pos = { 1.0f, 0.0f, 0.0f }, .uv = { 1.0f, 1.0f } },
+  { .pos = { 0.0f, 1.0f, 0.0f }, .uv = { 0.0f, 0.0f } },
+  { .pos = { 1.0f, 1.0f, 0.0f }, .uv = { 1.0f, 0.0f } },
+  { .pos = { 1.0f, 0.0f, 0.0f }, .uv = { 1.0f, 1.0f } }
 };
 
 static const int num_hud_rect_vertices = sizeof(hud_rect) / sizeof(vertex_t);
@@ -71,24 +71,80 @@ bool r_hud_init()
 
 bool r_init_hud_mesh()
 {
-  r.hud_defs[HUD_CROSSHAIR].hud_align   = HUD_ALIGN_CENTER;
-  r.hud_defs[HUD_CROSSHAIR].scr_pos     = vec2_init(0.0f, 0.0f);
-  r.hud_defs[HUD_CROSSHAIR].scr_size    = vec2_init(0.05f, 0.05f);
-  r.hud_defs[HUD_CROSSHAIR].uv_pos      = vec2_init(0.0f, 0.0f);
-  r.hud_defs[HUD_CROSSHAIR].uv_size     = vec2_init(1.0f, 1.0f);
+  r.hud_defs[HUD_CROSSHAIR] = (hud_def_t) {
+    .hud_align  = HUD_ALIGN_CENTER,
+    .scr_pos    = vec2_init(+0.00f, +0.00f),
+    .scr_size   = vec2_init(+0.05f, +0.05f),
+    .uv_pos     = vec2_init(+3.00f, +3.00f),
+    .uv_size    = vec2_init(+1.00f, +1.00f) };
   
-  if (!r_new_mesh(&r.hud_mesh, MAX_HUDS * num_hud_rect_vertices)) {
+  r.hud_defs[HUD_HEALTH_OVERLAY] = (hud_def_t) {
+    .hud_align  = HUD_ALIGN_BOTTOM_LEFT,
+    .scr_pos    = vec2_init(-0.9f, -0.9f),
+    .scr_size   = vec2_init(+0.4f, +0.2f),
+    .uv_pos     = vec2_init(+0.0f, +0.0f),
+    .uv_size    = vec2_init(+4.0f, +1.0f) };
+  
+  r.hud_defs[HUD_HEALTH_LABEL] = (hud_def_t) {
+    .hud_align  = HUD_ALIGN_BOTTOM_LEFT,
+    .scr_pos    = vec2_init(-0.87f, -0.85f),
+    .scr_size   = vec2_init(+0.05f, +0.05f),
+    .uv_pos     = vec2_init(+2.0f, +3.0f),
+    .uv_size    = vec2_init(+1.0f, +1.0f) };
+  
+  for (int i = 0; i < 3; i++) {
+    r.hud_defs[HUD_HEALTH_DIGIT_0 + i].hud_align      = HUD_ALIGN_BOTTOM_LEFT;
+    r.hud_defs[HUD_HEALTH_DIGIT_0 + i].scr_pos        = vec2_init(-0.82f + i * 0.04f, -0.85f);
+    r.hud_defs[HUD_HEALTH_DIGIT_0 + i].scr_size       = vec2_init(+0.15f, +0.15f);
+    r.hud_defs[HUD_HEALTH_DIGIT_0 + i].uv_pos         = vec2_init(+0.0f, +1.0f);
+    r.hud_defs[HUD_HEALTH_DIGIT_0 + i].uv_size        = vec2_init(+1.0f, +1.0f);
+  }
+  
+  if (!r_new_mesh(&r.hud_mesh, MAX_HUD * num_hud_rect_vertices)) {
     log_printf(LOG_ERROR, "r_init_hud_mesh(): failed to allocate hud mesh");
     return false;
   }
   
-  for (int i = 0; i < MAX_HUDS; i++) {
+  for (int i = 0; i < MAX_HUD; i++) {
     vertex_t hud_vertices[num_hud_rect_vertices];
     hud_init_rect(hud_vertices, &r.hud_defs[i]);
     r_sub_mesh(&r.hud_mesh, hud_vertices, i * num_hud_rect_vertices, num_hud_rect_vertices);
   }
   
   return true;
+}
+
+void r_hud_update_health()
+{
+  int hp = cg.bg.health[cg.ent_client].now;
+  
+  int digits[] = {
+    (hp % 1000) / 100,
+    (hp % 100) / 10,
+    (hp % 10) / 1
+  };
+  
+  for (int i = 0; i < 3; i++) {
+    r.hud_defs[HUD_HEALTH_DIGIT_0 + i].hud_align      = HUD_ALIGN_BOTTOM_LEFT;
+    r.hud_defs[HUD_HEALTH_DIGIT_0 + i].scr_pos        = vec2_init(-0.82f + i * 0.04f, -0.85f);
+    r.hud_defs[HUD_HEALTH_DIGIT_0 + i].scr_size       = vec2_init(+0.15f, +0.15f);
+    r.hud_defs[HUD_HEALTH_DIGIT_0 + i].uv_pos         = vec2_init((float) (digits[i] % 4), (float) (1 + digits[i] / 4));
+    r.hud_defs[HUD_HEALTH_DIGIT_0 + i].uv_size        = vec2_init(+1.0f, +1.0f);
+    
+    vertex_t hud_vertices[num_hud_rect_vertices];
+    hud_init_rect(hud_vertices, &r.hud_defs[HUD_HEALTH_DIGIT_0 + i]);
+    r_sub_mesh(&r.hud_mesh, hud_vertices, (HUD_HEALTH_DIGIT_0 + i) * num_hud_rect_vertices, num_hud_rect_vertices);
+  }
+}
+
+void r_render_hud()
+{
+  glDisable(GL_DEPTH_TEST);
+  glUseProgram(r.hud_shader.program);
+  glBindTexture(GL_TEXTURE_2D, r.hud_texture);
+  
+  r_hud_update_health();
+  r_draw_mesh(&r.hud_mesh);
 }
 
 bool r_init_hud_shader()
@@ -123,12 +179,4 @@ bool r_init_hud_shader()
   r.hud_shader.ul_mvp = glGetUniformLocation(r.hud_shader.program, "u_mvp");
   
   return true;
-}
-
-void r_render_hud()
-{
-  glUseProgram(r.hud_shader.program);
-  glBindTexture(GL_TEXTURE_2D, r.hud_texture);
-  
-  r_draw_mesh(&r.hud_mesh);
 }

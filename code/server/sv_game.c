@@ -29,6 +29,7 @@ void sv_client_snapshot(snapshot_t *snapshot, entity_t entity)
 {
   memcpy(&snapshot->cl_pmove, &sv.bg.pmove[entity], sizeof(bg_pmove_t));
   memcpy(&snapshot->cl_motion, &sv.bg.motion[entity], sizeof(bg_motion_t));
+  memcpy(&snapshot->cl_health, &sv.bg.health[entity], sizeof(bg_health_t));
   
   snapshot->cl_entity_state = sv.edict.entities[entity] & SV_CLIENT_SNAPSHOT;
 }
