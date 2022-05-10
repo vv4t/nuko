@@ -3,9 +3,10 @@
 import path from "path";
 
 export class mdl_vertex_t {
-  constructor(pos, uv)
+  constructor(pos, normal, uv)
   {
     this.pos = pos;
+    this.normal = normal;
     this.uv = uv;
   }
 };
@@ -51,7 +52,7 @@ export function mdl_from_obj(obj)
     
     for (const face of object.faces) {
       for (const vertex of face.vertices) {
-        const mdl_vertex = new mdl_vertex_t (vertex.pos, vertex.uv);
+        const mdl_vertex = new mdl_vertex_t (vertex.pos, vertex.normal, vertex.uv);
         vertices.push(mdl_vertex);
       }
     }

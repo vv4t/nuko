@@ -30,7 +30,7 @@ bool r_map_load_meshes(const map_t *map)
     zone_free(r.map_model.mesh_groups);
   
   int num_map_vertices;
-  map_vertex_t *map_vertices = map_load_vertices(map, &num_map_vertices);
+  vertex_t *map_vertices = map_load_vertices(map, &num_map_vertices);
   
   int num_map_mesh_groups;
   map_mesh_group_t *map_mesh_groups = map_load_mesh_groups(map, &num_map_mesh_groups);
@@ -44,7 +44,7 @@ bool r_map_load_meshes(const map_t *map)
     int vertexofs = map_mesh_groups[i].vertexofs;
     int vertexlen = map_mesh_groups[i].vertexlen;
     
-    vertex_t *vertices = (vertex_t*) &map_vertices[vertexofs];
+    vertex_t *vertices = &map_vertices[vertexofs];
     
     if (!r_load_mesh(&r.map_model.mesh_groups[i].mesh, vertices, vertexlen)) {
       log_printf(LOG_ERROR, "r_load_brushes(): failed to load mesh");
@@ -77,6 +77,10 @@ bool r_new_map(const map_t *map)
 
 void r_draw_map()
 {
+  mat4x4_t map_model_matrix = mat4x4_init_identity();
+  
   glUniformMatrix4fv(r.cg_shader.ul_mvp, 1, GL_FALSE, r.view_projection_matrix.m);
+  glUniformMatrix4fv(r.cg_shader.ul_model, 1, GL_FALSE, map_model_matrix.m);
+  
   r_draw_model(&r.map_model);
 }

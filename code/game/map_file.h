@@ -3,7 +3,7 @@
 
 #include "bsp.h"
 #include "../common/lump.h"
-#include "../common/nk_math.h"
+#include "../common/vertex.h"
 #include <stdio.h>
 #include <stdbool.h>
 
@@ -21,11 +21,6 @@ typedef struct {
   int           behind;
   int           ahead;
 } map_bsp_node_t;
-
-typedef struct {
-  vec3_t        pos;
-  vec2_t        uv;
-} map_vertex_t;
 
 typedef struct {
   int           material_id;
@@ -47,7 +42,7 @@ typedef struct {
 } map_t;
 
 bool              map_load(map_t *map, const char *path);
-map_vertex_t      *map_load_vertices(const map_t *map, int *num_vertices);
+vertex_t          *map_load_vertices(const map_t *map, int *num_vertices);
 map_mesh_group_t  *map_load_mesh_groups(const map_t *map, int *num_mesh_groups);
 map_material_t    *map_load_materials(const map_t *map, int *num_materials);
 bsp_node_t        *map_load_bsp(const map_t *map);

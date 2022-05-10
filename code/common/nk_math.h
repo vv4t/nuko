@@ -21,6 +21,13 @@ typedef struct {
   float y;
   float z;
   float w;
+} vec4_t;
+
+typedef struct {
+  float x;
+  float y;
+  float z;
+  float w;
 } quat_t;
 
 typedef struct {
@@ -120,6 +127,16 @@ inline static vec3_t vec3_normalize(vec3_t v)
     return vec3_init(0.0f, 0.0f, 0.0f);
   
   return vec3_mulf(v, 1.0 / l);
+}
+
+inline static vec4_t vec4_init(float x, float y, float z, float w)
+{
+  return (vec4_t) {
+    .x = x,
+    .y = y,
+    .z = z,
+    .w = w
+  };
 }
 
 inline static quat_t quat_init(float x, float y, float z, float w)

@@ -9,7 +9,7 @@ bool r_load_model(r_model_t *model, const char *path)
   }
   
   int num_mdl_vertices;
-  mdl_vertex_t *mdl_vertices = mdl_load_vertices(&mdl, &num_mdl_vertices);
+  vertex_t *mdl_vertices = mdl_load_vertices(&mdl, &num_mdl_vertices);
   
   int num_mdl_mesh_groups;
   mdl_mesh_group_t *mdl_mesh_groups = mdl_load_mesh_groups(&mdl, &num_mdl_mesh_groups);
@@ -23,7 +23,7 @@ bool r_load_model(r_model_t *model, const char *path)
     int vertexofs = mdl_mesh_groups[i].vertexofs;
     int vertexlen = mdl_mesh_groups[i].vertexlen;
     
-    vertex_t *vertices = (vertex_t*) &mdl_vertices[vertexofs];
+    vertex_t *vertices = &mdl_vertices[vertexofs];
     
     if (!r_load_mesh(&model->mesh_groups[i].mesh, vertices, vertexlen)) {
       log_printf(LOG_ERROR, "r_load_brushes(): failed to load mesh");
@@ -39,7 +39,7 @@ bool r_load_model(r_model_t *model, const char *path)
   
   for (int i = 0; i < model->num_materials; i++) {
     char full_name[128];
-    sprintf(full_name, "assets/tex/%s.png", mdl_materials[i].name); // buffer overflow somehow? rumao
+    sprintf(full_name, "assets/mtl/%s.png", mdl_materials[i].name); // buffer overflow somehow? rumao
     
     if (!gl_load_texture(&model->materials[i].texture, full_name)) {
       log_printf(LOG_ERROR, "r_load_materials(): failed to load texture '%s'", full_name);

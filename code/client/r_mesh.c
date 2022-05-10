@@ -24,6 +24,12 @@ void r_vbo_init(int vbo_size)
   glVertexAttribPointer(1, VERTEX_ATTRIB_1, GL_FLOAT, GL_FALSE, sizeof(vertex_t), (float*) 0 + offset);
   offset += VERTEX_ATTRIB_1;
 #endif
+
+#ifdef VERTEX_ATTRIB_2
+  glEnableVertexAttribArray(2);
+  glVertexAttribPointer(2, VERTEX_ATTRIB_2, GL_FLOAT, GL_FALSE, sizeof(vertex_t), (float*) 0 + offset);
+  offset += VERTEX_ATTRIB_2;
+#endif
 }
 
 void r_vbo_reset(int vbo_ptr)

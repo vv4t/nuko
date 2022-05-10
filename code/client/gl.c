@@ -61,13 +61,13 @@ bool gl_load_shader(GLuint *shader, const char *src_vertex, const char *src_frag
 {
   GLuint vertex_shader;
   if (!compile_shader(&vertex_shader, GL_VERTEX_SHADER, src_vertex)) {
-    log_printf(LOG_ERROR, "shader_load(): failed to load fragment shader");
+    log_printf(LOG_ERROR, "shader_load(): failed to load vertex shader");
     return false;
   }
   
   GLuint fragment_shader;
   if (!compile_shader(&fragment_shader, GL_FRAGMENT_SHADER, src_fragment)) {
-    log_printf(LOG_ERROR, "shader_load(): failed to load vertex_shader");
+    log_printf(LOG_ERROR, "shader_load(): failed to load fragment shader");
     return false;
   }
   

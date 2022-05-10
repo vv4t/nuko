@@ -1,12 +1,12 @@
 #include "r_local.h"
 
 static const vertex_t hud_rect[] = {
-  { .pos = { 0.0f, 0.0f, 0.0f }, .uv = { 0.0f, 1.0f } },
-  { .pos = { 0.0f, 1.0f, 0.0f }, .uv = { 0.0f, 0.0f } },
-  { .pos = { 1.0f, 0.0f, 0.0f }, .uv = { 1.0f, 1.0f } },
-  { .pos = { 0.0f, 1.0f, 0.0f }, .uv = { 0.0f, 0.0f } },
-  { .pos = { 1.0f, 1.0f, 0.0f }, .uv = { 1.0f, 0.0f } },
-  { .pos = { 1.0f, 0.0f, 0.0f }, .uv = { 1.0f, 1.0f } }
+  { .pos = { 0.0f, 0.0f, 0.0f }, .normal = { 0.0f, 0.0f, -1.0f }, .uv = { 0.0f, 1.0f } },
+  { .pos = { 0.0f, 1.0f, 0.0f }, .normal = { 0.0f, 0.0f, -1.0f }, .uv = { 0.0f, 0.0f } },
+  { .pos = { 1.0f, 0.0f, 0.0f }, .normal = { 0.0f, 0.0f, -1.0f }, .uv = { 1.0f, 1.0f } },
+  { .pos = { 0.0f, 1.0f, 0.0f }, .normal = { 0.0f, 0.0f, -1.0f }, .uv = { 0.0f, 0.0f } },
+  { .pos = { 1.0f, 1.0f, 0.0f }, .normal = { 0.0f, 0.0f, -1.0f }, .uv = { 1.0f, 0.0f } },
+  { .pos = { 1.0f, 0.0f, 0.0f }, .normal = { 0.0f, 0.0f, -1.0f }, .uv = { 1.0f, 1.0f } }
 };
 
 static const int num_hud_rect_vertices = sizeof(hud_rect) / sizeof(vertex_t);
@@ -152,7 +152,8 @@ bool r_init_hud_shader()
   static const char *src_vertex = ""
     "#version 300 es\n"
     "layout(location = 0) in vec3 v_pos;\n"
-    "layout(location = 1) in vec2 v_uv;\n"
+    "layout(location = 1) in vec3 v_normal;\n"
+    "layout(location = 2) in vec2 v_uv;\n"
     "out vec2 vs_uv;\n"
     "void main() {\n"
     " vs_uv = v_uv;\n"

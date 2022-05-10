@@ -3,6 +3,8 @@
 
 #ifdef __EMSCRIPTEN__
   #include <SDL_opengles2.h>
+  #include <GLES3/gl3.h>
+  #include <GLES3/gl2ext.h>
 #else
   #include <GL/glew.h>
 #endif

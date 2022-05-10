@@ -14,12 +14,12 @@ bool mdl_load(mdl_t *mdl, const char *path)
   return true;
 }
 
-mdl_vertex_t *mdl_load_vertices(const mdl_t *mdl, int *num_vertices)
+vertex_t *mdl_load_vertices(const mdl_t *mdl, int *num_vertices)
 {
-  return (mdl_vertex_t*) lump_load(
+  return (vertex_t*) lump_load(
     mdl->file,
     &mdl->header.lumps[MDL_LUMP_VERTICES],
-    sizeof(mdl_vertex_t),
+    sizeof(vertex_t),
     num_vertices);
 }
 

@@ -15,7 +15,7 @@ entity_t sv_new_client(sock_t sock)
   sv.bg.health[entity].max            = 100;
   sv.bg.health[entity].now            = sv.bg.health[entity].max;
   
-  sv.bg.model[entity]                 = BG_MDL_FUMO_CIRNO;
+  sv.bg.model[entity]                 = BG_MDL_SKULL;
   
   sv.attack[entity].ready             = true;
   

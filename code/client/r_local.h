@@ -8,16 +8,27 @@
 #include "mdl_file.h"
 #include "../common/log.h"
 #include "../common/zone.h"
+#include "../common/vertex.h"
 
 #define VERTEX_ATTRIB_0 3
-#define VERTEX_ATTRIB_1 2
+#define VERTEX_ATTRIB_1 3
+#define VERTEX_ATTRIB_2 2
+
+#define MAX_LIGHTS      32
 
 #define ASPECT_RATIO    ((float) (720.0 / 1280.0))
 // #define ASPECT_RATIO    ((float) (480.0 / 640.0))
 
 #define HUD_GRID_SIZE   ((float) 32.0 / 128.0)
 
+typedef GLuint  block_t;
 typedef GLuint  texture_t;
+
+typedef struct {
+  vec3_t  pos;
+  float   intensity;
+  vec4_t  color;
+} light_t;
 
 typedef enum {
   HUD_ALIGN_CENTER,
@@ -42,10 +53,7 @@ typedef enum {
   MAX_HUD
 } r_hud_t;
 
-typedef struct {
-  vec3_t  pos;
-  vec2_t  uv;
-} vertex_t;
+typedef int r_light_t;
 
 typedef struct {
   GLuint  offset;
@@ -59,6 +67,7 @@ typedef struct {
 typedef struct {
   GLuint          program;
   GLuint          ul_mvp;
+  GLuint          ul_model;
 } r_shader_t;
 
 typedef struct {
@@ -84,8 +93,12 @@ typedef struct {
   hud_def_t       hud_defs[MAX_HUD];
   
   r_model_t       map_model;
+  
   r_shader_t      cg_shader;
   r_model_t       cg_models[MAX_BG_MODEL];
+  
+  block_t         light_block;
+  bool            light_active[MAX_LIGHTS];
   
   int             static_vbo_ptr;
   
@@ -96,34 +109,54 @@ typedef struct {
 
 extern renderer_t r;
 
-bool  r_shader_init();
+//
+// r_map.c
+//
+void      r_draw_map();
+bool      r_map_load_meshes(const map_t *map);
+bool      r_map_load_materials(const map_t *map);
 
-void  r_draw_map();
-bool  r_map_load_meshes(const map_t *map);
-bool  r_map_load_materials(const map_t *map);
+//
+// r_light.c
+//
+void      r_light_init();
+void      r_remove_light(r_light_t light);
+void      r_set_light(r_light_t light, vec3_t pos, float intensity, vec4_t color);
+r_light_t r_new_light();
+//
+// r_mesh.c
+//
+void      r_vbo_init();
+void      r_vbo_reset(int vbo_ptr);
+bool      r_new_mesh(r_mesh_t *mesh, int num_vertices);
+bool      r_load_mesh(r_mesh_t *mesh, const vertex_t *vertices, int num_vertices);
+bool      r_sub_mesh(const r_mesh_t *mesh, const vertex_t *vertices, int offset, int num_vertices);
+void      r_draw_mesh(const r_mesh_t *mesh);
 
-void  r_vbo_init();
-void  r_vbo_reset(int vbo_ptr);
-bool  r_new_mesh(r_mesh_t *mesh, int num_vertices);
-bool  r_load_mesh(r_mesh_t *mesh, const vertex_t *vertices, int num_vertices);
-bool  r_sub_mesh(const r_mesh_t *mesh, const vertex_t *vertices, int offset, int num_vertices);
-void  r_draw_mesh(const r_mesh_t *mesh);
+//
+// r_model.c
+//
+bool      r_load_model(r_model_t *model, const char *path);
+void      r_draw_model(const r_model_t *model);
 
-bool  r_load_model(r_model_t *model, const char *path);
-void  r_draw_model(const r_model_t *model);
+//
+// r_hud.c
+//
+bool      r_hud_init();
+bool      r_init_hud_shader();
+bool      r_init_hud_mesh();
+void      r_hud_update_health();
+void      r_render_hud();
+void      hud_init_rect(vertex_t *vertices, const hud_def_t *hud_def);
 
-bool  r_hud_init();
-bool  r_init_hud_shader();
-bool  r_init_hud_mesh();
-void  r_hud_update_health();
-void  r_render_hud();
-void  hud_init_rect(vertex_t *vertices, const hud_def_t *hud_def);
-
-bool  r_cg_init();
-bool  r_init_cg_models();
-bool  r_init_cg_shader();
-void  r_render_cgame();
-void  r_setup_view_projection_matrix();
-void  r_draw_entities();
+//
+// r_cgame.c
+//
+bool      r_cg_init();
+bool      r_init_cg_models();
+bool      r_init_cg_shader();
+void      r_render_cgame();
+void      r_setup_view_projection_matrix();
+void      r_draw_entities();
 
 #endif

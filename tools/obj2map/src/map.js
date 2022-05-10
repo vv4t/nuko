@@ -16,9 +16,10 @@ export class map_brush_mtl {
 };
 
 export class map_vertex_t {
-  constructor(pos, uv)
+  constructor(pos, normal, uv)
   {
     this.pos = pos;
+    this.normal = normal;
     this.uv = uv;
   }
 };
@@ -75,7 +76,7 @@ export function map_from_obj(obj)
       const normal = face.vertices[0].normal.normalize();
       
       for (const vertex of face.vertices) {
-        const map_vertex = new map_vertex_t(vertex.pos, vertex.uv);
+        const map_vertex = new map_vertex_t(vertex.pos, normal, vertex.uv);
         vertices.push(map_vertex);
       }
       

@@ -26,7 +26,7 @@ typedef enum {
 } bg_entitystate_t;
 
 typedef enum {
-  BG_MDL_FUMO_CIRNO,
+  BG_MDL_SKULL,
   MAX_BG_MODEL
 } bg_model_t;
 

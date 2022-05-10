@@ -13,7 +13,7 @@ void sv_init()
   
   net_listen();
   
-  sv_load_map("nk_arena");
+  sv_load_map("nk_neo");
 }
 
 static int next_frame = 0;

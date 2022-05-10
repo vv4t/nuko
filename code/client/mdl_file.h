@@ -4,7 +4,7 @@
 #include "../common/log.h"
 #include "../common/zone.h"
 #include "../common/lump.h"
-#include "../common/nk_math.h"
+#include "../common/vertex.h"
 #include <stdio.h>
 #include <stdbool.h>
 
@@ -14,11 +14,6 @@ typedef enum {
   MDL_LUMP_MATERIALS,
   MAX_MDL_LUMPS
 } mdl_lump_t;
-
-typedef struct {
-  vec3_t        pos;
-  vec2_t        uv;
-} mdl_vertex_t;
 
 typedef struct {
   int           material_id;
@@ -40,7 +35,7 @@ typedef struct {
 } mdl_t;
 
 bool              mdl_load(mdl_t *mdl, const char *path);
-mdl_vertex_t      *mdl_load_vertices(const mdl_t *mdl, int *num_vertices);
+vertex_t          *mdl_load_vertices(const mdl_t *mdl, int *num_vertices);
 mdl_mesh_group_t  *mdl_load_mesh_groups(const mdl_t *mdl, int *num_mesh_groups);
 mdl_material_t    *mdl_load_materials(const mdl_t *mdl, int *num_materials);
 

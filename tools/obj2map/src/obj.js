@@ -21,10 +21,19 @@ export class obj_face_t {
 };
 
 export class obj_object_t {
-  constructor(faces, mtl_id)
+  constructor(name, faces, mtl_id)
   {
+    this.name = name;
     this.faces = faces;
     this.mtl_id = mtl_id;
+  }
+};
+
+export class obj_entity_t {
+  constructor(name, pos)
+  {
+    this.name = name;
+    this.pos = pos;
   }
 };
 
@@ -37,9 +46,10 @@ export class obj_mtl_t {
 };
 
 export class obj_t {
-  constructor(objects, mtls)
+  constructor(objects, entities, mtls)
   {
     this.objects = objects;
+    this.entities = entities;
     this.mtls = mtls;
   }
 };
@@ -85,15 +95,18 @@ export function obj_parse(str_path)
   const file = fs.readFileSync(str_path).toString();
   const lines = file.split('\n');
   
+  let o_name = "";
   let v_buf = [];
   let vt_buf = [];
   let vn_buf = [];
   let f_buf = [];
+  let pos_buf = [];
   let mtl_id;
   
   let mtls = [];
   
   const objects = [];
+  const entities = [];
   
   for (const line of lines) {
     const args = line.split(' ').filter((x) => x.length > 0);
@@ -102,11 +115,15 @@ export function obj_parse(str_path)
       const mtls_path = path.join(dir, args[1]);
       mtls = mtllib_parse(mtls_path);
     } if (args[0] == "o") {
-      if (f_buf.length > 0) {
-        const object = new obj_object_t(f_buf, mtl_id);
-        objects.push(object);
-        f_buf = [];
-      }
+      if (f_buf.length > 0)
+        objects.push(new obj_object_t(o_name, f_buf, mtl_id));
+      else if (pos_buf.length == 1)
+        entities.push(new obj_entity_t(o_name, v_buf[0]));
+      
+      f_buf = [];
+      pos_buf = [];
+      
+      o_name = args[1];
     } else if (args[0] == "usemtl") {
       const mtl_name = args[1];
       for (let i = 0; i < mtls.length; i++) {
@@ -114,11 +131,12 @@ export function obj_parse(str_path)
           mtl_id = i;
       }
     } else if (args[0] == "v") {
-      v_buf.push(
-        new vec3_t(
+      const pos = new vec3_t(
           parseFloat(args[1]),
           parseFloat(args[2]),
-          parseFloat(args[3])));
+          parseFloat(args[3]));
+      v_buf.push(pos);
+      pos_buf.push(pos);
     } else if (args[0] == "vt") {
       vt_buf.push(
         new vec2_t(
@@ -151,11 +169,10 @@ export function obj_parse(str_path)
     }
   }
   
-  if (f_buf.length > 0) {
-    const object = new obj_object_t(f_buf, mtl_id);
-    objects.push(object);
-    f_buf = [];
-  }
+  if (f_buf.length > 0)
+    objects.push(new obj_object_t(o_name, f_buf, mtl_id));
+  else if (pos_buf.length == 1)
+    entities.push(new obj_entity_t(o_name, pos_buf[0]));
   
-  return new obj_t(objects, mtls);
+  return new obj_t(objects, entities, mtls);
 }

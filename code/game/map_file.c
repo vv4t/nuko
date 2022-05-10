@@ -17,12 +17,12 @@ bool map_load(map_t *map, const char *path)
   return true;
 }
 
-map_vertex_t *map_load_vertices(const map_t *map, int *num_vertices)
+vertex_t *map_load_vertices(const map_t *map, int *num_vertices)
 {
-  return (map_vertex_t*) lump_load(
+  return (vertex_t*) lump_load(
     map->file,
     &map->header.lumps[MAP_LUMP_VERTICES],
-    sizeof(map_vertex_t),
+    sizeof(vertex_t),
     num_vertices);
 }
 

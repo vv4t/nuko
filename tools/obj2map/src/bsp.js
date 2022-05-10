@@ -1,7 +1,7 @@
 "use strict";
 
 import { vec3_t, plane_t } from "./math.js";
-import { map_brush_type, map_vertex_t, map_brush_t, map_face_t } from "./map.js";
+import { map_brush_type, map_brush_t, map_face_t } from "./map.js";
 
 const DOT_DEGREE = 0.001;
 
@@ -20,6 +20,13 @@ class split_t {
   {
     this.behind = behind;
     this.ahead = ahead;
+  }
+}
+
+class split_vertex_t {
+  constructor(pos)
+  {
+    this.pos = pos;
   }
 }
 
@@ -44,14 +51,10 @@ export function bsp_gen(map)
 function intersect_plane(a, b, plane)
 {
   const delta_pos = b.pos.sub(a.pos);
-  const delta_uv = b.uv.sub(a.uv);
-  
   const t = -(a.pos.dot(plane.normal) - plane.distance) / delta_pos.dot(plane.normal);
-  
   const pos = a.pos.add(delta_pos.mulf(t));
-  const uv = a.uv.add(delta_uv.mulf(t));
   
-  return new map_vertex_t(pos, uv);
+  return new split_vertex_t(pos);
 }
 
 function split_face_even(vbehind, vmiddle, vahead, plane, normal)

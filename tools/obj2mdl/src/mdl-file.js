@@ -29,7 +29,7 @@ class lump_t {
 class mdl_file_lump {
   static VERTICES       = 0;
   static BSP_NODES      = 1;
-  static MESH_GROUPS   = 2;
+  static MESH_GROUPS    = 2;
   static MATERIALS      = 3;
 };
 
@@ -258,6 +258,7 @@ class write_t {
   write_vertex(vertex)
   {
     this.write_vec3(vertex.pos);
+    this.write_vec3(vertex.normal);
     this.write_vec2(vertex.uv);
   }
 };

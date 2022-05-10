@@ -4,7 +4,8 @@ renderer_t r;
 
 bool r_init()
 {
-  glClearColor(0.2f, 0.7f, 1.0f, 1.0f);
+  // glClearColor(0.2f, 0.7f, 1.0f, 1.0f);
+  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   
   glEnable(GL_CULL_FACE);
   glEnable(GL_BLEND);
@@ -24,6 +25,8 @@ bool r_init()
     log_printf(LOG_ERROR, "r_init(): failed to load cgame");
     return false;
   }
+  
+  r_light_init();
   
   r.map_model = (r_model_t) {0};
   
