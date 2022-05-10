@@ -2,7 +2,6 @@
 
 #define MAX_PITCH       1.57
 #define MAX_KEYBINDS    32
-#define IN_SENSITIVITY  0.005
 
 typedef struct {
   int         key;
@@ -21,6 +20,8 @@ static float        in_attack;
 
 static float        in_pitch;
 static float        in_yaw;
+
+static float        in_sensitivity = 0.005;
 
 static void in_forward_down(void *d) { in_forward = 1.0f; }
 static void in_forward_up(void *d)   { in_forward = 0.0f; }
@@ -48,6 +49,22 @@ static void key_bind_f(void *d)
   in_key_bind(key, text);
 }
 
+static void sensitivity_f(void *d)
+{
+  switch (cmd_argc()) {
+  case 1:
+    printf("%f\n", in_sensitivity);
+    break;
+  case 2:
+    in_sensitivity = atof(cmd_argv(1));
+    printf("sensitivity set to '%f'\n", atof(cmd_argv(1)));
+    break;
+  default:
+    log_printf(LOG_ERROR, "sensitivity_f(): usage %s [sensitivity]", cmd_argv(0));
+    break;
+  }
+}
+
 void in_init()
 {
   cmd_add_command("+forward", in_forward_down, NULL);
@@ -63,6 +80,7 @@ void in_init()
   cmd_add_command("+attack", in_attack_down, NULL);
   cmd_add_command("-attack", in_attack_up, NULL);
   
+  cmd_add_command("sensitivity", sensitivity_f, NULL);
   cmd_add_command("bind", key_bind_f, NULL);
   
   in_forward  = 0.0f;
@@ -114,9 +132,9 @@ void in_mouse_event(int button, int action)
 
 void in_mouse_move(int dx, int dy)
 {
-  in_yaw += dx * IN_SENSITIVITY;
+  in_yaw += dx * in_sensitivity;
   
-  float new_pitch = in_pitch + dy * IN_SENSITIVITY;
+  float new_pitch = in_pitch + dy * in_sensitivity;
   
   if (fabs(new_pitch) < MAX_PITCH)
     in_pitch = new_pitch;
