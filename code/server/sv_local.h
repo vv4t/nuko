@@ -33,7 +33,7 @@ typedef enum {
 
 typedef struct {
   int         amount;
-  const char  *src;
+  entity_t    src;
 } dmg_t;
 
 typedef struct {
@@ -94,7 +94,7 @@ bool      intersect_ray_capsule(
   vec3_t              offset,
   const bg_capsule_t  *capsule);
 
-void      dmg_add(sv_damage_t *damage, int amount, const char *src);
+void      dmg_add(sv_damage_t *damage, int amount, entity_t src);
 
 void      sv_game_update();
 void      sv_client_move();

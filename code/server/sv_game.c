@@ -150,15 +150,15 @@ void sv_apply_damage()
     for (int j = 0; j < sv.damage[i].num_dmg; j++) {
       sv.bg.health[i].now -= sv.damage[i].dmg[j].amount;
       
-      if (sv.bg.health[i].now < 0) {
+      if (sv.bg.health[i].now <= 0) {
         sv.edict.entities[i] = SV_ES_RESPAWN;
         sv.respawn[i].spawn_time = 5000;
         
-        sv.score[i].kills++;
+        sv.score[sv.damage[i].dmg[j].src].kills++;
         sv.score[i].deaths++;
         
         static char msg[128];
-        snprintf(msg, 128, "[SERVER] %s killed %s.", sv.client[i].name, sv.damage[i].dmg[j].src);
+        snprintf(msg, 128, "[SERVER] %s killed %s.", sv.client[sv.damage[i].dmg[j].src].name, sv.client[i].name);
         sv_send_chat(msg);
         
         break;
@@ -204,12 +204,12 @@ void sv_client_shoot()
         &snapshot->sv_capsule[j]);
       
       if (hit)
-        dmg_add(&sv.damage[j], 10, sv.client[i].name);
+        dmg_add(&sv.damage[j], 10, i);
     }
   }
 }
 
-void dmg_add(sv_damage_t *damage, int amount, const char *src)
+void dmg_add(sv_damage_t *damage, int amount, entity_t src)
 {
   dmg_t *dmg = &damage->dmg[damage->num_dmg];
   
