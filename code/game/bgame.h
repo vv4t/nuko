@@ -8,6 +8,7 @@
 #include <stdbool.h>
 
 #define MAX_CLIP_PLANES 16
+#define BG_ATTACK_TIME 500
 
 typedef enum {
   BGC_TRANSFORM = (1 << 0),
@@ -18,11 +19,12 @@ typedef enum {
   BGC_PMOVE     = (1 << 5),
   BGC_MODEL     = (1 << 6),
   BGC_HEALTH    = (1 << 7),
-  AUX_BGC       = (1 << 8)
+  BGC_ATTACK    = (1 << 8),
+  AUX_BGC       = (1 << 9)
 } bg_component_t;
 
 typedef enum {
-  BG_ES_CLIENT = BGC_TRANSFORM | BGC_CLIENT | BGC_CAPSULE | BGC_CLIP | BGC_MOTION | BGC_MODEL | BGC_PMOVE | BGC_HEALTH
+  BG_ES_CLIENT = BGC_TRANSFORM | BGC_CLIENT | BGC_CAPSULE | BGC_CLIP | BGC_MOTION | BGC_MODEL | BGC_PMOVE | BGC_HEALTH | BGC_ATTACK
 } bg_entitystate_t;
 
 typedef enum {
@@ -72,7 +74,14 @@ typedef struct {
 } bg_health_t;
 
 typedef struct {
+  bool      active;
+  int       next_attack;
+} bg_attack_t;
+
+typedef struct {
   edict_t         edict;
+  
+  int             round_time;
   
   int             cl_entity_state;
   bg_pmove_t      cl_pmove;
@@ -82,6 +91,7 @@ typedef struct {
   bg_model_t      sv_model[MAX_ENTITIES];
   bg_transform_t  sv_transform[MAX_ENTITIES];
   bg_capsule_t    sv_capsule[MAX_ENTITIES];
+  bg_attack_t     sv_attack[MAX_ENTITIES];
 } snapshot_t;
 
 typedef struct {
@@ -96,6 +106,7 @@ typedef struct {
   bg_pmove_t      pmove[MAX_ENTITIES];
   bg_model_t      model[MAX_ENTITIES];
   bg_health_t     health[MAX_ENTITIES];
+  bg_attack_t     attack[MAX_ENTITIES];
 } bgame_t;
 
 //

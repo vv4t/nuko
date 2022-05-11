@@ -7,6 +7,9 @@ int       host_frametime = 50;
 void sv_init()
 {
   sv.snapshot_head = 0;
+  sv.num_clients = 0;
+  sv.round_time = 0;
+  sv.round_start = false;
   
   edict_init(&sv.edict);
   bg_init(&sv.bg, &sv.edict);

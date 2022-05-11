@@ -83,6 +83,8 @@ bool r_new_map(const map_t *map)
   r_vbo_reset(r.static_vbo_ptr);
   r_light_reset();
   
+  memset(r.client_shoot_light, -1, sizeof(r.client_shoot_light));
+  
   if (!r_map_load_materials(map)) {
     log_printf(LOG_ERROR, "r_new_map(): failed to load materials");
     return false;

@@ -40,7 +40,6 @@ build/linux/assets: | build/linux
 	-mkdir $@/map
 	-mkdir $@/mdl
 	-mkdir $@/mtl
-	-mkdir $@/tex
 
 build/linux: | build
 	-mkdir $@

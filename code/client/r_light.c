@@ -100,28 +100,33 @@ bool r_init_light_shader()
   " light_t lights[32];\n"
   "};\n"
   "\n"
-  "uniform sampler2D sampler;\n"
+  "uniform sampler2D  u_sampler;\n"
+  "uniform bool       u_glow;\n"
   "\n"
   "void main() {\n"
   "  vec3 ambient_light = vec3(0.1, 0.1, 0.1);\n"
   "  \n"
   "  vec3 light = ambient_light;\n"
   "  \n"
-  "  for (int i = 0; i < 32; i++) {\n"
-  "    if (lights[i].intensity <= 0.0)\n"
-  "      continue;\n"
-  "    \n"
-  "    vec3 delta_pos = lights[i].pos - vs_pos;\n"
-  "    vec3 light_dir = normalize(delta_pos);\n"
-  "    float delta_dist = length(delta_pos);\n"
-  "    float diffuse = max(dot(vs_normal, light_dir), 0.0);\n"
-  "    float ambience = 0.1;\n"
-  "    float attentuation = lights[i].intensity / (1.0 + 4.0 * delta_dist + 0.4 * delta_dist * delta_dist);\n"
-  "    float intensity = diffuse * attentuation;\n"
-  "    light += lights[i].color.xyz * clamp(intensity, 0.0, 1.0);\n"
+  "  if (!u_glow) {\n"
+  "    for (int i = 0; i < 32; i++) {\n"
+  "      if (lights[i].intensity <= 0.0)\n"
+  "        continue;\n"
+  "      \n"
+  "      vec3 delta_pos = lights[i].pos - vs_pos;\n"
+  "      vec3 light_dir = normalize(delta_pos);\n"
+  "      float delta_dist = length(delta_pos);\n"
+  "      float diffuse = max(dot(vs_normal, light_dir), 0.0);\n"
+  "      float ambience = 0.1;\n"
+  "      float attentuation = lights[i].intensity / (1.0 + 4.0 * delta_dist + 0.4 * delta_dist * delta_dist);\n"
+  "      float intensity = diffuse * attentuation;\n"
+  "      light += lights[i].color.xyz * clamp(intensity, 0.0, 1.0);\n"
+  "    }\n"
+  "  } else {\n"
+  "    light = vec3(1, 1, 1);\n"
   "  }\n"
   "  \n"
-  "  vec4 color = texture(sampler, vs_uv);\n"
+  "  vec4 color = texture(u_sampler, vs_uv);\n"
   "  frag_color = vec4(light, 1.0) * color;\n"
   "}";
 
@@ -132,6 +137,7 @@ bool r_init_light_shader()
   
   r.light_shader.ul_mvp = glGetUniformLocation(r.light_shader.program, "u_mvp");
   r.light_shader.ul_model = glGetUniformLocation(r.light_shader.program, "u_model");
+  r.light_shader.ul_glow = glGetUniformLocation(r.light_shader.program, "u_glow");
   
   return true;
 }

@@ -18,16 +18,18 @@
 #define MAX_CMD_QUEUE       4
 #define MAX_SNAPSHOT_QUEUE  64
 
+#define SV_ROUND_TIME       120000
+#define SV_RESTART_TIME     5000
+
 typedef enum {
   SVC_CLIENT          = (AUX_BGC << 0),
-  SVC_ATTACK          = (AUX_BGC << 1),
-  SVC_RESPAWN         = (AUX_BGC << 2),
-  SVC_SCORE           = (AUX_BGC << 3),
-  SVC_DAMAGE          = (AUX_BGC << 4)
+  SVC_RESPAWN         = (AUX_BGC << 1),
+  SVC_SCORE           = (AUX_BGC << 2),
+  SVC_DAMAGE          = (AUX_BGC << 3)
 } sv_component_t;
 
 typedef enum {
-  SV_ES_CLIENT        = SVC_CLIENT | BG_ES_CLIENT | SVC_ATTACK | SVC_SCORE | SVC_DAMAGE,
+  SV_ES_CLIENT        = SVC_CLIENT | BG_ES_CLIENT | SVC_SCORE | SVC_DAMAGE | SVC_RESPAWN,
   SV_ES_RESPAWN       = SVC_CLIENT | BGC_TRANSFORM | SVC_RESPAWN | SVC_SCORE
 } sv_entitystate_t;
 
@@ -49,11 +51,9 @@ typedef struct {
 } sv_client_t;
 
 typedef struct {
-  bool      ready;
-} sv_attack_t;
-
-typedef struct {
   int       spawn_time;
+  int       invul_time;
+  bool      alive;
 } sv_respawn_t;
 
 typedef struct {
@@ -72,8 +72,11 @@ typedef struct {
   
   const char    *map_name;
   
+  int           round_time;
+  bool          round_start;
+  int           num_clients;
+  
   sv_client_t   client[MAX_ENTITIES];
-  sv_attack_t   attack[MAX_ENTITIES];
   sv_respawn_t  respawn[MAX_ENTITIES];
   sv_score_t    score[MAX_ENTITIES];
   sv_damage_t   damage[MAX_ENTITIES];
@@ -105,6 +108,10 @@ void      sv_server_snapshot(snapshot_t *snapshot);
 void      sv_client_snapshot(snapshot_t *snapshot, entity_t entity);
 bool      sv_print_score(char *dest, int len);
 void      sv_load_map(const char *map);
+void      sv_round_start();
+void      sv_round_end();
+void      sv_round_status();
+void      sv_spawn_client(entity_t entity);
 
 //
 // sv_net.c
@@ -125,5 +132,6 @@ void      sv_client_parse_chat(entity_t entity, const frame_t *frame);
 void      sv_client_parse_score(entity_t entity, const frame_t *frame);
 void      sv_client_send_client_info(entity_t entity);
 void      sv_client_send_chat(entity_t entity, const char *text);
+void      sv_client_disconnect(entity_t entity);
 
 #endif

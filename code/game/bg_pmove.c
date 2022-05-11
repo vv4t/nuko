@@ -109,3 +109,20 @@ void bg_pm_free_look(bgame_t *bg)
     pm_free_look(&bg->transform[i], cmd_yaw, cmd_pitch);
   }
 }
+
+#define BG_PLAYER_ATTACK (BGC_TRANSFORM | BGC_CLIENT | BGC_ATTACK)
+void bg_pm_attack(bgame_t *bg)
+{
+  for (int i = 0; i < bg->edict->num_entities; i++) {
+    if ((bg->edict->entities[i] & BG_PLAYER_ATTACK) != BG_PLAYER_ATTACK)
+      continue;
+    
+    if (bg->client[i].usercmd.attack && bg->attack[i].next_attack < 0) {
+      bg->attack[i].active = true;
+      bg->attack[i].next_attack = BG_ATTACK_TIME;
+    } else {
+      bg->attack[i].active = false;
+      bg->attack[i].next_attack -= BG_TIMESTEP * 1000;
+    }
+  }
+}

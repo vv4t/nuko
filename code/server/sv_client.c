@@ -17,16 +17,27 @@ entity_t sv_new_client(sock_t sock)
   
   sv.bg.model[entity]                 = BG_MDL_SKULL;
   
-  sv.attack[entity].ready             = true;
+  sv.bg.attack[entity].active         = false;
+  sv.bg.attack[entity].next_attack    = 0;
   
   sv.score[entity].kills              = 0;
   sv.score[entity].deaths             = 0;
+  
+  sv.respawn[entity].spawn_time       = 0;
+  sv.respawn[entity].invul_time       = 0;
+  sv.respawn[entity].alive            = true;
   
   sv.client[entity].sock              = sock;
   sv.client[entity].cmd_tail          = 0;
   sv.client[entity].cmd_head          = 0;
   sv.client[entity].snapshot_ack      = 0;
   snprintf(sv.client[entity].name, sizeof(sv.client[entity].name), "GUEST%i", (rand() % 100000) + 100000);
+  
+  static char msg[128];
+  if (snprintf(msg, sizeof(msg), "[SERVER] '%s' joined the game", sv.client[entity].name) < sizeof(msg))
+    sv_send_chat(msg);
+  
+  sv.num_clients++;
   
   return entity;
 }
@@ -68,15 +79,18 @@ void sv_client_parse_name(entity_t entity, const frame_t *frame)
     return;
   }
   
+  static char msg[128];
+  if (snprintf(msg, sizeof(msg), "[SERVER] '%s' changed their name to '%s'", sv.client[entity].name) < sizeof(msg))
+    sv_send_chat(msg);
+  
   strncpy(sv.client[entity].name, frame->data.name.name, sizeof(sv.client[entity].name));
-  sv_client_send_chat(entity, "[SERVER] your name has been changed.");
 }
 
 void sv_client_parse_chat(entity_t entity, const frame_t *frame)
 {
   static char msg[128];
-  snprintf(msg, 128, "[CHAT] %s: %s", sv.client[entity].name, frame->data.chat.content);
-  sv_send_chat(msg);
+  if (snprintf(msg, sizeof(msg), "[CHAT] %s: %s", sv.client[entity].name, frame->data.chat.content) < sizeof(msg))
+    sv_send_chat(msg);
 }
 
 void sv_client_parse_usercmd(entity_t entity, const frame_t *frame)
@@ -107,4 +121,17 @@ void sv_client_send_chat(entity_t entity, const char *text)
   frame.netcmd = NETCMD_CHAT;
   strncpy(frame.data.chat.content, text, sizeof(frame.data.chat.content));
   net_sock_send(sv.client[entity].sock, &frame, sizeof(frame_t));
+}
+
+void sv_client_disconnect(entity_t entity)
+{
+  static char msg[128];
+  int str_len = snprintf(msg, sizeof(msg), "[SERVER] '%s' disconnected", sv.client[entity].name);
+  
+  net_sock_disconnect(sv.client[entity].sock);
+  edict_remove_entity(&sv.edict, entity);
+  sv.num_clients--;
+  
+  if (str_len < sizeof(msg))
+    sv_send_chat(msg);
 }

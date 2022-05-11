@@ -75,9 +75,15 @@ int net_sock_read(sock_t sock, void *buf, int len)
   int n = read(net_sockets[sock], buf, len);
   
   if (!n)
-    net_sockets[sock] = 0;
+    net_sock_disconnect(sock);
   
   return n;
+}
+
+void net_sock_disconnect(sock_t sock)
+{
+  if (net_sockets[sock])
+    close(net_sockets[sock]);
 }
 
 int net_listen()

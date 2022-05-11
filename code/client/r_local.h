@@ -50,6 +50,12 @@ typedef enum {
   HUD_HEALTH_DIGIT_0,
   HUD_HEALTH_DIGIT_1,
   HUD_HEALTH_DIGIT_2,
+  HUD_ROUND_TIME_OVERLAY,
+  HUD_ROUND_TIME_DIGIT_0,
+  HUD_ROUND_TIME_DIGIT_1,
+  HUD_ROUND_TIME_DIGIT_2,
+  HUD_ROUND_TIME_DIGIT_4,
+  HUD_ROUND_TIME_COLON,
   MAX_HUD
 } r_hud_t;
 
@@ -72,6 +78,7 @@ typedef struct {
   GLuint            program;
   GLuint            ul_mvp;
   GLuint            ul_model;
+  GLuint            ul_glow;
   GLuint            block;
 } r_light_shader_t;
 
@@ -99,6 +106,9 @@ typedef struct {
   
   r_model_t         map_model;
   r_model_t         cg_models[MAX_BG_MODEL];
+  
+  r_light_t         client_shoot_light[MAX_ENTITIES];
+  r_model_t         bullet_model;
   
   r_light_shader_t  light_shader;
   bool              light_active[MAX_LIGHTS];
@@ -165,5 +175,6 @@ bool      r_init_cg_models();
 void      r_render_cgame();
 void      r_setup_view_projection_matrix();
 void      r_draw_entities();
+void      r_draw_attack();
 
 #endif

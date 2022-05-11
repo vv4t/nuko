@@ -6,6 +6,7 @@
 
 typedef struct {
   bg_transform_t  transform[MAX_ENTITIES];
+  bg_attack_t     attack[MAX_ENTITIES];
 } cl_snapshot_t;
 
 typedef struct {
@@ -15,6 +16,8 @@ typedef struct {
   cl_snapshot_t   to;
   cl_snapshot_t   from;
   cl_snapshot_t   tween;
+  
+  int             round_time;
   
   entity_t        ent_client;
 } cgame_t;

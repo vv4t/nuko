@@ -61,7 +61,7 @@ bool r_hud_init()
     return false;
   }
   
-  if (!gl_load_texture(&r.hud_texture, "assets/tex/hud.png")) {
+  if (!gl_load_texture(&r.hud_texture, "assets/mtl/hud.png")) {
     log_printf(LOG_ERROR, "r_load_materials(): failed to load texture 'assets/tex/hud.png'");
     return false;
   }
@@ -83,7 +83,7 @@ bool r_init_hud_mesh()
     .scr_pos    = vec2_init(-0.9f, -0.9f),
     .scr_size   = vec2_init(+0.4f, +0.2f),
     .uv_pos     = vec2_init(+0.0f, +0.0f),
-    .uv_size    = vec2_init(+4.0f, +1.0f) };
+    .uv_size    = vec2_init(+3.0f, +1.0f) };
   
   r.hud_defs[HUD_HEALTH_LABEL] = (hud_def_t) {
     .hud_align  = HUD_ALIGN_BOTTOM_LEFT,
@@ -93,12 +93,40 @@ bool r_init_hud_mesh()
     .uv_size    = vec2_init(+1.0f, +1.0f) };
   
   for (int i = 0; i < 3; i++) {
-    r.hud_defs[HUD_HEALTH_DIGIT_0 + i].hud_align      = HUD_ALIGN_BOTTOM_LEFT;
-    r.hud_defs[HUD_HEALTH_DIGIT_0 + i].scr_pos        = vec2_init(-0.82f + i * 0.04f, -0.85f);
-    r.hud_defs[HUD_HEALTH_DIGIT_0 + i].scr_size       = vec2_init(+0.15f, +0.15f);
-    r.hud_defs[HUD_HEALTH_DIGIT_0 + i].uv_pos         = vec2_init(+0.0f, +1.0f);
-    r.hud_defs[HUD_HEALTH_DIGIT_0 + i].uv_size        = vec2_init(+1.0f, +1.0f);
+    r.hud_defs[HUD_HEALTH_DIGIT_0 + i] = (hud_def_t) {
+      .hud_align  = HUD_ALIGN_BOTTOM_LEFT,
+      .scr_pos    = vec2_init(-0.82 + i * 0.04f, -0.85f),
+      .scr_size   = vec2_init(+0.15f, +0.15f),
+      .uv_pos     = vec2_init(+0.0f, +1.0f),
+      .uv_size    = vec2_init(+1.0f, +1.0f) };
   }
+  
+  r.hud_defs[HUD_ROUND_TIME_OVERLAY] = (hud_def_t) {
+    .hud_align  = HUD_ALIGN_CENTER,
+    .scr_pos    = vec2_init(+0.0f, 0.8f),
+    .scr_size   = vec2_init(+0.4f, +0.2f),
+    .uv_pos     = vec2_init(+0.0f, +0.0f),
+    .uv_size    = vec2_init(+3.0f, +1.0f) };
+  
+  for (int i = 0; i < 4; i++) {
+    float digit_pos = (i - 1 + (i > 1)) * 0.04f - 0.011f;
+    
+    r.hud_defs[HUD_ROUND_TIME_DIGIT_0 + i] = (hud_def_t) {
+      .hud_align  = HUD_ALIGN_CENTER,
+      .scr_pos    = vec2_init(digit_pos, 0.825f),
+      .scr_size   = vec2_init(+0.15f, +0.15f),
+      .uv_pos     = vec2_init(+0.0f, +1.0f),
+      .uv_size    = vec2_init(+1.0f, +1.0f) };
+  }
+  
+  float colon_pos = 0.04f - 0.01f;
+  
+  r.hud_defs[HUD_ROUND_TIME_COLON] = (hud_def_t) {
+    .hud_align  = HUD_ALIGN_CENTER,
+    .scr_pos    = vec2_init(colon_pos, 0.825f),
+    .scr_size   = vec2_init(+0.15f, +0.15f),
+    .uv_pos     = vec2_init(+3.0f, +0.0f),
+    .uv_size    = vec2_init(+1.0f, +1.0f) };
   
   if (!r_new_mesh(&r.hud_mesh, MAX_HUD * num_hud_rect_vertices)) {
     log_printf(LOG_ERROR, "r_init_hud_mesh(): failed to allocate hud mesh");
@@ -125,15 +153,41 @@ void r_hud_update_health()
   };
   
   for (int i = 0; i < 3; i++) {
-    r.hud_defs[HUD_HEALTH_DIGIT_0 + i].hud_align      = HUD_ALIGN_BOTTOM_LEFT;
-    r.hud_defs[HUD_HEALTH_DIGIT_0 + i].scr_pos        = vec2_init(-0.82f + i * 0.04f, -0.85f);
-    r.hud_defs[HUD_HEALTH_DIGIT_0 + i].scr_size       = vec2_init(+0.15f, +0.15f);
-    r.hud_defs[HUD_HEALTH_DIGIT_0 + i].uv_pos         = vec2_init((float) (digits[i] % 4), (float) (1 + digits[i] / 4));
-    r.hud_defs[HUD_HEALTH_DIGIT_0 + i].uv_size        = vec2_init(+1.0f, +1.0f);
+    r_hud_t hud_id = HUD_HEALTH_DIGIT_0 + i;
+    
+    r.hud_defs[hud_id].uv_pos = vec2_init((float) (digits[i] % 4), (float) (1 + digits[i] / 4));
     
     vertex_t hud_vertices[num_hud_rect_vertices];
-    hud_init_rect(hud_vertices, &r.hud_defs[HUD_HEALTH_DIGIT_0 + i]);
-    r_sub_mesh(&r.hud_mesh, hud_vertices, (HUD_HEALTH_DIGIT_0 + i) * num_hud_rect_vertices, num_hud_rect_vertices);
+    hud_init_rect(hud_vertices, &r.hud_defs[hud_id]);
+    r_sub_mesh(&r.hud_mesh, hud_vertices, hud_id * num_hud_rect_vertices, num_hud_rect_vertices);
+  }
+}
+
+void r_hud_update_round_time()
+{
+  int rt = cg.round_time;
+  
+  if (rt < 0)
+    rt = 0;
+  
+  int secs = rt / 1000;
+  int mins = secs / 60;
+  
+  int digits[] = {
+    (mins % 100) / 10,
+    (mins % 10) / 1,
+    (secs % 60) / 10,
+    (secs % 10) / 1
+  };
+  
+  for (int i = 0; i < 4; i++) {
+    r_hud_t hud_id = HUD_ROUND_TIME_DIGIT_0 + i;
+    
+    r.hud_defs[hud_id].uv_pos = vec2_init((float) (digits[i] % 4), (float) (1 + digits[i] / 4));
+    
+    vertex_t hud_vertices[num_hud_rect_vertices];
+    hud_init_rect(hud_vertices, &r.hud_defs[hud_id]);
+    r_sub_mesh(&r.hud_mesh, hud_vertices, hud_id * num_hud_rect_vertices, num_hud_rect_vertices);
   }
 }
 
@@ -144,6 +198,7 @@ void r_render_hud()
   glBindTexture(GL_TEXTURE_2D, r.hud_texture);
   
   r_hud_update_health();
+  r_hud_update_round_time();
   r_draw_mesh(&r.hud_mesh);
 }
 

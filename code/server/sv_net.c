@@ -22,7 +22,7 @@ void sv_parse()
       sv_client_parse_frame(i, &frame);
     
     if (!read)
-      edict_remove_entity(&sv.edict, i);
+      sv_client_disconnect(i);
   }
 }
 

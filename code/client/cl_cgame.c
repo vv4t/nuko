@@ -25,6 +25,8 @@ void cl_predict()
 
 void cl_reconcile()
 {
+  cg.round_time = cl.snapshot.round_time;
+  
   memcpy(&cg.edict, &cl.snapshot.edict, sizeof(edict_t));
   memcpy(&cg.bg.pmove[cg.ent_client], &cl.snapshot.cl_pmove, sizeof(cl.snapshot.cl_pmove));
   memcpy(&cg.bg.motion[cg.ent_client], &cl.snapshot.cl_motion, sizeof(cl.snapshot.cl_motion));
@@ -33,6 +35,7 @@ void cl_reconcile()
   memcpy(&cg.bg.model, &cl.snapshot.sv_model, sizeof(cl.snapshot.sv_model));
   memcpy(&cg.bg.transform, &cl.snapshot.sv_transform, sizeof(cl.snapshot.sv_transform));
   memcpy(&cg.bg.capsule, &cl.snapshot.sv_capsule, sizeof(cl.snapshot.sv_capsule));
+  memcpy(&cg.bg.attack, &cl.snapshot.sv_attack, sizeof(cl.snapshot.sv_attack));
   
   cg.edict.entities[cg.ent_client] = cl.snapshot.cl_entity_state;
 }
@@ -40,23 +43,32 @@ void cl_reconcile()
 void cl_snapshot()
 {
   memcpy(&cg.from, &cg.to, sizeof(cl_snapshot_t));
-  memcpy(&cg.to, &cg.bg.transform, sizeof(cg.bg.transform));
+  memcpy(&cg.to.transform, &cg.bg.transform, sizeof(cg.bg.transform));
+  memcpy(&cg.to.attack, &cg.bg.attack, sizeof(cg.bg.attack));
 }
 
-#define CL_INTERPOLATE (BGC_TRANSFORM)
 void cl_interpolate(float interp)
 {
   for (int i = 0; i < cg.edict.num_entities; i++) {
-    if ((cg.edict.entities[i] & CL_INTERPOLATE) != CL_INTERPOLATE)
-      continue;
+    if ((cg.edict.entities[i] & BGC_TRANSFORM) == BGC_TRANSFORM) {
+      vec3_t pos_from = cg.from.transform[i].position;
+      vec3_t pos_to = cg.to.transform[i].position;
+      vec3_t delta_pos = vec3_sub(pos_to, pos_from);
+      
+      vec3_t pos_tween = vec3_add(pos_from, vec3_mulf(delta_pos, interp));
+      
+      cg.tween.transform[i].position = pos_tween;
+    }
     
-    vec3_t pos_from = cg.from.transform[i].position;
-    vec3_t pos_to = cg.to.transform[i].position;
-    vec3_t delta_pos = vec3_sub(pos_to, pos_from);
-    
-    vec3_t pos_tween = vec3_add(pos_from, vec3_mulf(delta_pos, interp));
-    
-    cg.tween.transform[i].position = pos_tween;
+    if ((cg.edict.entities[i] & BGC_ATTACK) == BGC_ATTACK) {
+      int next_attack_from = cg.from.attack[i].next_attack;
+      int next_attack_to = cg.to.attack[i].next_attack;
+      int delta_attack = next_attack_to - next_attack_from;
+      
+      int next_attack_tween = next_attack_from + (int) ((float) delta_attack * interp);
+      
+      cg.tween.attack[i].next_attack = next_attack_tween;
+    }
   }
 }
 

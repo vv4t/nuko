@@ -16,6 +16,7 @@ void  pm_accelerate(bg_motion_t *motion, vec3_t wish_dir, float accel, float wis
 void  bg_pm_check_pos(bgame_t *bg);
 void  bg_pm_walk_move(bgame_t *bg);
 void  bg_pm_free_look(bgame_t *bg);
+void  bg_pm_attack(bgame_t *bg);
 
 // bg_clip.c
 void  clip_capsule_bsp_R(

@@ -2,11 +2,76 @@
 
 void sv_game_update()
 {
+  if (!sv.num_clients)
+    return;
+  
+  sv_round_status();
   sv_check_respawn();
   sv_client_move();
   bg_update(&sv.bg);
   sv_client_shoot();
   sv_apply_damage();
+}
+
+void sv_round_start()
+{
+  sv_load_map("nk_neo");
+  
+  memset(sv.score, 0, sizeof(sv.score));
+  
+  for (int i = 0; i < sv.edict.num_entities; i++) {
+    if ((sv.edict.entities[i] & SVC_CLIENT) == SVC_CLIENT)
+      sv_spawn_client(i);
+    else
+      edict_remove_entity(&sv.edict, i);
+  }
+  
+  sv.round_time = SV_ROUND_TIME;
+  sv.round_start = true;
+}
+
+void sv_round_status()
+{
+  if (sv.round_start) {
+    sv.round_time -= host_frametime;
+    
+    if (sv.round_time > 0) {
+      if (sv.num_clients < 2) {
+        sv_send_chat("[SERVER] less than the required 2 players.");
+        sv_round_end();
+        sv.round_time = 0;
+        sv.round_start = false;
+      }
+    } else {
+      if (sv.round_time > -SV_RESTART_TIME) {
+        int remaining_secs = (SV_RESTART_TIME + sv.round_time) / 1000;
+        
+        if ((sv.round_time % 1000) == 0) {
+          if (remaining_secs == SV_RESTART_TIME / 1000)
+            sv_round_end();
+          
+          static char msg[128];
+          if (snprintf(msg, sizeof(msg), "[SERVER] restarting in %is.", remaining_secs) < sizeof(msg))
+            sv_send_chat(msg);
+        }
+      } else {
+        sv.round_start = false;
+      }
+    }
+  } else if (sv.num_clients >= 2) {
+    sv_round_start();
+  } else {
+    sv.round_time = 0;
+  }
+}
+
+void sv_round_end()
+{
+  sv_send_chat("[SERVER] round ended.");
+  
+  static char msg[256];
+  if (sv_print_score(msg, sizeof(msg)))
+    sv_send_chat(msg);
 }
 
 void sv_load_map(const char *name)
@@ -34,13 +99,16 @@ void sv_client_snapshot(snapshot_t *snapshot, entity_t entity)
   snapshot->cl_entity_state = sv.edict.entities[entity] & SV_CLIENT_SNAPSHOT;
 }
 
-#define SV_SERVER_SNAPSHOT (BGC_TRANSFORM | BGC_MODEL | BGC_CAPSULE)
+#define SV_SERVER_SNAPSHOT (BGC_TRANSFORM | BGC_MODEL | BGC_CAPSULE | BGC_ATTACK)
 void sv_server_snapshot(snapshot_t *snapshot)
 {
   memcpy(&snapshot->edict, &sv.edict, sizeof(edict_t));
   memcpy(&snapshot->sv_transform, &sv.bg.transform, sizeof(sv.bg.transform));
   memcpy(&snapshot->sv_capsule, &sv.bg.capsule, sizeof(sv.bg.capsule));
   memcpy(&snapshot->sv_model, &sv.bg.model, sizeof(sv.bg.model));
+  memcpy(&snapshot->sv_attack, &sv.bg.attack, sizeof(sv.bg.attack));
+  
+  snapshot->round_time = sv.round_time;
   
   for (int i = 0; i < snapshot->edict.num_entities; i++)
     snapshot->edict.entities[i] = sv.edict.entities[i] & SV_SERVER_SNAPSHOT;
@@ -109,6 +177,24 @@ bool sv_print_score(char *dest, int dest_len)
   return true;
 }
 
+void sv_spawn_client(entity_t entity)
+{
+  int range = 20;
+  
+  sv.edict.entities[entity] = SV_ES_CLIENT;
+  
+  sv.bg.transform[entity].position.x = (rand() % range) - range / 2;
+  sv.bg.transform[entity].position.y = 10;
+  sv.bg.transform[entity].position.z = (rand() % range) - range / 2;
+  
+  sv.bg.motion[entity] = (bg_motion_t) {0};
+  
+  sv.bg.health[entity].now = sv.bg.health[entity].max;
+  
+  sv.respawn[entity].invul_time = 5000;
+  sv.respawn[entity].alive = true;
+}
+
 #define SV_RESPAWN (SVC_RESPAWN)
 void sv_check_respawn()
 {
@@ -116,36 +202,36 @@ void sv_check_respawn()
     if ((sv.edict.entities[i] & SV_RESPAWN) != SV_RESPAWN)
       continue;
     
-    if (sv.respawn[i].spawn_time > 0) {
-      sv.respawn[i].spawn_time -= host_frametime;
-      
-      if ((sv.respawn[i].spawn_time % 1000) < host_frametime) {
-        static char msg[256];
-        snprintf(msg, 128, "[SERVER] respawning in %is", 1 + sv.respawn[i].spawn_time / 1000);
-        sv_client_send_chat(i, msg);
+    if (sv.respawn[i].invul_time > 0)
+      sv.respawn[i].invul_time -= host_frametime;
+    
+    if (!sv.respawn[i].alive) {
+      if (sv.respawn[i].spawn_time > 0) {
+        sv.respawn[i].spawn_time -= host_frametime;
+        
+        if ((sv.respawn[i].spawn_time % 1000) < host_frametime) {
+          static char msg[256];
+          snprintf(msg, 128, "[SERVER] respawning in %is", 1 + sv.respawn[i].spawn_time / 1000);
+          sv_client_send_chat(i, msg);
+        }
+      } else {
+        sv_spawn_client(i);
       }
-    } else {
-      int range = 10;
-      
-      sv.edict.entities[i] = SV_ES_CLIENT;
-      
-      sv.bg.transform[i].position.x = (rand() % range) - range / 2;
-      sv.bg.transform[i].position.y = 10;
-      sv.bg.transform[i].position.z = (rand() % range) - range / 2;
-      
-      sv.bg.motion[i] = (bg_motion_t) {0};
-      
-      sv.bg.health[i].now = sv.bg.health[i].max;
     }
   }
 }
 
-#define SV_APPLY_DAMAGE (BGC_HEALTH | SVC_DAMAGE)
+#define SV_APPLY_DAMAGE (BGC_HEALTH | SVC_DAMAGE | SVC_RESPAWN)
 void sv_apply_damage()
 {
   for (int i = 0; i < sv.edict.num_entities; i++) {
     if ((sv.edict.entities[i] & SV_APPLY_DAMAGE) != SV_APPLY_DAMAGE)
       continue;
+    
+    if (sv.respawn[i].invul_time > 0) {
+      sv.damage[i].num_dmg = 0;
+      continue;
+    }
     
     for (int j = 0; j < sv.damage[i].num_dmg; j++) {
       sv.bg.health[i].now -= sv.damage[i].dmg[j].amount;
@@ -153,13 +239,14 @@ void sv_apply_damage()
       if (sv.bg.health[i].now <= 0) {
         sv.edict.entities[i] = SV_ES_RESPAWN;
         sv.respawn[i].spawn_time = 5000;
+        sv.respawn[i].alive = false;
         
         sv.score[sv.damage[i].dmg[j].src].kills++;
         sv.score[i].deaths++;
         
         static char msg[128];
-        snprintf(msg, 128, "[SERVER] %s killed %s.", sv.client[sv.damage[i].dmg[j].src].name, sv.client[i].name);
-        sv_send_chat(msg);
+        if (snprintf(msg, sizeof(msg), "[SERVER] %s killed '%s'.", sv.client[sv.damage[i].dmg[j].src].name, sv.client[i].name) < sizeof(msg))
+          sv_send_chat(msg);
         
         break;
       }
@@ -169,7 +256,7 @@ void sv_apply_damage()
   }
 }
 
-#define SV_CLIENT_SHOOT (BGC_CLIENT | SVC_CLIENT | SVC_ATTACK)
+#define SV_CLIENT_SHOOT (BGC_ATTACK | SVC_CLIENT)
 #define SV_SHOOT_VICTIM (BGC_TRANSFORM | BGC_CAPSULE)
 void sv_client_shoot()
 {
@@ -179,13 +266,8 @@ void sv_client_shoot()
     if ((sv.edict.entities[i] & SV_CLIENT_SHOOT) != SV_CLIENT_SHOOT)
       continue;
     
-    if (!sv.bg.client[i].usercmd.attack && !sv.attack[i].ready)
-      sv.attack[i].ready = true;
-    
-    if (!sv.bg.client[i].usercmd.attack || !sv.attack[i].ready)
+    if (!sv.bg.attack[i].active)
       continue;
-    
-    sv.attack[i].ready = false;
     
     snapshot_t *snapshot = &sv.snapshot_queue[sv.client[i].snapshot_ack % MAX_SNAPSHOT_QUEUE];
     vec3_t ray = vec3_rotate(forward, sv.bg.transform[i].rotation);

@@ -20,12 +20,18 @@ void r_render_cgame()
   r_setup_view_projection_matrix();
   r_draw_map();
   r_draw_entities();
+  r_draw_attack();
 }
 
 bool r_init_cg_models()
 {
   if (!r_load_model(&r.cg_models[BG_MDL_SKULL], "assets/mdl/skull.mdl")) {
     log_printf(LOG_ERROR, "r_init_cg_models(): unable to load BG_MDL_SKULL");
+    return false;
+  }
+  
+  if (!r_load_model(&r.bullet_model, "assets/mdl/bullet.mdl")) {
+    log_printf(LOG_ERROR, "r_init_cg_models(): unable to load bullet model");
     return false;
   }
   
@@ -70,4 +76,32 @@ void r_draw_entities()
   }
 }
 
-
+#define R_DRAW_ATTACK (BGC_TRANSFORM | BGC_ATTACK)
+void r_draw_attack()
+{
+  for (int i = 0; i < cg.edict.num_entities; i++) {
+    if ((cg.edict.entities[i] & R_MASK_DRAW_ENTITIES) != R_MASK_DRAW_ENTITIES)
+      continue;
+    
+    float interp = 4 * ((float) (BG_ATTACK_TIME - cg.tween.attack[i].next_attack) / (float) BG_ATTACK_TIME);
+    
+    if (interp > 0.0 && interp < 1.0) {
+      vec3_t bullet_origin = vec3_add(cg.tween.transform[i].position, vec3_init(0.0f, -1.0f, 0.0f));
+      vec3_t bullet_dir = vec3_rotate(vec3_init(0.0f, 1.0f, 15.0f), cg.bg.transform[i].rotation);
+      vec3_t bullet_pos = vec3_add(bullet_origin, vec3_mulf(bullet_dir, interp));
+  
+      mat4x4_t translation_matrix = mat4x4_init_translation(bullet_pos);
+      mat4x4_t rotation_matrix = mat4x4_init_rotation(cg.bg.transform[i].rotation);
+      
+      mat4x4_t model_matrix = mat4x4_mul(rotation_matrix, translation_matrix);
+      mat4x4_t model_view_projection_matrix = mat4x4_mul(model_matrix, r.view_projection_matrix);
+      
+      glUniformMatrix4fv(r.light_shader.ul_mvp, 1, GL_FALSE, model_view_projection_matrix.m);
+      glUniformMatrix4fv(r.light_shader.ul_model, 1, GL_FALSE, model_matrix.m);
+      
+      glUniform1i(r.light_shader.ul_glow, 1);
+      r_draw_model(&r.bullet_model);
+      glUniform1i(r.light_shader.ul_glow, 0);
+    }
+  }
+}
