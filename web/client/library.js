@@ -22,7 +22,10 @@ function cl_net_connect(host_ptr)
   const sock = new Module.socket_t((payload) => ws.send(payload));
   
   ws.onopen = () => sock.on_open();
-  ws.onclose = () => sock.on_close();
+  ws.onclose = () => {
+    Module.print("[NET] connection to server closed.");
+    sock.on_close();
+  };
   ws.onmessage = (e) => sock.on_recv(new Uint8Array(e.data));
   
   return Module.net_add_sock(sock);

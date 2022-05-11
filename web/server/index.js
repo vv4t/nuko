@@ -20,7 +20,7 @@ function http_init()
   });
 
   wss.on("connection", function(ws) {
-    const sock = new Module.socket_t((payload) => ws.send(payload));
+    const sock = new Module.socket_t((payload) => ws.send(payload), () => ws.close(1000));
     
     sock.on_open();
     ws.on("message", (payload) => sock.on_recv(payload));

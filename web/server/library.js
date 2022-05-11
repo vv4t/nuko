@@ -3,6 +3,11 @@ function sv_net_connect(host_ptr)
   console.log("net_connect(): unimplemented");
 }
 
+function sv_net_sock_disconnect(sock_id)
+{
+  Module.net_sock_disconnect(sock_id);
+}
+
 function sv_net_sock_send(sock_id, payload_ptr, len)
 {
   return Module.net_sock_send(sock_id, payload_ptr, len);
@@ -27,6 +32,7 @@ mergeInto(LibraryManager.library, {
   net_connect: sv_net_connect,
   net_sock_send: sv_net_sock_send,
   net_sock_read: sv_net_sock_read,
+  net_sock_disconnect: sv_net_sock_disconnect,
   net_listen: sv_net_listen,
   net_accept: sv_net_accept
 });

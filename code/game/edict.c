@@ -19,6 +19,9 @@ entity_t edict_add_entity(edict_t *edict, int state)
   
   edict->entities[edict->num_entities] = state;
   
+  if (edict->num_entities + 1 >= MAX_ENTITIES)
+    return -1;
+  
   return edict->num_entities++;
 }
 

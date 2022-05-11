@@ -82,7 +82,7 @@ void bg_pm_walk_move(bgame_t *bg)
       vec3_t wish_dir = vec3_normalize(vec3_init(view_dir.x, 0.0f, view_dir.z));
       
       if (bg->pmove[i].on_ground)
-        pm_accelerate(&bg->motion[i], wish_dir, 5.5f, 7.0f);
+        pm_accelerate(&bg->motion[i], wish_dir, 6.5f, 9.0f);
       else
         pm_air_accelerate(&bg->motion[i], wish_dir, 2.5f);
     }

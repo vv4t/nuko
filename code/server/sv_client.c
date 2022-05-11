@@ -4,6 +4,13 @@ entity_t sv_new_client(sock_t sock)
 {
   entity_t entity = edict_add_entity(&sv.edict, SV_ES_CLIENT);
   
+  if (entity == -1) {
+    net_sock_disconnect(sock);
+    
+    log_printf(LOG_WARNING, "too many clients.");
+    return -1;
+  }
+  
   sv.bg.transform[entity]             = (bg_transform_t) {0};
   sv.bg.motion[entity]                = (bg_motion_t) {0};
   
@@ -80,7 +87,7 @@ void sv_client_parse_name(entity_t entity, const frame_t *frame)
   }
   
   static char msg[128];
-  if (snprintf(msg, sizeof(msg), "[SERVER] '%s' changed their name to '%s'", sv.client[entity].name) < sizeof(msg))
+  if (snprintf(msg, sizeof(msg), "[SERVER] '%s' changed their name to '%s'", sv.client[entity].name, frame->data.name.name) < sizeof(msg))
     sv_send_chat(msg);
   
   strncpy(sv.client[entity].name, frame->data.name.name, sizeof(sv.client[entity].name));

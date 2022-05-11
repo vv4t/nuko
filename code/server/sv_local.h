@@ -18,7 +18,7 @@
 #define MAX_CMD_QUEUE       4
 #define MAX_SNAPSHOT_QUEUE  64
 
-#define SV_ROUND_TIME       120000
+#define SV_ROUND_TIME       180000
 #define SV_RESTART_TIME     5000
 
 typedef enum {
@@ -72,6 +72,7 @@ typedef struct {
   
   const char    *map_name;
   
+  int           round_count;
   int           round_time;
   bool          round_start;
   int           num_clients;
@@ -119,6 +120,7 @@ void      sv_spawn_client(entity_t entity);
 void      sv_accept();
 void      sv_parse();
 void      sv_send_snapshot();
+void      sv_send_client_info();
 void      sv_send_chat(const char *text);
 
 //

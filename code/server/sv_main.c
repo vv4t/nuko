@@ -8,6 +8,7 @@ void sv_init()
 {
   sv.snapshot_head = 0;
   sv.num_clients = 0;
+  sv.round_count = 0;
   sv.round_time = 0;
   sv.round_start = false;
   
@@ -16,7 +17,7 @@ void sv_init()
   
   net_listen();
   
-  sv_load_map("nk_neo");
+  sv_load_map("nk_yuu");
 }
 
 static int next_frame = 0;

@@ -5,7 +5,8 @@ void sv_accept()
   sock_t sock;
   while ((sock = net_accept()) != -1) {
     entity_t client = sv_new_client(sock);
-    sv_client_send_client_info(client);
+    if (client != -1)
+      sv_client_send_client_info(client);
   }
 }
 
@@ -57,5 +58,15 @@ void sv_send_chat(const char *text)
       continue;
     
     net_sock_send(sv.client[i].sock, &frame, sizeof(frame_t));
+  }
+}
+
+void sv_send_client_info()
+{
+  for (int i = 0; i < sv.edict.num_entities; i++) {
+    if ((sv.edict.entities[i] & SVC_CLIENT) != SVC_CLIENT)
+      continue;
+    
+    sv_client_send_client_info(i);
   }
 }

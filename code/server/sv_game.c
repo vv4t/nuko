@@ -15,7 +15,13 @@ void sv_game_update()
 
 void sv_round_start()
 {
-  sv_load_map("nk_neo");
+  static const char *map_rotation[] = {
+    "nk_neo",
+    "nk_yuu",
+    "nk_chito"
+  };
+  
+  sv_load_map(map_rotation[sv.round_count++ % (sizeof(map_rotation) / sizeof(char*))]);
   
   memset(sv.score, 0, sizeof(sv.score));
   
@@ -87,6 +93,7 @@ void sv_load_map(const char *name)
     log_printf(LOG_FATAL, "cl_load_map(): failed to load %s", map_path);
   
   bg_new_map(&sv.bg, &map);
+  sv_send_client_info();
 }
 
 #define SV_CLIENT_SNAPSHOT (BG_ES_CLIENT)

@@ -4,10 +4,11 @@ const SOCK_CONNECTING = 0;
 const SOCK_CONNECTED = 1;
 const SOCK_DISCONNECTED = 2;
 
-Module.socket_t = function(fn_send)
+Module.socket_t = function(fn_send, fn_disconnect)
 {
   this.b_recv = [];
   this.fn_send = fn_send;
+  this.fn_disconnect = fn_disconnect;
   this.status = SOCK_CONNECTING;
 };
 
@@ -20,6 +21,11 @@ Module.socket_t.prototype.recv = function()
 {
   return this.b_recv.shift();
 };
+
+Module.socket_t.prototype.disconnect = function()
+{
+  this.fn_disconnect();
+}
 
 Module.socket_t.prototype.on_open = function()
 {
@@ -51,6 +57,15 @@ Module.net_add_sock = function(sock)
   return Module.net_sockets.push(sock) - 1;
 }
 
+Module.net_sock_disconnect = function(sock_id)
+{
+  if (!Module.net_sockets[sock_id])
+    return;
+  
+  Module.net_sockets[sock_id].fn_disconnect();
+  Module.net_sockets[sock_id] = null;
+}
+
 Module.net_sock_send = function(sock_id, payload_ptr, len)
 {
   const sock = Module.net_sockets[sock_id];
@@ -76,7 +91,7 @@ Module.net_sock_read = function(sock_id, payload_ptr, len)
     return 0;
   
   if (sock.status == SOCK_DISCONNECTED) {
-    Module.net_sockets[sock_id] = null;
+    Module.net_sock_disconnect(sock_id);
     return 0;
   }
   

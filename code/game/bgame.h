@@ -8,7 +8,7 @@
 #include <stdbool.h>
 
 #define MAX_CLIP_PLANES 16
-#define BG_ATTACK_TIME 500
+#define BG_ATTACK_TIME 250
 
 typedef enum {
   BGC_TRANSFORM = (1 << 0),
