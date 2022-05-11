@@ -56,55 +56,58 @@ typedef enum {
 typedef int r_light_t;
 
 typedef struct {
-  GLuint  offset;
-  GLuint  size;
+  GLuint            offset;
+  GLuint            size;
 } r_mesh_t;
 
 typedef struct {
-  texture_t       texture;
+  texture_t         texture;
 } r_material_t;
 
 typedef struct {
-  GLuint          program;
-  GLuint          ul_mvp;
-  GLuint          ul_model;
-} r_shader_t;
+  GLuint            program;
+} r_hud_shader_t;
 
 typedef struct {
-  int             material_id;
-  r_mesh_t        mesh;
+  GLuint            program;
+  GLuint            ul_mvp;
+  GLuint            ul_model;
+  GLuint            block;
+} r_light_shader_t;
+
+typedef struct {
+  int               material_id;
+  r_mesh_t          mesh;
 } r_mesh_group_t;
 
 typedef struct {
-  r_mesh_group_t  *mesh_groups;
-  int             num_mesh_groups;
+  r_mesh_group_t    *mesh_groups;
+  int               num_mesh_groups;
   
-  r_material_t    *materials;
-  int             num_materials;
+  r_material_t      *materials;
+  int               num_materials;
 } r_model_t;
 
 typedef struct {
-  mat4x4_t        projection_matrix;
-  mat4x4_t        view_projection_matrix;
+  mat4x4_t          projection_matrix;
+  mat4x4_t          view_projection_matrix;
   
-  texture_t       hud_texture;
-  r_shader_t      hud_shader;
-  r_mesh_t        hud_mesh;
-  hud_def_t       hud_defs[MAX_HUD];
+  texture_t         hud_texture;
+  r_hud_shader_t    hud_shader;
+  r_mesh_t          hud_mesh;
+  hud_def_t         hud_defs[MAX_HUD];
   
-  r_model_t       map_model;
+  r_model_t         map_model;
+  r_model_t         cg_models[MAX_BG_MODEL];
   
-  r_shader_t      cg_shader;
-  r_model_t       cg_models[MAX_BG_MODEL];
+  r_light_shader_t  light_shader;
+  bool              light_active[MAX_LIGHTS];
   
-  block_t         light_block;
-  bool            light_active[MAX_LIGHTS];
+  int               static_vbo_ptr;
   
-  int             static_vbo_ptr;
-  
-  GLuint          vbo;
-  int             vbo_size;
-  int             vbo_ptr;
+  GLuint            vbo;
+  int               vbo_size;
+  int               vbo_ptr;
 } renderer_t;
 
 extern renderer_t r;
@@ -115,14 +118,19 @@ extern renderer_t r;
 void      r_draw_map();
 bool      r_map_load_meshes(const map_t *map);
 bool      r_map_load_materials(const map_t *map);
+void      r_map_load_lights(const map_t *map);
 
 //
 // r_light.c
 //
-void      r_light_init();
+bool      r_light_init();
+bool      r_init_light_shader();
+void      r_init_light_block();
+void      r_light_reset();
 void      r_remove_light(r_light_t light);
-void      r_set_light(r_light_t light, vec3_t pos, float intensity, vec4_t color);
+void      r_set_light(r_light_t r_light, vec3_t pos, float intensity, vec4_t color);
 r_light_t r_new_light();
+
 //
 // r_mesh.c
 //
@@ -154,7 +162,6 @@ void      hud_init_rect(vertex_t *vertices, const hud_def_t *hud_def);
 //
 bool      r_cg_init();
 bool      r_init_cg_models();
-bool      r_init_cg_shader();
 void      r_render_cgame();
 void      r_setup_view_projection_matrix();
 void      r_draw_entities();

@@ -13,10 +13,13 @@ bool r_map_load_materials(const map_t *map)
   
   for (int i = 0; i < r.map_model.num_materials; i++) {
     char full_name[128];
-    sprintf(full_name, "assets/mtl/%s.png", map_materials[i].name); // buffer overflow somehow? rumao
+    if (snprintf(full_name, sizeof(full_name), "assets/mtl/%s.png", map_materials[i].name) >= sizeof(full_name)) {
+      log_printf(LOG_ERROR, "r_map_load_materials(): material path too long");
+      return false;
+    }
     
     if (!gl_load_texture(&r.map_model.materials[i].texture, full_name)) {
-      log_printf(LOG_ERROR, "r_load_materials(): failed to load texture '%s'", full_name);
+      log_printf(LOG_ERROR, "r_map_load_materials(): failed to load texture '%s'", full_name);
       return false;
     }
   }
@@ -58,9 +61,27 @@ bool r_map_load_meshes(const map_t *map)
   return true;
 }
 
+void r_map_load_lights(const map_t *map)
+{
+  int num_map_lights;
+  map_light_t *map_lights = map_load_lights(map, &num_map_lights);
+  
+  for (int i = 0; i < num_map_lights; i++) {
+    vec4_t color = vec4_init(
+      map_lights[i].color.x,
+      map_lights[i].color.y,
+      map_lights[i].color.z,
+      1.0f);
+    
+    r_light_t light = r_new_light();
+    r_set_light(light, map_lights[i].pos, map_lights[i].intensity, color);
+  }
+}
+
 bool r_new_map(const map_t *map)
 {
   r_vbo_reset(r.static_vbo_ptr);
+  r_light_reset();
   
   if (!r_map_load_materials(map)) {
     log_printf(LOG_ERROR, "r_new_map(): failed to load materials");
@@ -72,6 +93,8 @@ bool r_new_map(const map_t *map)
     return false;
   }
   
+  r_map_load_lights(map);
+  
   return true;
 }
 
@@ -79,8 +102,8 @@ void r_draw_map()
 {
   mat4x4_t map_model_matrix = mat4x4_init_identity();
   
-  glUniformMatrix4fv(r.cg_shader.ul_mvp, 1, GL_FALSE, r.view_projection_matrix.m);
-  glUniformMatrix4fv(r.cg_shader.ul_model, 1, GL_FALSE, map_model_matrix.m);
+  glUniformMatrix4fv(r.light_shader.ul_mvp, 1, GL_FALSE, r.view_projection_matrix.m);
+  glUniformMatrix4fv(r.light_shader.ul_model, 1, GL_FALSE, map_model_matrix.m);
   
   r_draw_model(&r.map_model);
 }

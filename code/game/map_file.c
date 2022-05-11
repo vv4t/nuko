@@ -44,6 +44,15 @@ map_material_t *map_load_materials(const map_t *map, int *num_materials)
     num_materials);
 }
 
+map_light_t *map_load_lights(const map_t *map, int *num_lights)
+{
+  return (map_light_t*) lump_load(
+    map->file,
+    &map->header.lumps[MAP_LUMP_LIGHTS],
+    sizeof(map_light_t),
+    num_lights);
+}
+
 static bsp_node_t *build_bsp_R(const map_bsp_node_t *map_bsp_nodes, int node)
 {
   if (node == -1)

@@ -4,6 +4,7 @@
 #include "bsp.h"
 #include "../common/lump.h"
 #include "../common/vertex.h"
+#include "../common/nk_math.h"
 #include <stdio.h>
 #include <stdbool.h>
 
@@ -12,6 +13,7 @@ typedef enum {
   MAP_LUMP_BSP_NODES,
   MAP_LUMP_MESH_GROUPS,
   MAP_LUMP_MATERIALS,
+  MAP_LUMP_LIGHTS,
   MAX_MAP_LUMPS
 } map_lump_t;
 
@@ -33,6 +35,12 @@ typedef struct {
 } map_material_t;
 
 typedef struct {
+  vec3_t      pos;
+  float       intensity;
+  vec3_t      color;
+} map_light_t;
+
+typedef struct {
   lump_t        lumps[MAX_MAP_LUMPS];
 } map_header_t;
 
@@ -45,6 +53,7 @@ bool              map_load(map_t *map, const char *path);
 vertex_t          *map_load_vertices(const map_t *map, int *num_vertices);
 map_mesh_group_t  *map_load_mesh_groups(const map_t *map, int *num_mesh_groups);
 map_material_t    *map_load_materials(const map_t *map, int *num_materials);
+map_light_t       *map_load_lights(const map_t *map, int *num_lights);
 bsp_node_t        *map_load_bsp(const map_t *map);
 void              map_free_bsp(bsp_node_t *bsp);
 

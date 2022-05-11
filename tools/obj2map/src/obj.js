@@ -118,7 +118,7 @@ export function obj_parse(str_path)
       if (f_buf.length > 0)
         objects.push(new obj_object_t(o_name, f_buf, mtl_id));
       else if (pos_buf.length == 1)
-        entities.push(new obj_entity_t(o_name, v_buf[0]));
+        entities.push(new obj_entity_t(o_name, pos_buf[0]));
       
       f_buf = [];
       pos_buf = [];

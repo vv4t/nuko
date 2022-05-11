@@ -177,7 +177,5 @@ bool r_init_hud_shader()
     return false;
   }
   
-  r.hud_shader.ul_mvp = glGetUniformLocation(r.hud_shader.program, "u_mvp");
-  
   return true;
 }

@@ -15,6 +15,15 @@ export class map_brush_mtl {
   static MTL_BUILDING = 3;
 };
 
+export class map_light_t {
+  constructor(pos, intensity, color)
+  {
+    this.pos = pos;
+    this.intensity = intensity;
+    this.color = color;
+  }
+}
+
 export class map_vertex_t {
   constructor(pos, normal, uv)
   {
@@ -48,9 +57,10 @@ export class map_mtl_t {
 };
 
 export class map_t {
-  constructor(brushes, mtls)
+  constructor(brushes, lights, mtls)
   {
     this.brushes = brushes;
+    this.lights = lights;
     this.mtls = mtls;
   }
 };
@@ -58,6 +68,7 @@ export class map_t {
 export function map_from_obj(obj)
 {
   const brushes = [];
+  const lights = [];
   const mtls = [];
   
   for (const obj_mtl of obj.mtls) {
@@ -88,7 +99,21 @@ export function map_from_obj(obj)
     brushes.push(map_brush);
   }
   
-  const map = new map_t(brushes, mtls);
+  for (const entity of obj.entities) {
+    const args = entity.name.split("_");
+    
+    if (args[0].startsWith("light")) {
+      const intensity = parseFloat(args[1]);
+      const color = new vec3_t(
+        parseFloat(args[2]),
+        parseFloat(args[3]),
+        parseFloat(args[4]));
+      
+      lights.push(new map_light_t(entity.pos, intensity, color));
+    }
+  }
+  
+  const map = new map_t(brushes, lights, mtls);
   
   return map;
 }

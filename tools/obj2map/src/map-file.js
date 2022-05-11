@@ -32,6 +32,7 @@ class map_file_lump {
   static BSP_NODES      = 1;
   static MESH_GROUPS    = 2;
   static MATERIALS      = 3;
+  static LIGHTS         = 4;
 };
 
 class map_file_mtl_t {
@@ -68,7 +69,7 @@ export function map_file_save(map, path)
   const bsp_nodes = flatten_bsp_node_R(bsp_gen(map), 0);
   const mtls = flatten_mtls(map.mtls);
   
-  write.seek(4 * sizeof.LUMP_T);
+  write.seek(5 * sizeof.LUMP_T);
   
   const vertices_fileofs = write.tell();
   for (const vertex of vertices)
@@ -90,16 +91,23 @@ export function map_file_save(map, path)
     write.write_mtl(mtl);
   const mtls_filelen = write.tell() - mtls_fileofs;
   
+  const lights_fileofs = write.tell();
+  for (const light of map.lights)
+    write.write_light(light);
+  const lights_filelen = write.tell() - lights_fileofs;
+  
   const lump_vertices = new lump_t(vertices_fileofs, vertices_filelen);
   const lump_bsp_nodes = new lump_t(bsp_nodes_fileofs, bsp_nodes_filelen);
   const lump_mesh_group = new lump_t(mesh_group_fileofs, mesh_group_filelen);
   const lump_mtls = new lump_t(mtls_fileofs, mtls_filelen);
+  const lump_lights = new lump_t(lights_fileofs, lights_filelen);
   
   write.seek(0);
   write.write_lump(lump_vertices);
   write.write_lump(lump_bsp_nodes);
   write.write_lump(lump_mesh_group);
   write.write_lump(lump_mtls);
+  write.write_lump(lump_lights);
   
   fs.writeFileSync(path, Buffer.from(write.data()));
 }
@@ -314,6 +322,13 @@ class write_t {
   {
     for (let i = 0; i < MAX_STRING_SIZE; i++)
       this.write_u8(mtl.u8_name[i]);
+  }
+  
+  write_light(light)
+  {
+    this.write_vec3(light.pos);
+    this.write_f32(light.intensity);
+    this.write_vec3(light.color);
   }
   
   write_lump(lump)

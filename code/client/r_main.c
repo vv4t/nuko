@@ -4,8 +4,7 @@ renderer_t r;
 
 bool r_init()
 {
-  // glClearColor(0.2f, 0.7f, 1.0f, 1.0f);
-  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+  glClearColor(0.10f, 0.07f, 0.07f, 1.0f);
   
   glEnable(GL_CULL_FACE);
   glEnable(GL_BLEND);
@@ -17,16 +16,19 @@ bool r_init()
   r_vbo_init(32000);
   
   if (!r_hud_init()) {
-    log_printf(LOG_ERROR, "r_init(): failed to load hud");
+    log_printf(LOG_ERROR, "r_init(): failed to initialize hud");
     return false;
   }
   
   if (!r_cg_init()) {
-    log_printf(LOG_ERROR, "r_init(): failed to load cgame");
+    log_printf(LOG_ERROR, "r_init(): failed to initialize cgame");
     return false;
   }
   
-  r_light_init();
+  if (!r_light_init()) {
+    log_printf(LOG_ERROR, "r_init(): failed to initialize light");
+    return false;
+  }
   
   r.map_model = (r_model_t) {0};
   
