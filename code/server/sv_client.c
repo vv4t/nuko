@@ -119,7 +119,7 @@ void sv_client_send_client_info(entity_t entity)
   
   strcpy(frame.data.client_info.map_name, sv.map_name);
   
-  net_sock_send(sv.client[entity].sock, &frame, sizeof(frame_t));
+  frame_send(sv.client[entity].sock, &frame);
 }
 
 void sv_client_send_chat(entity_t entity, const char *text)
@@ -127,7 +127,7 @@ void sv_client_send_chat(entity_t entity, const char *text)
   frame_t frame;
   frame.netcmd = NETCMD_CHAT;
   strncpy(frame.data.chat.content, text, sizeof(frame.data.chat.content));
-  net_sock_send(sv.client[entity].sock, &frame, sizeof(frame_t));
+  frame_send(sv.client[entity].sock, &frame);
 }
 
 void sv_client_disconnect(entity_t entity)

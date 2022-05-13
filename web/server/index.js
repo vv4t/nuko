@@ -28,8 +28,6 @@ function http_init()
     
     const sock_id = Module.net_add_sock(sock);
     
-    console.log(`[${sock_id}] connected`);
-    
     Module.net_serve(sock_id);
   });
 

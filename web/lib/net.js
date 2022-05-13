@@ -7,25 +7,11 @@ const SOCK_DISCONNECTED = 2;
 Module.socket_t = function(fn_send, fn_disconnect)
 {
   this.b_recv = [];
+  this.b_ptr = 0;
   this.fn_send = fn_send;
   this.fn_disconnect = fn_disconnect;
   this.status = SOCK_CONNECTING;
 };
-
-Module.socket_t.prototype.send = function(payload)
-{
-  this.fn_send(payload);
-};
-
-Module.socket_t.prototype.recv = function()
-{
-  return this.b_recv.shift();
-};
-
-Module.socket_t.prototype.disconnect = function()
-{
-  this.fn_disconnect();
-}
 
 Module.socket_t.prototype.on_open = function()
 {
@@ -79,7 +65,7 @@ Module.net_sock_send = function(sock_id, payload_ptr, len)
     for (let i = 0; i < len; i++)
       payload[i] = Module.HEAP8[payload_ptr + i];
     
-    sock.send(payload);
+    sock.fn_send(payload);
   }
 }
 
@@ -95,17 +81,21 @@ Module.net_sock_read = function(sock_id, payload_ptr, len)
     return 0;
   }
   
-  const payload = sock.recv();
-  if (payload) {
-    const payload_len = Math.min(len, payload.byteLength);
+  if (sock.b_recv.length == 0)
+    return -1;
+  
+  for (let i = 0; i < len; i++) {
+    Module.HEAP8[payload_ptr + i] = sock.b_recv[0][sock.b_ptr];
     
-    for (let i = 0; i < payload_len; i++)
-      Module.HEAP8[payload_ptr + i] = payload[i];
-    
-    return payload_len;
+    if (++sock.b_ptr >= sock.b_recv[0].length) {
+      if (!sock.b_recv.shift())
+        return i + 1;
+      else
+        sock.b_ptr = 0;
+    }
   }
   
-  return -1;
+  return len;
 }
 
 

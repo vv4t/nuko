@@ -4,7 +4,7 @@
 #include "server.h"
 
 #include "../game/bgame.h"
-#include "../game/protocol.h"
+#include "../game/frame.h"
 #include "../game/map_file.h"
 #include "../common/net.h"
 #include "../common/log.h"

@@ -8,7 +8,7 @@ void cl_connect(const char *host)
 void cl_parse()
 {
   frame_t frame;
-  while (net_sock_read(cl.sock, &frame, sizeof(frame_t)) > 0) {
+  while (frame_read(cl.sock, &frame) > 0) {
     switch (frame.netcmd) {
     case NETCMD_CLIENT_INFO:
       cl_parse_client_info(&frame);
@@ -49,6 +49,11 @@ void cl_parse_chat(const frame_t *frame)
   printf("%s\n", frame->data.chat.content);
 }
 
+void cl_send_frame(const frame_t *frame)
+{
+  
+}
+
 void cl_send_cmd()
 {
   if (!cl.connected)
@@ -59,7 +64,7 @@ void cl_send_cmd()
   frame.data.usercmd.ack = cl.snapshot_ack;
   frame.data.usercmd.d = cl.usercmd;
   
-  net_sock_send(cl.sock, &frame, sizeof(frame_t));
+  frame_send(cl.sock, &frame);
   
   cl.cmd_queue[cl.cmd_head++ % MAX_CMD_QUEUE] = cl.usercmd;
   if (cl.cmd_head - cl.cmd_tail >= MAX_CMD_QUEUE) {
@@ -82,7 +87,7 @@ void cl_send_chat(const char *text)
   frame.netcmd = NETCMD_CHAT;
   strncpy(frame.data.chat.content, text, sizeof(frame.data.chat.content));
   
-  net_sock_send(cl.sock, &frame, sizeof(frame_t));
+  frame_send(cl.sock, &frame);
 }
 
 void cl_send_score()
@@ -92,7 +97,7 @@ void cl_send_score()
   
   frame_t frame;
   frame.netcmd = NETCMD_SCORE;
-  net_sock_send(cl.sock, &frame, sizeof(frame_t));
+  frame_send(cl.sock, &frame);
 }
 
 void cl_send_name(const char *name)
@@ -104,5 +109,5 @@ void cl_send_name(const char *name)
   frame.netcmd = NETCMD_NAME;
   strncpy(frame.data.name.name, name, sizeof(frame.data.name.name));
   
-  net_sock_send(cl.sock, &frame, sizeof(frame_t));
+  frame_send(cl.sock, &frame);
 }

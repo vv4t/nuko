@@ -5,7 +5,7 @@
 
 #include "input.h"
 #include "renderer.h"
-#include "../game/protocol.h"
+#include "../game/frame.h"
 #include "../game/map_file.h"
 #include "../common/net.h"
 #include "../common/cmd.h"
@@ -48,7 +48,9 @@ void  cl_predict();
 void  cl_reconcile();
 void  cl_load_map(const char *path);
 
+//
 // cl_net.c
+//
 void  cl_connect(const char *host);
 void  cl_parse();
 void  cl_parse_snapshot(const frame_t *frame);

@@ -19,7 +19,7 @@ void sv_parse()
     int read;
     
     frame_t frame;
-    while ((read = net_sock_read(sv.client[i].sock, &frame, sizeof(frame_t))) > 0)
+    while ((read = frame_read(sv.client[i].sock, &frame)) > 0)
       sv_client_parse_frame(i, &frame);
     
     if (!read)
@@ -43,7 +43,7 @@ void sv_send_snapshot()
     frame.data.snapshot.ack = sv.client[i].cmd_tail - 1;
     sv_client_snapshot(&frame.data.snapshot.d, i);
     
-    net_sock_send(sv.client[i].sock, &frame, sizeof(frame_t));
+    frame_send(sv.client[i].sock, &frame);
   }
 }
 
@@ -57,7 +57,7 @@ void sv_send_chat(const char *text)
     if ((sv.edict.entities[i] & SVC_CLIENT) != SVC_CLIENT)
       continue;
     
-    net_sock_send(sv.client[i].sock, &frame, sizeof(frame_t));
+    frame_send(sv.client[i].sock, &frame);
   }
 }
 

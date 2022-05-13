@@ -19,7 +19,7 @@ function cl_net_connect(host_ptr)
   const ws = new WebSocket(host);
   ws.binaryType = "arraybuffer";
   
-  const sock = new Module.socket_t((payload) => ws.send(payload));
+  const sock = new Module.socket_t((payload) => ws.send(payload), () => ws.close(1000));
   
   ws.onopen = () => sock.on_open();
   ws.onclose = () => {
