@@ -31,6 +31,14 @@ void cl_parse()
 
 void cl_parse_client_info(const frame_t *frame)
 {
+  // NOTE: in early phases of network development, the client sent usercmds
+  // before the socket connection was properly established. Because the socket
+  // was TCP based and the implementation was based off that, it did not
+  // properly handle it. I think removing it now might work now but might as
+  // well leave it in. I should instead create a handshake exchange but it
+  // seems kinda redundant. That or I should create a 'map change' request from
+  // the server.
+  
   cl.connected = true;
   cg.ent_client = frame->data.client_info.entity;
   
@@ -46,12 +54,8 @@ void cl_parse_snapshot(const frame_t *frame)
 
 void cl_parse_chat(const frame_t *frame)
 {
+  // NOTE: no null termination check here might cause problems.
   printf("%s\n", frame->data.chat.content);
-}
-
-void cl_send_frame(const frame_t *frame)
-{
-  
 }
 
 void cl_send_cmd()
@@ -66,7 +70,17 @@ void cl_send_cmd()
   
   frame_send(cl.sock, &frame);
   
+  // Queue the usercmd for prediction
   cl.cmd_queue[cl.cmd_head++ % MAX_CMD_QUEUE] = cl.usercmd;
+  
+  // Because the usercmd cache is a fixed array, too many of them may cause
+  // problems.
+  
+  // Also, at the moment there are no network disconnect checks. This is as the
+  // main and only server is a dedicated one so it does not expect a disconnect.
+  
+  // If the server does disconnect, the client sends usercmds without them ever
+  // being acknowledged leading to this being spammed.
   if (cl.cmd_head - cl.cmd_tail >= MAX_CMD_QUEUE) {
     log_printf(
       LOG_WARNING,

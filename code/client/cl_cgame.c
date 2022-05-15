@@ -12,11 +12,14 @@ void cl_view_look()
 #define CL_PREDICT (BGC_CLIENT)
 void cl_predict()
 {
+  // Synchronise it with the last game state received from the server
   cl_reconcile();
   
   if ((cg.edict.entities[cg.ent_client] & CL_PREDICT) != CL_PREDICT)
     return;
   
+  // From there, simulate the game for every usercmd which has yet to be
+  // acknolwedged
   for (int i = cl.cmd_tail + 1; i < cl.cmd_head; i++) {
     cg.bg.client[cg.ent_client].usercmd = cl.cmd_queue[i % MAX_CMD_QUEUE];
     bg_update(&cg.bg);
@@ -42,14 +45,20 @@ void cl_reconcile()
 
 void cl_snapshot()
 {
+  // Shift the latest snapshot back
   memcpy(&cg.from, &cg.to, sizeof(cl_snapshot_t));
+  
+  // Snapshot the new game state
   memcpy(&cg.to.transform, &cg.bg.transform, sizeof(cg.bg.transform));
   memcpy(&cg.to.attack, &cg.bg.attack, sizeof(cg.bg.attack));
 }
 
 void cl_interpolate(float interp)
 {
+  // Interpolate using linear interpolation
+  // tween = old + (new - old) * interp
   for (int i = 0; i < cg.edict.num_entities; i++) {
+    // Interpolate entity transforms
     if ((cg.edict.entities[i] & BGC_TRANSFORM) == BGC_TRANSFORM) {
       vec3_t pos_from = cg.from.transform[i].position;
       vec3_t pos_to = cg.to.transform[i].position;
@@ -60,6 +69,7 @@ void cl_interpolate(float interp)
       cg.tween.transform[i].position = pos_tween;
     }
     
+    // Interpolate entity attacks
     if ((cg.edict.entities[i] & BGC_ATTACK) == BGC_ATTACK) {
       int next_attack_from = cg.from.attack[i].next_attack;
       int next_attack_to = cg.to.attack[i].next_attack;
@@ -75,7 +85,7 @@ void cl_interpolate(float interp)
 void cl_load_map(const char *name)
 {
   char map_path[256];
-  sprintf(map_path, "assets/map/%s.map", name);
+  snprintf(map_path, sizeof(map_path) "assets/map/%s.map", name);
   
   map_t map;
   
