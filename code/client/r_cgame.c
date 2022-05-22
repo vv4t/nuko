@@ -1,5 +1,10 @@
 #include "r_local.h"
 
+// NOTE: some components can be interpolated such as 'cg.bg.transform' or
+// 'cg.bg.attack'. Instead of directly referencing it, these components should
+// be referenced through 'cg.tween.{component}' as to get the interpolated
+// value
+
 bool r_cg_init()
 {
   if (!r_init_cg_models()) {
@@ -43,6 +48,8 @@ void r_setup_view_projection_matrix()
   vec3_t view_origin = cg.tween.transform[cg.ent_client].position;
   quat_t view_angle = cg.bg.transform[cg.ent_client].rotation;
   
+  // The actual transformation performed due to camera orientation is inverse,
+  // e.g. if you move right objects relative to you move left.
   vec3_t inverted_view_origin = vec3_mulf(view_origin, -1);
   quat_t inverted_view_angle = quat_conjugate(view_angle);
   
@@ -52,8 +59,6 @@ void r_setup_view_projection_matrix()
   mat4x4_t view_matrix = mat4x4_mul(translation_matrix, rotation_matrix);
   
   r.view_projection_matrix = mat4x4_mul(view_matrix, r.projection_matrix);
-  
-  glUniformMatrix4fv(r.light_shader.ul_mvp, 1, GL_FALSE, r.view_projection_matrix.m);
 }
 
 #define R_MASK_DRAW_ENTITIES (BGC_TRANSFORM | BGC_MODEL)
@@ -86,9 +91,9 @@ void r_draw_attack()
     float interp = 4 * ((float) (BG_ATTACK_TIME - cg.tween.attack[i].next_attack) / (float) BG_ATTACK_TIME);
     
     if (interp > 0.0 && interp < 1.0) {
-      vec3_t bullet_origin = vec3_add(cg.tween.transform[i].position, vec3_init(0.0f, -1.0f, 0.0f));
-      vec3_t bullet_dir = vec3_rotate(vec3_init(0.0f, 1.0f, 15.0f), cg.bg.transform[i].rotation);
-      vec3_t bullet_pos = vec3_add(bullet_origin, vec3_mulf(bullet_dir, interp));
+      vec3_t bullet_origin = vec3_add(cg.tween.transform[i].position, vec3_init(0.0f, -1.0f, 0.0f)); // Shift the bullet down a bit so it is visible when shot
+      vec3_t bullet_dir = vec3_rotate(vec3_init(0.0f, 1.0f, 15.0f), cg.bg.transform[i].rotation); // Align it with the client's rtation
+      vec3_t bullet_pos = vec3_add(bullet_origin, vec3_mulf(bullet_dir, interp)); // Linearly interpolate where the bullet should be
   
       mat4x4_t translation_matrix = mat4x4_init_translation(bullet_pos);
       mat4x4_t rotation_matrix = mat4x4_init_rotation(cg.bg.transform[i].rotation);
@@ -99,9 +104,9 @@ void r_draw_attack()
       glUniformMatrix4fv(r.light_shader.ul_mvp, 1, GL_FALSE, model_view_projection_matrix.m);
       glUniformMatrix4fv(r.light_shader.ul_model, 1, GL_FALSE, model_matrix.m);
       
-      glUniform1i(r.light_shader.ul_glow, 1);
+      glUniform1i(r.light_shader.ul_glow, 1); // Enable glow for bullets
       r_draw_model(&r.bullet_model);
-      glUniform1i(r.light_shader.ul_glow, 0);
+      glUniform1i(r.light_shader.ul_glow, 0); // Disable glow
     }
   }
 }

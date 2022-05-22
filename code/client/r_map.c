@@ -2,15 +2,18 @@
 
 bool r_map_load_materials(const map_t *map)
 {
+  // Free previous materials
   if (r.map_model.materials)
     zone_free(r.map_model.materials);
   
   int num_map_materials;
   map_material_t *map_materials = map_load_materials(map, &num_map_materials);
   
+  // Allocate dynamic array for materials
   r.map_model.num_materials = num_map_materials;
   r.map_model.materials = zone_alloc(r.map_model.num_materials * sizeof(r_material_t));
   
+  // Load in all the materials as GL textures
   for (int i = 0; i < r.map_model.num_materials; i++) {
     char full_name[128];
     if (snprintf(full_name, sizeof(full_name), "assets/mtl/%s.png", map_materials[i].name) >= sizeof(full_name)) {
@@ -29,8 +32,10 @@ bool r_map_load_materials(const map_t *map)
 
 bool r_map_load_meshes(const map_t *map)
 {
+  // Free previous mesh groups
   if (r.map_model.mesh_groups)
     zone_free(r.map_model.mesh_groups);
+  
   
   int num_map_vertices;
   vertex_t *map_vertices = map_load_vertices(map, &num_map_vertices);
@@ -38,9 +43,11 @@ bool r_map_load_meshes(const map_t *map)
   int num_map_mesh_groups;
   map_mesh_group_t *map_mesh_groups = map_load_mesh_groups(map, &num_map_mesh_groups);
   
+  // Allocate dynamic array for mesh groups
   r.map_model.num_mesh_groups = num_map_mesh_groups;
   r.map_model.mesh_groups = zone_alloc(r.map_model.num_mesh_groups * sizeof(r_mesh_group_t));
   
+  // Load in each mesh group
   for (int i = 0; i < r.map_model.num_mesh_groups; i++) {
     r.map_model.mesh_groups[i].material_id = map_mesh_groups[i].material_id;
     

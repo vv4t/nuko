@@ -1,5 +1,6 @@
 #include "r_local.h"
 
+// Rectangle vertices template for HUD creation.
 static const vertex_t hud_rect[] = {
   { .pos = { 0.0f, 0.0f, 0.0f }, .normal = { 0.0f, 0.0f, -1.0f }, .uv = { 0.0f, 1.0f } },
   { .pos = { 0.0f, 1.0f, 0.0f }, .normal = { 0.0f, 0.0f, -1.0f }, .uv = { 0.0f, 0.0f } },
@@ -11,8 +12,10 @@ static const vertex_t hud_rect[] = {
 
 static const int num_hud_rect_vertices = sizeof(hud_rect) / sizeof(vertex_t);
 
+// Populate an array of vertices based on the hud_def
 void hud_init_rect(vertex_t *vertices, const hud_def_t *hud_def)
 {
+  // Offset the rect depending on the alignment
   vec3_t align_pos;
   switch (hud_def->hud_align) {
   case HUD_ALIGN_CENTER:
@@ -32,13 +35,14 @@ void hud_init_rect(vertex_t *vertices, const hud_def_t *hud_def)
   
   for (int i = 0; i < num_hud_rect_vertices; i++) {
     vertices[i].pos = vec3_add(
-      vec3_init(hud_def->scr_pos.x, hud_def->scr_pos.y, 0.0f),
+      vec3_init(hud_def->scr_pos.x, hud_def->scr_pos.y, 0.0f), // Offset the vertex position
       vec3_mul(
         vec3_add(
           hud_rect[i].pos,
-          align_pos),
-        vec3_init(hud_def->scr_size.x * ASPECT_RATIO, hud_def->scr_size.y, 1.0f)));
+          align_pos), // Offset the template by the alignment
+        vec3_init(hud_def->scr_size.x * ASPECT_RATIO, hud_def->scr_size.y, 1.0f))); // Scale it based on the hud_def and aspect_ratio 
     
+    // Apply to UV
     vertices[i].uv = vec2_mulf(
       vec2_add(
         hud_def->uv_pos,
@@ -71,6 +75,12 @@ bool r_hud_init()
 
 bool r_init_hud_mesh()
 {
+  // The HUD mesh is simply an array of rectangular meshes. Each unique HUD
+  // should be defined in the r_hud_t enum which serves as an ID for which
+  // hud_def it belongs to. Their hud_defs are then defined here then loaded
+  // into the vertex buffer.
+  
+  // Crosshair mesh
   r.hud_defs[HUD_CROSSHAIR] = (hud_def_t) {
     .hud_align  = HUD_ALIGN_CENTER,
     .scr_pos    = vec2_init(+0.00f, +0.00f),
@@ -78,6 +88,7 @@ bool r_init_hud_mesh()
     .uv_pos     = vec2_init(+3.00f, +3.00f),
     .uv_size    = vec2_init(+1.00f, +1.00f) };
   
+  // Health mesh
   r.hud_defs[HUD_HEALTH_OVERLAY] = (hud_def_t) {
     .hud_align  = HUD_ALIGN_BOTTOM_LEFT,
     .scr_pos    = vec2_init(-0.9f, -0.9f),
@@ -101,6 +112,7 @@ bool r_init_hud_mesh()
       .uv_size    = vec2_init(+1.0f, +1.0f) };
   }
   
+  // Round time mesh
   r.hud_defs[HUD_ROUND_TIME_OVERLAY] = (hud_def_t) {
     .hud_align  = HUD_ALIGN_CENTER,
     .scr_pos    = vec2_init(+0.0f, 0.8f),
@@ -109,8 +121,9 @@ bool r_init_hud_mesh()
     .uv_size    = vec2_init(+3.0f, +1.0f) };
   
   for (int i = 0; i < 4; i++) {
+    // Weird scaling and offset adjustments to make it look better.
+    // Also shift +1 to right if i > 1 to skip colon
     float digit_pos = (i - 1 + (i > 1)) * 0.04f - 0.011f;
-    
     r.hud_defs[HUD_ROUND_TIME_DIGIT_0 + i] = (hud_def_t) {
       .hud_align  = HUD_ALIGN_CENTER,
       .scr_pos    = vec2_init(digit_pos, 0.825f),
@@ -119,6 +132,7 @@ bool r_init_hud_mesh()
       .uv_size    = vec2_init(+1.0f, +1.0f) };
   }
   
+  // Weird colon alignment to make up for white space in HUD texture
   float colon_pos = 0.04f - 0.01f;
   
   r.hud_defs[HUD_ROUND_TIME_COLON] = (hud_def_t) {
@@ -146,6 +160,7 @@ void r_hud_update_health()
 {
   int hp = cg.bg.health[cg.ent_client].now;
   
+  // Get each individual digit
   int digits[] = {
     (hp % 1000) / 100,
     (hp % 100) / 10,
@@ -155,6 +170,10 @@ void r_hud_update_health()
   for (int i = 0; i < 3; i++) {
     r_hud_t hud_id = HUD_HEALTH_DIGIT_0 + i;
     
+    // Replace the digit by shifting the UV pos of the hud_def
+    // NOTE: the '% 4' and '/ 4' are to get the row and column of which grid
+    // the digit is in the sprite map. Digits start at row 1 column 0 with the
+    // value 0 and continue left to right.
     r.hud_defs[hud_id].uv_pos = vec2_init((float) (digits[i] % 4), (float) (1 + digits[i] / 4));
     
     vertex_t hud_vertices[num_hud_rect_vertices];
@@ -167,12 +186,15 @@ void r_hud_update_round_time()
 {
   int rt = cg.round_time;
   
+  // round_time can be negative when waiting to load the next round. Clamp the
+  // round_time to 0 if this is the case.
   if (rt < 0)
     rt = 0;
   
   int secs = rt / 1000;
   int mins = secs / 60;
   
+  // Get each invidiaul digit
   int digits[] = {
     (mins % 100) / 10,
     (mins % 10) / 1,
@@ -183,6 +205,9 @@ void r_hud_update_round_time()
   for (int i = 0; i < 4; i++) {
     r_hud_t hud_id = HUD_ROUND_TIME_DIGIT_0 + i;
     
+    // see r_hud_health_update
+    // TODO: perhaps there should be a label type element. However, as this
+    // feature is used only twice, I'm leaving it like this for now.
     r.hud_defs[hud_id].uv_pos = vec2_init((float) (digits[i] % 4), (float) (1 + digits[i] / 4));
     
     vertex_t hud_vertices[num_hud_rect_vertices];
@@ -204,6 +229,11 @@ void r_render_hud()
 
 bool r_init_hud_shader()
 {
+  // HUD shader
+  // NOTE: because the HUD mesh is just a collection of rectangles fixed on the
+  // screen, the shader uses no matrix transformations and instead relies on
+  // the vertices loaded in to be already correct.
+  
   static const char *src_vertex = ""
     "#version 300 es\n"
     "layout(location = 0) in vec3 v_pos;\n"

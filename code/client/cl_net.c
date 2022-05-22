@@ -7,6 +7,7 @@ void cl_connect(const char *host)
 
 void cl_parse()
 {
+  // TODO: Add client disconnect checks; where frame_read() == 0
   frame_t frame;
   while (frame_read(cl.sock, &frame) > 0) {
     switch (frame.netcmd) {
@@ -19,11 +20,12 @@ void cl_parse()
     case NETCMD_CHAT:
       cl_parse_chat(&frame);
       break;
+    // The client should not receive these packets from the server as they are
+    // sent by the client
     case NETCMD_SCORE:
-      break;
     case NETCMD_USERCMD:
-      break;
     case NETCMD_NAME:
+      log_printf(LOG_WARNING, "cl_parse(): received a client packet from the server");
       break;
     }
   }
@@ -75,10 +77,8 @@ void cl_send_cmd()
   
   // Because the usercmd cache is a fixed array, too many of them may cause
   // problems.
-  
   // Also, at the moment there are no network disconnect checks. This is as the
   // main and only server is a dedicated one so it does not expect a disconnect.
-  
   // If the server does disconnect, the client sends usercmds without them ever
   // being acknowledged leading to this being spammed.
   if (cl.cmd_head - cl.cmd_tail >= MAX_CMD_QUEUE) {

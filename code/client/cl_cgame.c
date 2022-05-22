@@ -9,13 +9,16 @@ void cl_view_look()
   pm_free_look(&cg.bg.transform[cg.ent_client], cl.usercmd.yaw, cl.usercmd.pitch);
 }
 
-#define CL_PREDICT (BGC_CLIENT)
 void cl_predict()
 {
   // Synchronise it with the last game state received from the server
   cl_reconcile();
   
-  if ((cg.edict.entities[cg.ent_client] & CL_PREDICT) != CL_PREDICT)
+  // If the client entity doesn't have a "client" component - isn't storing any
+  // usercmds - don't predict anything
+  // NOTE: this might be problematic if there are things which need to be
+  // predicted unrelated to the client e.g. physics objects
+  if ((cg.edict.entities[cg.ent_client] & BGC_CLIENT) != BGC_CLIENT)
     return;
   
   // From there, simulate the game for every usercmd which has yet to be
@@ -26,6 +29,11 @@ void cl_predict()
   }
 }
 
+// This involves copying all components over from 'cg.snapshot' - the
+// specifications of which are in bg_snapshot_t (game/bgame.h) - into the
+// current client game. NOTE: all members with the prefix 'cl_' should be copied
+// over to the local client while those prefixed by 'sv_' should overwrite all
+// the components.
 void cl_reconcile()
 {
   cg.round_time = cl.snapshot.round_time;
@@ -45,7 +53,7 @@ void cl_reconcile()
 
 void cl_snapshot()
 {
-  // Shift the latest snapshot back
+  // Shift the latest snapshot "back"
   memcpy(&cg.from, &cg.to, sizeof(cl_snapshot_t));
   
   // Snapshot the new game state
@@ -53,10 +61,13 @@ void cl_snapshot()
   memcpy(&cg.to.attack, &cg.bg.attack, sizeof(cg.bg.attack));
 }
 
+// Interpolation reads from 'cg.to' and 'cg.from'. Any components to be
+// interpolated should be put in the 'cl_snapshot' structure. NOTE: if this is
+// done it should also be updated in cl_snapshot().
 void cl_interpolate(float interp)
 {
   // Interpolate using linear interpolation
-  // tween = old + (new - old) * interp
+  // tween = from + (to - from) * interp
   for (int i = 0; i < cg.edict.num_entities; i++) {
     // Interpolate entity transforms
     if ((cg.edict.entities[i] & BGC_TRANSFORM) == BGC_TRANSFORM) {
@@ -85,7 +96,7 @@ void cl_interpolate(float interp)
 void cl_load_map(const char *name)
 {
   char map_path[256];
-  snprintf(map_path, sizeof(map_path) "assets/map/%s.map", name);
+  snprintf(map_path, sizeof(map_path), "assets/map/%s.map", name);
   
   map_t map;
   

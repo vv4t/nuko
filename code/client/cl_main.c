@@ -125,7 +125,11 @@ void cl_update(int delta_time)
   // When the amount of time since the last command sent has passed exceeds the
   // delay between the command to be sent the next command is ready to be processed
   if (next_cmd > cl_cmdrate) {
-    // Modulo is used here in cases where 
+    // Modulo is used here in cases where the amount of time between each frame
+    // is greater than cl_cmdrate. This happened when the program went out of
+    // focus, the loop pausing until it was focused again leading to a huge
+    // next_cmd. The loop then sent several usercmds without delay. The modulo
+    // instead only processes the remaining time until the next delay. 
     next_cmd = next_cmd % cl_cmdrate;
     
     // Updates to be done per command sent

@@ -1,3 +1,8 @@
+/*
+-- r_local.h --
+
+Local definitions of renderer module.
+*/
 #ifndef R_LOCAL_H
 #define R_LOCAL_H
 
@@ -10,31 +15,37 @@
 #include "../common/zone.h"
 #include "../common/vertex.h"
 
-#define VERTEX_ATTRIB_0 3
-#define VERTEX_ATTRIB_1 3
-#define VERTEX_ATTRIB_2 2
+// Size of each vertex attribute
+#define VERTEX_ATTRIB_0 3 // position
+#define VERTEX_ATTRIB_1 3 // normal
+#define VERTEX_ATTRIB_2 2 // uv
 
 #define MAX_LIGHTS      32
 
 #define ASPECT_RATIO    ((float) (720.0 / 1280.0))
-// #define ASPECT_RATIO    ((float) (480.0 / 640.0))
 
 #define HUD_GRID_SIZE   ((float) 32.0 / 128.0)
 
+// Macros for OpenGL types for clarity
 typedef GLuint  block_t;
 typedef GLuint  texture_t;
 
+// A light structure. This will be directly substituted into the shader.
+// Therefore the data structures should be exactly the same as the shader
+// definition of light_t in r_light.c
 typedef struct {
   vec3_t  pos;
   float   intensity;
   vec4_t  color;
 } light_t;
 
+// HUD Alignment ID
 typedef enum {
   HUD_ALIGN_CENTER,
   HUD_ALIGN_BOTTOM_LEFT
 } hud_align_t;
 
+// HUD elements defined simply as a rectanglular image.
 typedef struct {
   hud_align_t     hud_align;
   vec2_t          scr_pos;
@@ -43,6 +54,7 @@ typedef struct {
   vec2_t          uv_size;
 } hud_def_t;
 
+// Unique ID of each HUD element.
 typedef enum {
   HUD_CROSSHAIR,
   HUD_HEALTH_OVERLAY,
@@ -59,17 +71,27 @@ typedef enum {
   MAX_HUD
 } r_hud_t;
 
+// Macro for light ID; should probably name this better.
 typedef int r_light_t;
 
+// Mesh definition which is just a pointer to its position in the vertex
+// buffer. Further implementation details r_mesh.c
 typedef struct {
   GLuint            offset;
   GLuint            size;
 } r_mesh_t;
 
+// NOTE: A material is just a texture at the moment. However, this may later
+// include further properties such as specular or normal maps
 typedef struct {
   texture_t         texture;
 } r_material_t;
 
+// Each shader should have its own structure where necessary to accomodate for
+// all uniform variables and other data structures. However, this system could
+// be improved by having a global stand in shader with universal uniforms such
+// as 'mvp'. However, given that there is only one shader their respective
+// objects, this is unecessary.
 typedef struct {
   GLuint            program;
 } r_hud_shader_t;
@@ -95,25 +117,34 @@ typedef struct {
   int               num_materials;
 } r_model_t;
 
+// NOTE: packaging all module variables into a single structure seems dodgy. I
+// should instead just initiate them as static variables denoted by 'r_' while
+// only having shared variables in the header. This would improve scoping.
 typedef struct {
+  // Projection matrices
   mat4x4_t          projection_matrix;
   mat4x4_t          view_projection_matrix;
   
+  // HUD
   texture_t         hud_texture;
   r_hud_shader_t    hud_shader;
   r_mesh_t          hud_mesh;
   hud_def_t         hud_defs[MAX_HUD];
   
-  r_model_t         map_model;
+  // Models
   r_model_t         cg_models[MAX_BG_MODEL];
-  
-  r_light_t         client_shoot_light[MAX_ENTITIES];
   r_model_t         bullet_model;
   
+  // NOTE: while the map uses a r_model_t, in the future it may need a separate
+  // data structure to accomodate extra components such as light maps
+  r_model_t         map_model;
+  
+  // Light
   r_light_shader_t  light_shader;
   bool              light_active[MAX_LIGHTS];
   
-  int               static_vbo_ptr;
+  // Mesh
+  int               static_vbo_ptr; // stack pointer for all static meshes
   
   GLuint            vbo;
   int               vbo_size;
@@ -121,6 +152,9 @@ typedef struct {
 } renderer_t;
 
 extern renderer_t r;
+
+// NOTE: functions denoted with 'r_draw' means it only draws geometry while
+// those with 'r_render' are actual rendering pipelines
 
 //
 // r_map.c
@@ -142,14 +176,33 @@ void      r_set_light(r_light_t r_light, vec3_t pos, float intensity, vec4_t col
 r_light_t r_new_light();
 
 //
-// r_mesh.c
+// -- r_mesh.c --
+// 
+// Handles visual geometry, "mesh", allocation of vertices.
+// 
+// One large buffer is allocated. The renderer then "allocates" meshes in a stack
+// "going up" by adding to the stack pointer and returning where it was
+// originally. Meshes simply point to a location in the stack and how large it is.
+// Because of this a single specific mesh cannot be freed, only the stack pointer
+// can be reset to a previous point.
+// 
+// NOTE: a buffer is generated for only a single type of vertex (pos, normal, uv).
+// I am unsure of how accomodating this design will be for multiple different
+// vertex specifications in the future.
 //
 void      r_vbo_init();
-void      r_vbo_reset(int vbo_ptr);
 bool      r_new_mesh(r_mesh_t *mesh, int num_vertices);
-bool      r_load_mesh(r_mesh_t *mesh, const vertex_t *vertices, int num_vertices);
-bool      r_sub_mesh(const r_mesh_t *mesh, const vertex_t *vertices, int offset, int num_vertices);
 void      r_draw_mesh(const r_mesh_t *mesh);
+
+// A combination of 'r_new_mesh' and 'r_sub_mesh'. This allows for the
+// generation of a mesh from a pre-allocated vertex buffer in a single call
+bool      r_load_mesh(r_mesh_t *mesh, const vertex_t *vertices, int num_vertices);
+
+// Reset the stack pointer to an earlier point
+void      r_vbo_reset(int vbo_ptr);
+
+// "Substitute" - replace - vertices in a mesh
+bool      r_sub_mesh(const r_mesh_t *mesh, const vertex_t *vertices, int offset, int num_vertices);
 
 //
 // r_model.c
@@ -170,11 +223,26 @@ void      hud_init_rect(vertex_t *vertices, const hud_def_t *hud_def);
 //
 // r_cgame.c
 //
+// Draws the client view given by 'cgame_t' in 'client.h'
+//
 bool      r_cg_init();
 bool      r_init_cg_models();
 void      r_render_cgame();
-void      r_setup_view_projection_matrix();
 void      r_draw_entities();
+
+// Combines the translation and rotation of the camera into a transformation matrix.
+// This is then combined with the camera's projection matrix to produce a 3D
+// effect. The resulting transformation matrix orientates objects relative to
+// the camera and with a 3D perspective effect.
+// Produce a view matrix once per frame before hand so subsequent draw
+// functions can just multiply a model matrix with the view projection matrix.
+void      r_setup_view_projection_matrix();
+
+// - Draws player's attacks -
+// The current way which the rendere handles attacks is somewhat dodgy.
+// It draws it as a visual representation rather than from the actual game
+// logic itself i.e. what you see as a bullet doesn't mean anything in the
+// game and is just a visual effect.
 void      r_draw_attack();
 
 #endif

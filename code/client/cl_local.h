@@ -47,8 +47,6 @@ extern client_t cl;
 // - cl_main.c -
 // Main functions called by other modules
 //
-
-// Parse input from the console
 void  cl_console();
 
 //
@@ -56,8 +54,6 @@ void  cl_console();
 // Synchronise with the server and produce a smooth game, responsive game state
 // for the renderer
 //
-
-// - Take a snapshot of the game state to be used for interpolation -
 void  cl_snapshot();
 
 // - Interpolate between two snapshots to produce a smooth inbetween state -
@@ -80,10 +76,9 @@ void  cl_view_look();
 // is received.
 void  cl_predict();
 
-// - Set the game state to the last snapshot received -
+// - Copy over the last received game state -
 void  cl_reconcile();
 
-// - Load a map into the game state -
 void  cl_load_map(const char *path);
 
 //
@@ -91,32 +86,14 @@ void  cl_load_map(const char *path);
 // Maintain a network connection with the server/host. This involves parsing
 // packets sent by the server and sending packets created by the client, 
 //
-
-// - Connect to a host address -
 void  cl_connect(const char *host);
-
-// - Receive and parse network packets from the server -
 void  cl_parse();
-
-// - Parse a snapshot packet -
 void  cl_parse_snapshot(const frame_t *frame);
-
-// - Parse a client info packet -
 void  cl_parse_client_info(const frame_t *frame);
-
-// - Parse a chat packet -
 void  cl_parse_chat(const frame_t *frame);
-
-// - Send a usercmd -
 void  cl_send_cmd();
-
-// - Send a chat message -
 void  cl_send_chat(const char *text);
-
-// - Send a name change request -
 void  cl_send_name(const char *name);
-
-// - Send a scoreboard request -
 void  cl_send_score();
 
 #endif

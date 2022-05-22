@@ -15,6 +15,8 @@ server, creating a live, responsive and visual game.
 #include "../game/bgame.h"
 
 // A snapshot with components relevant to interpolation
+// NOTE: this snapshot differs from 'bg_snapshot_t' where the purpose of this
+// structure is to hold all components to be interpolated.
 typedef struct {
   bg_transform_t  transform[MAX_ENTITIES];
   bg_attack_t     attack[MAX_ENTITIES];
@@ -48,8 +50,6 @@ extern cgame_t cg;
 void cl_init();
 
 // Update the client
-void cl_update(
-  int delta_time // The amount of time in milliseconds since the last update
-);
+void cl_update(int delta_time);
 
 #endif

@@ -5,7 +5,7 @@ bool r_light_init()
   r_init_light_block();
   
   if (!r_init_light_shader()) {
-    log_printf(LOG_ERROR, "r_cg_init(): failed to load cg shader");
+    log_printf(LOG_ERROR, "r_light_init(): failed to load light shader");
     return false;
   }
   
@@ -27,6 +27,8 @@ void r_light_reset()
 {
   memset(r.light_active, 0, sizeof(r.light_active));
   
+  // The shader tests if the intensity is 0 to see if a light is allocated.
+  // Therefore, all the lights need to be zero'd to deallocate them all.
   light_t lights[32];
   memset(lights, 0, sizeof(lights));
   glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(lights), &lights);
@@ -40,6 +42,7 @@ void r_remove_light(r_light_t light)
 
 r_light_t r_new_light()
 {
+  // Find the first inactive light
   for (int i = 0; i < MAX_LIGHTS; i++) {
     if (!r.light_active[i]) {
       r.light_active[i] = true;
@@ -52,6 +55,8 @@ r_light_t r_new_light()
   return -1;
 }
 
+// NOTE: though it is called a 'uniform buffer', for simplicity, it is called
+// 'block' throughout the project.
 void r_init_light_block()
 {
   glGenBuffers(1, &r.light_shader.block);

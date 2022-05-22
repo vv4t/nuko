@@ -4,15 +4,18 @@
 
 void r_vbo_init(int vbo_size)
 {
+  // Reset the stack pointer
   r.vbo_size = vbo_size;
   r.vbo_ptr = 0;
   
+  // Generate the GL buffer
   glGenBuffers(1, &r.vbo);
   glBindBuffer(GL_ARRAY_BUFFER, r.vbo);
   glBufferData(GL_ARRAY_BUFFER, vbo_size * sizeof(vertex_t), 0, GL_STATIC_DRAW);
 
   GLuint offset = 0;
-
+  
+  // From the macros in 'r_local.h', map the vertex buffer
 #ifdef VERTEX_ATTRIB_0
   glEnableVertexAttribArray(0);
   glVertexAttribPointer(0, VERTEX_ATTRIB_0, GL_FLOAT, GL_FALSE, sizeof(vertex_t), (float*) 0 + offset);
@@ -34,6 +37,7 @@ void r_vbo_init(int vbo_size)
 
 void r_vbo_reset(int vbo_ptr)
 {
+  // Boundary checks
   if (vbo_ptr < 0 || vbo_ptr > r.vbo_size) {
     log_printf(LOG_ERROR, "r_vbo_reset(): invalid reset pointer %i/%i", vbo_ptr, r.vbo_size);
     r.vbo_ptr = 0;
@@ -45,6 +49,7 @@ void r_vbo_reset(int vbo_ptr)
 
 bool r_new_mesh(r_mesh_t *mesh, int num_vertices)
 {
+  // Boundary checks
   if (r.vbo_ptr + num_vertices >= r.vbo_size) {
     log_printf(
       LOG_ERROR,
@@ -63,6 +68,7 @@ bool r_new_mesh(r_mesh_t *mesh, int num_vertices)
 
 bool r_sub_mesh(const r_mesh_t *mesh, const vertex_t *vertices, int offset, int num_vertices)
 {
+  // Boundary checks
   if (offset + num_vertices > mesh->size) {
     log_printf(LOG_ERROR, "r_sub_mesh(): out of bounds %i/%i", offset + num_vertices, mesh->size);
     return false;
