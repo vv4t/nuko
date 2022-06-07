@@ -10,17 +10,25 @@ void bg_motion_clip(bgame_t *bg)
     for (int j = 0; j < bg->clip[i].num_planes; j++) {
       plane_t plane = bg->clip[i].planes[j];
       
+      // How deep is the capsule in the plane?
       float top_plane_dist = vec3_dot(bg->transform[i].position, plane.normal) - plane.distance;
       float bottom_plane_dist = top_plane_dist - bg->capsule[i].height * plane.normal.y;
       
+      // Calculate the amount to fix the velocity and position
       float lambda_pos = fmin(top_plane_dist, bottom_plane_dist) - bg->capsule[i].radius;
       float lambda_vel = vec3_dot(bg->motion[i].velocity, plane.normal);
       
-      if (lambda_pos < 0) {
+      // NOTE: the lambda checks are necessary as after resolving one
+      // collision, another collision may no longer need to be resolved, but
+      // still was, leading to unusual behaviour
+      
+      if (lambda_pos < 0) { // Is the capsule still in the plane?
+        // Fix the position
         vec3_t j_pos = vec3_mulf(plane.normal, -lambda_pos);
         bg->transform[i].position = vec3_add(bg->transform[i].position, j_pos);
         
-        if (lambda_vel < 0) {
+        if (lambda_vel < 0) { // Does the velocity still violate the constraint?
+          // Fix the velocity
           vec3_t j_vel = vec3_mulf(plane.normal, -lambda_vel);
           bg->motion[i].velocity = vec3_add(bg->motion[i].velocity, j_vel);
         }
@@ -48,7 +56,6 @@ void bg_motion_integrate(bgame_t *bg)
       continue;
     
     vec3_t delta_pos = vec3_mulf(bg->motion[i].velocity, BG_TIMESTEP);
-    
     bg->transform[i].position = vec3_add(bg->transform[i].position, delta_pos);
   }
 }

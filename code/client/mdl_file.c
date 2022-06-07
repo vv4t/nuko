@@ -9,10 +9,14 @@ bool mdl_load(mdl_t *mdl, const char *path)
     return false;
   }
   
+  // Read in the header
   fread(&mdl->header, 1, sizeof(mdl_header_t), mdl->file);
   
   return true;
 }
+
+// Because each mdl_lump is just an array of structs
+// Simply return the lump, cast into the appropriate pointer
 
 vertex_t *mdl_load_vertices(const mdl_t *mdl, int *num_vertices)
 {

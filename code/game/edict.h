@@ -1,3 +1,9 @@
+/*
+-- edict.h --
+
+Short for entity dictionary. Keeps tracks of entity states as an array of
+integer, each bit flags for if a component exists in the entity
+*/
 #ifndef EDICT_H
 #define EDICT_H
 

@@ -1,3 +1,9 @@
+/*
+-- gl.h --
+
+A wrapper for platform dependent OpenGL includes as well as functions to load
+in basic objects.
+*/
 #ifndef GL_H
 #define GL_H
 
@@ -15,6 +21,13 @@
 #include <SDL2/SDL_opengl.h>
 
 bool gl_init();
+
+// Wrap basic GL objects into a single function
+// format:
+// bool gl_load_*(GLuint *{object}, ...);
+// -> returns if it was succesfully performed
+// -> GLuint *{object} pointer to where the result is loaded into
+
 bool gl_load_texture(GLuint *texture, const char *path);
 bool gl_load_shader(GLuint *shader, const char *src_vertex, const char *src_fragment);
 

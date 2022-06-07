@@ -84,6 +84,7 @@ bool gl_load_shader(GLuint *shader, const char *src_vertex, const char *src_frag
 
 bool gl_load_texture(GLuint *texture, const char *path)
 {
+  // Load using SDL2_Image
   SDL_Surface *bitmap = IMG_Load(path);
   
   if (!bitmap) {

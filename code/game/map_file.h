@@ -1,3 +1,8 @@
+/*
+-- map_file.h --
+
+.map file reader.
+*/
 #ifndef MAP_FILE_H
 #define MAP_FILE_H
 
@@ -8,6 +13,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+// Lump types
 typedef enum {
   MAP_LUMP_VERTICES,
   MAP_LUMP_BSP_NODES,
@@ -16,6 +22,11 @@ typedef enum {
   MAP_LUMP_LIGHTS,
   MAX_MAP_LUMPS
 } map_lump_t;
+
+// Because data types such as bsp_node_t rely on pointers they cannot be stored
+// directly into a file. Instead, the reader has to parse them in their specific format.
+//
+// 'map_' data structures correlate to those directly written into the file
 
 typedef struct {
   int           type;

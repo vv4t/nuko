@@ -2,7 +2,7 @@
 
 entity_t sv_new_client(sock_t sock)
 {
-  entity_t entity = edict_add_entity(&sv.edict, SV_ES_CLIENT);
+  entity_t entity = edict_add_entity(&sv.edict, SV_ES_CLIENT); // Createa new entity
   
   if (entity == -1) {
     net_sock_disconnect(sock);

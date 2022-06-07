@@ -109,8 +109,6 @@ void cl_update(int delta_time)
   in_base_move(&cl.usercmd);
   
   // Calculate the the amount of inteprolation
-  // This is simply a fraction of the time since the last command sent over the
-  // total time between commands
   float interp = ((float) next_cmd / (float) cl_cmdrate);
   
   // Updates to be done per frame

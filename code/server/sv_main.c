@@ -2,10 +2,12 @@
 
 server_t  sv;
 
-int       host_frametime = 50;
+int       host_frametime = 50; // Time between frames
 
 void sv_init()
 {
+  // Reset state
+  
   sv.snapshot_head = 0;
   sv.num_clients = 0;
   sv.round_count = 0;
@@ -15,8 +17,10 @@ void sv_init()
   edict_init(&sv.edict);
   bg_init(&sv.bg, &sv.edict);
   
+  // Begin listening for clients
   net_listen();
   
+  // Default map
   sv_load_map("nk_yuu");
 }
 

@@ -1,3 +1,9 @@
+/*
+-- bgame.h --
+
+Definitions for both games - client and server. A version of the game which is
+run on both the client and the server.
+*/
 #ifndef BGAME_H
 #define BGAME_H
 
@@ -7,9 +13,10 @@
 #include "../common/nk_math.h"
 #include <stdbool.h>
 
-#define MAX_CLIP_PLANES 16
-#define BG_ATTACK_TIME 250
+#define MAX_CLIP_PLANES 16 // Maximum planes detected by a collider
+#define BG_ATTACK_TIME 250 // Time between attacks
 
+// Shared components
 typedef enum {
   BGC_TRANSFORM = (1 << 0),
   BGC_CLIENT    = (1 << 1),
@@ -23,14 +30,10 @@ typedef enum {
   AUX_BGC       = (1 << 9)
 } bg_component_t;
 
+// Shared entity states
 typedef enum {
   BG_ES_CLIENT = BGC_TRANSFORM | BGC_CLIENT | BGC_CAPSULE | BGC_CLIP | BGC_MOTION | BGC_MODEL | BGC_PMOVE | BGC_HEALTH | BGC_ATTACK
 } bg_entitystate_t;
-
-typedef enum {
-  BG_MDL_SKULL,
-  MAX_BG_MODEL
-} bg_model_t;
 
 typedef struct {
   float     forward;
@@ -40,6 +43,14 @@ typedef struct {
   float     jump;
   float     attack;
 } usercmd_t;
+
+// Data structures prefixed by 'bg_' are components
+// They should probably be renamed to 'bgc_' for clarity though
+
+typedef enum {
+  BG_MDL_SKULL,
+  MAX_BG_MODEL
+} bg_model_t;
 
 typedef struct {
   vec3_t    position;
@@ -74,7 +85,7 @@ typedef struct {
 } bg_health_t;
 
 typedef struct {
-  bool      active;
+  bool      active; // Used by subsequent systems to activate shoot behvaiour -> sv_game.c
   int       next_attack;
 } bg_attack_t;
 
@@ -83,11 +94,13 @@ typedef struct {
   
   int             round_time;
   
+  // Components local to the client, i.e. visible only to them
   int             cl_entity_state;
   bg_pmove_t      cl_pmove;
   bg_motion_t     cl_motion;
   bg_health_t     cl_health;
   
+  // Components global to the client
   bg_model_t      sv_model[MAX_ENTITIES];
   bg_transform_t  sv_transform[MAX_ENTITIES];
   bg_capsule_t    sv_capsule[MAX_ENTITIES];
@@ -96,8 +109,9 @@ typedef struct {
 
 typedef struct {
   edict_t         *edict;
-  bsp_node_t      *bsp;
+  bsp_node_t      *bsp; // BSP of the map
   
+  // Components
   bg_transform_t  transform[MAX_ENTITIES];
   bg_client_t     client[MAX_ENTITIES];
   bg_clip_t       clip[MAX_ENTITIES];
@@ -112,6 +126,10 @@ typedef struct {
 //
 // bg_pmove.c
 //
+
+// Rotates the transform based on the camera's yaw and pitch
+// This is made public as it is used by cl_cgame.c to predict the camera's
+// movement outside of a frame
 void  pm_free_look(bg_transform_t *transform, float yaw, float pitch);
 
 //

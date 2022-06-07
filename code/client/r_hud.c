@@ -79,6 +79,7 @@ bool r_init_hud_mesh()
   // should be defined in the r_hud_t enum which serves as an ID for which
   // hud_def it belongs to. Their hud_defs are then defined here then loaded
   // into the vertex buffer.
+  // NOTE: this should probably be replaced for a better system
   
   // Crosshair mesh
   r.hud_defs[HUD_CROSSHAIR] = (hud_def_t) {
@@ -174,6 +175,7 @@ void r_hud_update_health()
     // NOTE: the '% 4' and '/ 4' are to get the row and column of which grid
     // the digit is in the sprite map. Digits start at row 1 column 0 with the
     // value 0 and continue left to right.
+    // In other words, this is to adjust to the png sprite manually
     r.hud_defs[hud_id].uv_pos = vec2_init((float) (digits[i] % 4), (float) (1 + digits[i] / 4));
     
     vertex_t hud_vertices[num_hud_rect_vertices];

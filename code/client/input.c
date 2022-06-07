@@ -1,6 +1,6 @@
 #include "input.h"
 
-#define MAX_PITCH       1.57
+#define MAX_PITCH       1.57 // Angle in radians
 #define MAX_KEYBINDS    32
 
 typedef struct {
@@ -8,9 +8,11 @@ typedef struct {
   const char  *text;
 } keybind_t;
 
+// Console bindings
 static keybind_t    in_keybinds[MAX_KEYBINDS];
 static int          in_num_keybinds = 0;
 
+// Input states
 static float        in_forward;
 static float        in_left;
 static float        in_back;
@@ -18,11 +20,15 @@ static float        in_right;
 static float        in_jump;
 static float        in_attack;
 
+// Camera orientation based on mouse movement
 static float        in_pitch;
 static float        in_yaw;
 
+// Rotation sensitivity
 static float        in_sensitivity = 0.005;
 
+// Command callback functions
+// When called, the corresponding input state is modified
 static void in_forward_down(void *d) { in_forward = 1.0f; }
 static void in_forward_up(void *d)   { in_forward = 0.0f; }
 static void in_left_down(void *d)    { in_left    = 1.0f; }
@@ -36,6 +42,7 @@ static void in_jump_up(void *d)      { in_jump    = 0.0f; }
 static void in_attack_down(void *d)  { in_attack  = 1.0f; }
 static void in_attack_up(void *d)    { in_attack  = 0.0f; }
 
+// Bind a key to a certain command
 static void key_bind_f(void *d)
 {
   if (cmd_argc() != 3) {
@@ -49,10 +56,11 @@ static void key_bind_f(void *d)
   in_key_bind(key, text);
 }
 
+// Set the sensitivty
 static void sensitivity_f(void *d)
 {
   switch (cmd_argc()) {
-  case 1:
+  case 1: // If there are no arguments, print the current sensitivity
     printf("%f\n", in_sensitivity);
     break;
   case 2:
@@ -67,6 +75,7 @@ static void sensitivity_f(void *d)
 
 void in_init()
 {
+  // Bind commands to respective callback functions
   cmd_add_command("+forward", in_forward_down, NULL);
   cmd_add_command("-forward", in_forward_up, NULL);
   cmd_add_command("+left", in_left_down, NULL);
@@ -80,21 +89,23 @@ void in_init()
   cmd_add_command("+attack", in_attack_down, NULL);
   cmd_add_command("-attack", in_attack_up, NULL);
   
+  // Add commands to configure input
   cmd_add_command("sensitivity", sensitivity_f, NULL);
   cmd_add_command("bind", key_bind_f, NULL);
   
+  // Reset the input state
   in_forward  = 0.0f;
   in_left     = 0.0f;
   in_back     = 0.0f;
   in_right    = 0.0f;
   in_jump     = 0.0f;
-  
   in_yaw      = 0.0f;
   in_pitch    = 0.0f;
 }
 
 void in_key_bind(int key, const char *text)
 {
+  // Boundary checks
   if (in_num_keybinds + 1 > MAX_KEYBINDS) {
     log_printf(LOG_ERROR, "sys_bind(): ran out of bindings");
     return;
@@ -109,13 +120,28 @@ void in_key_event(int key, int action)
 {
   for (int i = 0; i < in_num_keybinds; i++) {
     if (in_keybinds[i].key == key) {
-      if (in_keybinds[i].text[0] == '+') {
+      if (in_keybinds[i].text[0] == '+') { // Binds beginning with '+' correspond to key events
         if (action)
           cmd_puts("+");
-        else
+        else // The key was released
           cmd_puts("-");
         
         cmd_puts(&in_keybinds[i].text[1]);
+        
+        // NOTE: this is a somewhat dodgy implementation. It uses the fact that
+        // it only registers as a command between '\n' or '\0' characters. This
+        // This means you can do things like:
+        //
+        // cmd_puts("hi ")
+        // cmd_puts("there")
+        // cmd_puts("\n")
+        //
+        // And it would still register as 'hi there\n'
+        // This section abuses this to add '+' or '-' based on the key press
+        // before adding the actual command. This allows it to concatenate the
+        // values without creating a new string in this function.
+        // I'd rather this be done in a single function though
+        // Perhaps in a variadic function like: cmd_puts("%c%s\n", action ? '+', '-', cmd_str);
       } else if (action) {
         cmd_puts(in_keybinds[i].text);
       }
@@ -136,7 +162,7 @@ void in_mouse_move(int dx, int dy)
   
   float new_pitch = in_pitch + dy * in_sensitivity;
   
-  if (fabs(new_pitch) < MAX_PITCH)
+  if (fabs(new_pitch) < MAX_PITCH) // Limit how much you can look down
     in_pitch = new_pitch;
 }
 

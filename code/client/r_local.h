@@ -230,7 +230,7 @@ bool      r_init_cg_models();
 void      r_render_cgame();
 void      r_draw_entities();
 
-// Combines the translation and rotation of the camera into a transformation matrix.
+// - Combines the translation and rotation of the camera into a transformation matrix. -
 // This is then combined with the camera's projection matrix to produce a 3D
 // effect. The resulting transformation matrix orientates objects relative to
 // the camera and with a 3D perspective effect.
