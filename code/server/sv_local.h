@@ -88,9 +88,9 @@ typedef struct {
   
   // Round state
   int           round_count;
-  int           round_time;
+  int           round_time; // The remaining round time in milliseconds
   bool          round_start;
-  int           num_clients;
+  int           num_clients; // Actual number of clients. NOTE: edict.num_entities counts deallocated entities within the space
   
   // Components
   sv_client_t   client[MAX_ENTITIES];
@@ -139,10 +139,12 @@ void      sv_client_snapshot(snapshot_t *snapshot, entity_t entity);
 // Write the scoreboard into a string
 bool      sv_print_score(char *dest, int len);
 
+// Manages the round: countdown, restarting, etc. based on time
+void      sv_round_status();
+
 void      sv_load_map(const char *map);
 void      sv_round_start();
 void      sv_round_end();
-void      sv_round_status();
 void      sv_spawn_client(entity_t entity);
 void      sv_apply_damage();
 void      sv_check_respawn();

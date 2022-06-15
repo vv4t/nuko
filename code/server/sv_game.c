@@ -2,7 +2,7 @@
 
 void sv_game_update()
 {
-  if (!sv.num_clients)
+  if (!sv.num_clients) // Don't run the game if no one is playing
     return;
   
   sv_round_status();
@@ -15,17 +15,19 @@ void sv_game_update()
 
 void sv_round_start()
 {
+  // Map rotation set
   static const char *map_rotation[] = {
     "nk_neo",
     "nk_yuu",
     "nk_chito"
   };
   
-  sv_load_map(map_rotation[sv.round_count++ % (sizeof(map_rotation) / sizeof(char*))]);
+  int map_num = sv.round_count++ % (sizeof(map_rotation) / sizeof(char*)); // Rotate the map per round
+  sv_load_map(map_rotation[map_num]);
   
-  memset(sv.score, 0, sizeof(sv.score));
+  memset(sv.score, 0, sizeof(sv.score)); // Clear scoreboard
   
-  for (int i = 0; i < sv.edict.num_entities; i++) {
+  for (int i = 0; i < sv.edict.num_entities; i++) { // Clear dead clients
     if ((sv.edict.entities[i] & SVC_CLIENT) == SVC_CLIENT)
       sv_spawn_client(i);
     else
@@ -38,21 +40,22 @@ void sv_round_start()
 
 void sv_round_status()
 {
+  // NOTE: this is ran every frame and should and should be evaluated as such.
   if (sv.round_start) {
     sv.round_time -= host_frametime;
     
     if (sv.round_time > 0) {
-      if (sv.num_clients < 2) {
+      if (sv.num_clients < 2) { // if the player count drops to less than 2, stop the game
         sv_send_chat("[SERVER] less than the required 2 players.");
         sv_round_end();
         sv.round_time = 0;
         sv.round_start = false;
       }
     } else {
-      if (sv.round_time > -SV_RESTART_TIME) {
+      if (sv.round_time > -SV_RESTART_TIME) { // begin countdown until next round
         int remaining_secs = (SV_RESTART_TIME + sv.round_time) / 1000;
         
-        if ((sv.round_time % 1000) == 0) {
+        if ((sv.round_time % 1000) == 0) { // Broadcast the remaining time every second
           if (remaining_secs == SV_RESTART_TIME / 1000)
             sv_round_end();
           
@@ -62,12 +65,14 @@ void sv_round_status()
         }
       } else {
         sv.round_start = false;
+        // NOTE: the round is marked as inactive so that the next round doesn't
+        // start unless the conditions are met (2 active players at least)
       }
     }
-  } else if (sv.num_clients >= 2) {
+  } else if (sv.num_clients >= 2) { // Make sure there are at least two players
     sv_round_start();
   } else {
-    sv.round_time = 0;
+    sv.round_time = 0; // Not enough players, wait...
   }
 }
 
@@ -84,21 +89,24 @@ void sv_load_map(const char *name)
 {
   sv.map_name = name;
   
+  // Build map path string
   char map_path[256];
   sprintf(map_path, "assets/map/%s.map", name);
   
+  // Load it into a map_t
   map_t map;
   
   if (!map_load(&map, map_path))
     log_printf(LOG_FATAL, "cl_load_map(): failed to load %s", map_path);
   
-  bg_new_map(&sv.bg, &map);
-  sv_send_client_info();
+  bg_new_map(&sv.bg, &map); // Load the new map into the game
+  sv_send_client_info(); // Broadcast a new map has been loaded
 }
 
 #define SV_CLIENT_SNAPSHOT (BG_ES_CLIENT)
 void sv_client_snapshot(snapshot_t *snapshot, entity_t entity)
 {
+  // Copy over the local client based components
   memcpy(&snapshot->cl_pmove, &sv.bg.pmove[entity], sizeof(bg_pmove_t));
   memcpy(&snapshot->cl_motion, &sv.bg.motion[entity], sizeof(bg_motion_t));
   memcpy(&snapshot->cl_health, &sv.bg.health[entity], sizeof(bg_health_t));
@@ -109,14 +117,17 @@ void sv_client_snapshot(snapshot_t *snapshot, entity_t entity)
 #define SV_SERVER_SNAPSHOT (BGC_TRANSFORM | BGC_MODEL | BGC_CAPSULE | BGC_ATTACK)
 void sv_server_snapshot(snapshot_t *snapshot)
 {
+  // Copy over global server based components
   memcpy(&snapshot->edict, &sv.edict, sizeof(edict_t));
   memcpy(&snapshot->sv_transform, &sv.bg.transform, sizeof(sv.bg.transform));
   memcpy(&snapshot->sv_capsule, &sv.bg.capsule, sizeof(sv.bg.capsule));
   memcpy(&snapshot->sv_model, &sv.bg.model, sizeof(sv.bg.model));
   memcpy(&snapshot->sv_attack, &sv.bg.attack, sizeof(sv.bg.attack));
   
+  // Include the roundtime
   snapshot->round_time = sv.round_time;
   
+  // Apply bit mask so that only the shared components are visible
   for (int i = 0; i < snapshot->edict.num_entities; i++)
     snapshot->edict.entities[i] = sv.edict.entities[i] & SV_SERVER_SNAPSHOT;
 }
@@ -129,8 +140,11 @@ void sv_client_move()
       continue;
     
     if (sv.client[i].cmd_tail < sv.client[i].cmd_head) {
+      // Get the first usercmd from the client's queue
       int cmd_id = sv.client[i].cmd_tail++;
       usercmd_t *cmd = &sv.client[i].cmd_queue[cmd_id % MAX_CMD_QUEUE];
+      
+      // Use it
       sv.bg.client[i].usercmd = *cmd; 
     }
   }
@@ -139,16 +153,29 @@ void sv_client_move()
 #define SV_PRINT_SCORE (SVC_SCORE | SVC_CLIENT)
 bool sv_print_score(char *dest, int dest_len)
 {
+  // Sort into entities based on number of kills
   entity_t ent_score[MAX_ENTITIES];
   int num_ent_score = 0;
   
+  // Use an insertion sort to sort the score
+  // This is advantageous as we do not "know" all the elements in the array
+  // yet. Instead we insert elements as we sort the elements.
+  
+  // The first loop iterates over all entities
   for (int i = 0; i < sv.edict.num_entities; i++) {
+    // As seen here, not all elements discovered in the first loop may need a
+    // scoreboard entry
     if ((sv.edict.entities[i] & SV_PRINT_SCORE) != SV_PRINT_SCORE)
       continue;
     
     ent_score[num_ent_score++] = i;
     
-    for (int j = num_ent_score - 2; j >= 0; j--) {
+    // The second loop iterates over all the discovered scoreboard entities
+    // It is assumed to already to be sorted in descnding order from left to
+    // right
+    for (int j = num_ent_score - 2; j >= 0; j--) { // Start from the last element and loop backwards
+      // Swap the entry until it is neither higher nor lower its neighbours
+      // left to right respectively
       if (sv.score[ent_score[j]].kills < sv.score[ent_score[j + 1]].kills) {
         entity_t tmp = ent_score[j];
         ent_score[j] = ent_score[j + 1];
@@ -158,21 +185,25 @@ bool sv_print_score(char *dest, int dest_len)
       }
     }
   }
-    
-  static char tmp[64];
-  int dest_ptr = 0;
+  
+  // Write the scoreboard into a string
+  
+  static char tmp[64]; // Holds a single entry temporarily
+  int dest_ptr = 0; // String pointer
   
   for (int i = 0; i < num_ent_score; i++) {
+    // Write a single entry into tmp
     int len = snprintf(tmp, sizeof(tmp) - 2, "%i. %-16s %i/%i\n",
       i + 1,
       sv.client[ent_score[i]].name,
       sv.score[ent_score[i]].kills,
       sv.score[ent_score[i]].deaths);
     
+    // Write the null terminator if it's the last entry
     if (i == num_ent_score - 1)
       tmp[len - 1] = 0;
     
-    if (dest_ptr + len > dest_len) {
+    if (dest_ptr + len > dest_len) { // Prevent buffer overflows
       log_printf(LOG_ERROR, "sv_print_score(): string too large");
       return false;
     }
@@ -186,10 +217,12 @@ bool sv_print_score(char *dest, int dest_len)
 
 void sv_spawn_client(entity_t entity)
 {
-  int range = 20;
+  int range = 20; // Square range which the player spawns in
   
   sv.edict.entities[entity] = SV_ES_CLIENT;
   
+  // Spawn the player within a square of length 'range' relative to 0,0
+  // NOTE: this does not do any collision checks!!!
   sv.bg.transform[entity].position.x = (rand() % range) - range / 2;
   sv.bg.transform[entity].position.y = 10;
   sv.bg.transform[entity].position.z = (rand() % range) - range / 2;

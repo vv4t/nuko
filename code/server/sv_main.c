@@ -7,7 +7,6 @@ int       host_frametime = 50; // Time between frames
 void sv_init()
 {
   // Reset state
-  
   sv.snapshot_head = 0;
   sv.num_clients = 0;
   sv.round_count = 0;
