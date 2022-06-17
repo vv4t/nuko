@@ -1,3 +1,9 @@
+/*
+-- math.h--
+
+Math functions
+*/
+
 #ifndef NK_MATH_H
 #define NK_MATH_H
 

@@ -33,6 +33,7 @@ void log_printf(log_level_t level, const char *fmt, ...)
   
   va_end(args);
   
+  // close program if error is fatal
   if (level == LOG_FATAL)
     exit(-1);
 }

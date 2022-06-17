@@ -1,3 +1,9 @@
+/*
+-- zone.h --
+
+Wrap memory allocation in a function for debugging purposes.
+*/
+
 #ifndef ZONE_H
 #define ZONE_H
 

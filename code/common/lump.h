@@ -1,3 +1,10 @@
+/*
+-- lump.h --
+
+Lump file formats. Lumps describe an array of fixed-size object and are usually
+in the header of the file.
+*/
+
 #ifndef LUMP_H
 #define LUMP_H
 

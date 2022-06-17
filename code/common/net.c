@@ -1,3 +1,9 @@
+/*
+
+POSIX socket net.h implementation
+
+*/
+
 #ifndef __EMSCRIPTEN__
 
 #include "net.h"
@@ -13,18 +19,24 @@
 #define PORT      8000
 #define MAX_CONN  32
 
+// FIDs of client sockets received from net_accept()
+// NOTE: I should probably remove wrapping the sockets in another ID system and
+// just directly use the socket's FID
 static int  net_sockets[MAX_CONN];
 static int  net_num_sockets = 0;
 
 static int  net_server_fd;
 
+// Allocate a socket
 static int net_add_sock()
 {
+  // Find a disconnected socket slot
   for (int i = 0; i < net_num_sockets; i++) {
     if (!net_sockets[i])
       return i;
   }
   
+  // Create a new one if there are none
   return net_num_sockets++;
 }
 

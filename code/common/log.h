@@ -1,3 +1,9 @@
+/*
+-- log.h --
+
+Formatted logging function with minor utilities
+*/
+
 #ifndef LOG_H
 #define LOG_H
 
@@ -5,6 +11,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 
+// FATAL will cause the program to exit
 typedef enum {
   LOG_DEBUG,
   LOG_WARNING,
