@@ -122,12 +122,7 @@ void cl_init_local()
   cg.bg.attack[cg.ent_client].next_attack1    = 0;
   cg.bg.attack[cg.ent_client].next_attack2    = 0;
   
-  entity_t entity = edict_add_entity(&cg.edict, BGC_TRANSFORM | BGC_PARTICLE);
-  cg.bg.transform[entity].position     = vec3_init(4.0f, 5.0f, 3.0f);
-  cg.bg.particle[entity].now_time = 0;
-  cg.bg.particle[entity].end_time = 500;
-  
-  cl_load_map("nk_chito");
+  cl_load_map("nk_street");
 }
 
 

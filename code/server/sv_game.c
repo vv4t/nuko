@@ -17,6 +17,7 @@ void sv_round_start()
 {
   // Map rotation set
   static const char *map_rotation[] = {
+    "nk_street",
     "nk_neo",
     "nk_yuu",
     "nk_chito"
