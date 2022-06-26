@@ -40,6 +40,8 @@ build/linux/assets: | build/linux
 	-mkdir $@/map
 	-mkdir $@/mdl
 	-mkdir $@/mtl
+	-mkdir $@/shader
+	-mkdir $@/skybox
 
 build/linux: | build
 	-mkdir $@

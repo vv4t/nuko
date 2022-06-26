@@ -86,6 +86,8 @@ void sys_config()
   in_key_bind('s', "+back");
   in_key_bind('d', "+right");
   in_key_bind(' ', "+jump");
+  in_key_bind('1', "weapon_slot_1");
+  in_key_bind('2', "weapon_slot_2");
   in_key_bind('y', "open_console");
   in_key_bind(SDLK_ESCAPE, "unfocus");
 }
@@ -163,10 +165,10 @@ void sys_poll()
     case SDL_MOUSEBUTTONDOWN:
       if (!win_focused)
         sys_focus();
-      in_mouse_event(0, 1);
+      in_mouse_event(event.button.button, 1);
       break;
     case SDL_MOUSEBUTTONUP:
-      in_mouse_event(0, 0);
+      in_mouse_event(event.button.button, 0);
       break;
     case SDL_MOUSEMOTION:
       in_mouse_move(event.motion.xrel, event.motion.yrel);
@@ -241,7 +243,8 @@ int main(int argc, char* argv[])
   
   sys_focus();
   
-  cl_init();
+  // cl_init();
+  cl_init_local();
   
   prev_time = sys_time();
 

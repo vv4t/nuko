@@ -14,6 +14,7 @@ Local definitions of renderer module.
 #include "../common/log.h"
 #include "../common/zone.h"
 #include "../common/vertex.h"
+#include "../common/file.h"
 
 // Size of each vertex attribute
 #define VERTEX_ATTRIB_0 3 // position
@@ -22,9 +23,13 @@ Local definitions of renderer module.
 
 #define MAX_LIGHTS      32
 
-#define ASPECT_RATIO    ((float) (720.0 / 1280.0))
+#define MAX_PARTICLES   64
 
-#define HUD_GRID_SIZE   ((float) 32.0 / 128.0)
+#define SCR_WIDTH       1280
+#define SCR_HEIGHT      720
+#define ASPECT_RATIO    ((float) SCR_HEIGHT / (float) SCR_WIDTH)
+
+#define HUD_GRID_SIZE   ((float) 32.0 / 256.0)
 
 // Macros for OpenGL types for clarity
 typedef GLuint  block_t;
@@ -54,6 +59,13 @@ typedef struct {
   vec2_t          uv_size;
 } hud_def_t;
 
+// Models specific to the renderer
+typedef enum {
+  R_MDL_BULLET,
+  R_MDL_HAND,
+  MAX_R_MDL
+} r_mdl_t;
+
 // Unique ID of each HUD element.
 typedef enum {
   HUD_CROSSHAIR,
@@ -68,6 +80,10 @@ typedef enum {
   HUD_ROUND_TIME_DIGIT_2,
   HUD_ROUND_TIME_DIGIT_4,
   HUD_ROUND_TIME_COLON,
+  HUD_WEAPON_SELECTED,
+  HUD_WEAPON_PISTOL,
+  HUD_WEAPON_KATANA,
+  HUD_ATTACK2_COOLDOWN,
   MAX_HUD
 } r_hud_t;
 
@@ -101,6 +117,9 @@ typedef struct {
   GLuint            ul_mvp;
   GLuint            ul_model;
   GLuint            ul_glow;
+  GLuint            ul_view_pos;
+  GLuint            ul_sampler;
+  GLuint            ul_skybox;
   GLuint            block;
 } r_light_shader_t;
 
@@ -132,7 +151,7 @@ typedef struct {
   hud_def_t         hud_defs[MAX_HUD];
   
   // Models
-  r_model_t         cg_models[MAX_BG_MODEL];
+  r_model_t         cg_models[MAX_BG_MDL];
   r_model_t         bullet_model;
   
   // NOTE: while the map uses a r_model_t, in the future it may need a separate
@@ -149,6 +168,23 @@ typedef struct {
   GLuint            vbo;
   int               vbo_size;
   int               vbo_ptr;
+  
+  // Particle
+  r_mesh_t          particle_mesh;
+  int               num_particles;
+  
+  // HDR
+  r_mesh_t          screen_mesh;
+  GLuint            hdr_fbo;
+  GLuint            hdr_rbo;
+  GLuint            hdr_shader;
+  GLuint            color_buffer;
+  
+  // Skybox
+  GLuint            skybox_ul_mvp;
+  GLuint            skybox_texture;
+  GLuint            skybox_shader;
+  r_mesh_t          skybox_mesh;
 } renderer_t;
 
 extern renderer_t r;
@@ -193,6 +229,7 @@ r_light_t r_new_light();
 void      r_vbo_init();
 bool      r_new_mesh(r_mesh_t *mesh, int num_vertices);
 void      r_draw_mesh(const r_mesh_t *mesh);
+void      r_draw_sub_mesh(const r_mesh_t *mesh, int offset, int size);
 
 // A combination of 'r_new_mesh' and 'r_sub_mesh'. This allows for the
 // generation of a mesh from a pre-allocated vertex buffer in a single call
@@ -217,6 +254,7 @@ bool      r_hud_init();
 bool      r_init_hud_shader();
 bool      r_init_hud_mesh();
 void      r_hud_update_health();
+void      r_hud_update_weapon();
 void      r_render_hud();
 void      hud_init_rect(vertex_t *vertices, const hud_def_t *hud_def);
 
@@ -229,6 +267,29 @@ bool      r_cg_init();
 bool      r_init_cg_models();
 void      r_render_cgame();
 void      r_draw_entities();
+void      r_draw_particle();
+
+// Draw the local player's weapon
+void      r_draw_weapon();
+
+// Because the engine can't load in animations, animations are done as a
+// function of time returning a transformation matrix where t < 1.0 means that
+// the attack is active. Attacks may involve projectile.
+void      anim_attack_pistol(const bg_attack_t *attack, float interp);
+void      anim_attack_katana(const bg_attack_t *attack, float interp);
+mat4x4_t  anim_weapon_pistol(float interp);
+mat4x4_t  anim_weapon_katana(float interp);
+
+typedef struct {
+  bg_model_t  model;
+  void        (*anim_attack)(const bg_attack_t *attack, float interp);
+  mat4x4_t    (*anim_weapon)(float interp);
+} weapon_model_t;
+
+static const weapon_model_t weapon_models[] = {
+  { .model = BG_MDL_PISTOL, .anim_attack = anim_attack_pistol, .anim_weapon = anim_weapon_pistol },
+  { .model = BG_MDL_KATANA, .anim_attack = anim_attack_katana, .anim_weapon = anim_weapon_katana }
+};
 
 // - Combines the translation and rotation of the camera into a transformation matrix. -
 // This is then combined with the camera's projection matrix to produce a 3D
@@ -244,5 +305,35 @@ void      r_setup_view_projection_matrix();
 // logic itself i.e. what you see as a bullet doesn't mean anything in the
 // game and is just a visual effect.
 void      r_draw_attack();
+
+//
+// r_particle.c
+// Draws particles
+//
+
+bool      r_particle_init();
+void      r_particle_frame();
+void      r_particle_emit(vec3_t pos, float interp, int seed);
+void      r_particle_render();
+void      r_particle_draw();
+
+
+//
+// r_hdr.c
+// HDR
+//
+
+bool      r_hdr_init();
+void      r_hdr_begin();
+void      r_hdr_end();
+void      r_hdr_draw();
+
+//
+// r_skybox.c
+// Skybox
+//
+
+bool      r_skybox_init();
+void      r_skybox_render();
 
 #endif

@@ -102,3 +102,9 @@ void r_draw_mesh(const r_mesh_t *mesh)
 {
   glDrawArrays(GL_TRIANGLES, mesh->offset, mesh->size);
 }
+
+void r_draw_sub_mesh(const r_mesh_t *mesh, int offset, int size)
+{
+  // TODO: boundary checks
+  glDrawArrays(GL_TRIANGLES, mesh->offset + offset, size);
+}

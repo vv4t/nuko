@@ -37,7 +37,7 @@ typedef enum {
 // Server entity states
 typedef enum {
   SV_ES_CLIENT        = SVC_CLIENT | BG_ES_CLIENT | SVC_SCORE | SVC_DAMAGE | SVC_RESPAWN,
-  SV_ES_RESPAWN       = SVC_CLIENT | BGC_TRANSFORM | SVC_RESPAWN | SVC_SCORE
+  SV_ES_RESPAWN       = SVC_CLIENT | BGC_TRANSFORM | BGC_PARTICLE | SVC_RESPAWN | SVC_SCORE
 } sv_entitystate_t;
 
 // Originally I was envisioning a much larger scope of the game and imagined
@@ -110,12 +110,24 @@ extern int      host_frametime;
 // sv_game.c
 //
 
-// Check if a ray intersects with a capsule
-bool      intersect_ray_capsule(
-  vec3_t              origin,
-  vec3_t              ray,
-  vec3_t              offset,
-  const bg_capsule_t  *capsule);
+bool      weapon_attack_pistol(
+  vec3_t              weap_pos,
+  vec3_t              weap_dir,
+  vec3_t              victim_pos,
+  const bg_capsule_t  *victim_capsule);
+
+bool      weapon_attack_katana(
+  vec3_t              weap_pos,
+  vec3_t              weap_dir,
+  vec3_t              victim_pos,
+  const bg_capsule_t  *victim_capsule);
+
+typedef bool (*weapon_attack_t)(vec3_t weap_pos, vec3_t weap_dir, vec3_t victim_pos, const bg_capsule_t *capsule);
+
+static const weapon_attack_t weapon_attacks[] = {
+  weapon_attack_pistol,
+  weapon_attack_katana
+};
 
 // Queue entity to be applied to an entity
 void      dmg_add(sv_damage_t *damage, int amount, entity_t src);

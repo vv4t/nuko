@@ -27,4 +27,6 @@ void bg_update(bgame_t *bg)
   bg_clip_capsule_bsp(bg);
   bg_motion_clip(bg);
   bg_pm_check_pos(bg);
+  bg_pm_check_weapon(bg);
+  bg_particle_tick(bg);
 }

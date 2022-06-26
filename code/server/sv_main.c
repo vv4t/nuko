@@ -20,7 +20,7 @@ void sv_init()
   net_listen();
   
   // Default map
-  sv_load_map("nk_yuu");
+  sv_load_map("nk_chito");
 }
 
 static int next_frame = 0;

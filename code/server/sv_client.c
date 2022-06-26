@@ -2,7 +2,7 @@
 
 entity_t sv_new_client(sock_t sock)
 {
-  entity_t entity = edict_add_entity(&sv.edict, SV_ES_CLIENT); // Createa new entity
+  entity_t entity = edict_add_entity(&sv.edict, SV_ES_CLIENT); // Create a new entity
   
   // check if the entity was succesfully allocated
   if (entity == -1) {
@@ -25,9 +25,11 @@ entity_t sv_new_client(sock_t sock)
   sv.bg.health[entity].now            = sv.bg.health[entity].max;
   
   sv.bg.model[entity]                 = BG_MDL_SKULL;
+  sv.bg.weapon[entity]                = BG_WEAPON_KATANA;
   
   sv.bg.attack[entity].active         = false;
-  sv.bg.attack[entity].next_attack    = 0;
+  sv.bg.attack[entity].next_attack1   = 0;
+  sv.bg.attack[entity].next_attack2   = 0;
   
   sv.score[entity].kills              = 0;
   sv.score[entity].deaths             = 0;

@@ -20,6 +20,7 @@ server, creating a live, responsive and visual game.
 typedef struct {
   bg_transform_t  transform[MAX_ENTITIES];
   bg_attack_t     attack[MAX_ENTITIES];
+  bg_particle_t   particle[MAX_ENTITIES];
 } cl_snapshot_t;
 
 // The public state of the game used by the renderer
@@ -36,8 +37,7 @@ typedef struct {
   // Server round time
   int             round_time;
   
-  // Local entity ID
-  entity_t        ent_client;
+  entity_t        ent_client; // Local entity ID
 } cgame_t;
 
 extern cgame_t cg;
@@ -48,6 +48,7 @@ extern cgame_t cg;
 
 // Initialize the client
 void cl_init();
+void cl_init_local();
 
 // Update the client
 void cl_update(int delta_time);

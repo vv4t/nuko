@@ -36,6 +36,8 @@ void  pm_accelerate(bg_motion_t *motion, vec3_t wish_dir, float accel, float wis
 // e.g. pm->grounded = true if they are standing
 void  bg_pm_check_pos(bgame_t *bg);
 
+void  bg_pm_check_weapon(bgame_t *bg);
+
 void  bg_pm_walk_move(bgame_t *bg);
 void  bg_pm_free_look(bgame_t *bg);
 void  bg_pm_attack(bgame_t *bg);
@@ -56,3 +58,10 @@ void  clip_capsule_bsp_R(
 
 // Clip all colliders
 void  bg_clip_capsule_bsp(bgame_t *bg);
+
+//
+// bg_particle.c
+// Particles
+//
+
+void  bg_particle_tick(bgame_t *bg);

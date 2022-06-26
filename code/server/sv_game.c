@@ -97,13 +97,13 @@ void sv_load_map(const char *name)
   map_t map;
   
   if (!map_load(&map, map_path))
-    log_printf(LOG_FATAL, "cl_load_map(): failed to load %s", map_path);
+    log_printf(LOG_FATAL, "sv_load_map(): failed to load %s", map_path);
   
   bg_new_map(&sv.bg, &map); // Load the new map into the game
   sv_send_client_info(); // Broadcast a new map has been loaded
 }
 
-#define SV_CLIENT_SNAPSHOT (BG_ES_CLIENT)
+#define SV_CLIENT_SNAPSHOT (BGC_TRANSFORM | BGC_CLIENT | BGC_CAPSULE | BGC_CLIP | BGC_MOTION | BGC_PMOVE | BGC_HEALTH | BGC_ATTACK | BGC_WEAPON)
 void sv_client_snapshot(snapshot_t *snapshot, entity_t entity)
 {
   // Copy over the local client based components
@@ -114,7 +114,7 @@ void sv_client_snapshot(snapshot_t *snapshot, entity_t entity)
   snapshot->cl_entity_state = sv.edict.entities[entity] & SV_CLIENT_SNAPSHOT;
 }
 
-#define SV_SERVER_SNAPSHOT (BGC_TRANSFORM | BGC_MODEL | BGC_CAPSULE | BGC_ATTACK)
+#define SV_SERVER_SNAPSHOT (BGC_TRANSFORM | BGC_MODEL | BGC_CAPSULE | BGC_ATTACK | BGC_WEAPON | BGC_PARTICLE)
 void sv_server_snapshot(snapshot_t *snapshot)
 {
   // Copy over global server based components
@@ -123,6 +123,8 @@ void sv_server_snapshot(snapshot_t *snapshot)
   memcpy(&snapshot->sv_capsule, &sv.bg.capsule, sizeof(sv.bg.capsule));
   memcpy(&snapshot->sv_model, &sv.bg.model, sizeof(sv.bg.model));
   memcpy(&snapshot->sv_attack, &sv.bg.attack, sizeof(sv.bg.attack));
+  memcpy(&snapshot->sv_weapon, &sv.bg.weapon, sizeof(sv.bg.weapon));
+  memcpy(&snapshot->sv_particle, &sv.bg.particle, sizeof(sv.bg.particle));
   
   // Include the roundtime
   snapshot->round_time = sv.round_time;
@@ -284,6 +286,9 @@ void sv_apply_damage()
         sv.score[sv.damage[i].dmg[j].src].kills++;
         sv.score[i].deaths++;
         
+        sv.bg.particle[i].now_time = 0;
+        sv.bg.particle[i].end_time = 900;
+        
         static char msg[128];
         if (snprintf(msg, sizeof(msg), "[SERVER] %s killed '%s'.", sv.client[sv.damage[i].dmg[j].src].name, sv.client[i].name) < sizeof(msg))
           sv_send_chat(msg);
@@ -310,7 +315,7 @@ void sv_client_shoot()
       continue;
     
     snapshot_t *snapshot = &sv.snapshot_queue[sv.client[i].snapshot_ack % MAX_SNAPSHOT_QUEUE];
-    vec3_t ray = vec3_rotate(forward, sv.bg.transform[i].rotation);
+    vec3_t weap_dir = vec3_rotate(forward, sv.bg.transform[i].rotation);
     
     for (int j = 0; j < snapshot->edict.num_entities; j++) {
       if ((snapshot->edict.entities[j] & SV_SHOOT_VICTIM) != SV_SHOOT_VICTIM)
@@ -319,14 +324,14 @@ void sv_client_shoot()
       if (i == j)
         continue;
       
-      bool hit = intersect_ray_capsule(
+      bool hit = weapon_attacks[sv.bg.weapon[i]](
         sv.bg.transform[i].position,
-        ray,
+        weap_dir,
         snapshot->sv_transform[j].position,
         &snapshot->sv_capsule[j]);
       
       if (hit)
-        dmg_add(&sv.damage[j], 10, i);
+        dmg_add(&sv.damage[j], weapon_attribs[sv.bg.weapon[i]].damage, i);
     }
   }
 }
@@ -346,26 +351,42 @@ void dmg_add(sv_damage_t *damage, int amount, entity_t src)
   damage->num_dmg++;
 }
 
-bool intersect_ray_capsule(
-  vec3_t              origin,
-  vec3_t              ray,
-  vec3_t              offset,
-  const bg_capsule_t  *capsule)
+bool weapon_attack_pistol(
+  vec3_t              weap_pos,
+  vec3_t              weap_dir,
+  vec3_t              victim_pos,
+  const bg_capsule_t  *victim_capsule)
 {
-  vec3_t delta_pos = vec3_sub(offset, origin);
+  vec3_t delta_pos = vec3_sub(victim_pos, weap_pos);
   vec3_t delta_dir = vec3_normalize(delta_pos);
   
-  float proj_dist = vec3_dot(delta_dir, ray);
+  float proj_dist = vec3_dot(delta_dir, weap_dir);
   
   if (proj_dist > 0) {
-    vec3_t normal = vec3_normalize(vec3_add(delta_dir, vec3_mulf(ray, -proj_dist)));
-    float distance = vec3_dot(origin, normal);
+    vec3_t normal = vec3_normalize(vec3_add(delta_dir, vec3_mulf(weap_dir, -proj_dist)));
+    float distance = vec3_dot(weap_pos, normal);
     
-    float sphere_dist = vec3_dot(normal, offset) - distance - 3 * capsule->radius;
+    float sphere_dist = vec3_dot(normal, victim_pos) - distance - 3 * victim_capsule->radius;
     
     if (sphere_dist < 0.0f)
       return true;
   }
+  
+  return false;
+}
+
+bool weapon_attack_katana(
+  vec3_t              weap_pos,
+  vec3_t              weap_dir,
+  vec3_t              victim_pos,
+  const bg_capsule_t  *victim_capsule)
+{
+  vec3_t weap_origin = vec3_add(weap_pos, weap_dir);
+  vec3_t delta_pos = vec3_sub(weap_origin, victim_pos);
+  float sphere_dist = 6 * victim_capsule->radius;
+  
+  if (vec3_dot(delta_pos, delta_pos) < sphere_dist * sphere_dist)
+    return true;
   
   return false;
 }

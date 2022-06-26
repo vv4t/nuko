@@ -18,29 +18,36 @@ static float        in_left;
 static float        in_back;
 static float        in_right;
 static float        in_jump;
-static float        in_attack;
+static float        in_attack1;
+static float        in_attack2;
 
 // Camera orientation based on mouse movement
 static float        in_pitch;
 static float        in_yaw;
+
+static int          in_weapon_slot;
 
 // Rotation sensitivity
 static float        in_sensitivity = 0.005;
 
 // Command callback functions
 // When called, the corresponding input state is modified
-static void in_forward_down(void *d) { in_forward = 1.0f; }
-static void in_forward_up(void *d)   { in_forward = 0.0f; }
-static void in_left_down(void *d)    { in_left    = 1.0f; }
-static void in_left_up(void *d)      { in_left    = 0.0f; }
-static void in_back_down(void *d)    { in_back    = 1.0f; }
-static void in_back_up(void *d)      { in_back    = 0.0f; }
-static void in_right_down(void *d)   { in_right   = 1.0f; }
-static void in_right_up(void *d)     { in_right   = 0.0f; }
-static void in_jump_down(void *d)    { in_jump    = 1.0f; }
-static void in_jump_up(void *d)      { in_jump    = 0.0f; }
-static void in_attack_down(void *d)  { in_attack  = 1.0f; }
-static void in_attack_up(void *d)    { in_attack  = 0.0f; }
+static void in_forward_down(void *d)  { in_forward      = 1.0f; }
+static void in_forward_up(void *d)    { in_forward      = 0.0f; }
+static void in_left_down(void *d)     { in_left         = 1.0f; }
+static void in_left_up(void *d)       { in_left         = 0.0f; }
+static void in_back_down(void *d)     { in_back         = 1.0f; }
+static void in_back_up(void *d)       { in_back         = 0.0f; }
+static void in_right_down(void *d)    { in_right        = 1.0f; }
+static void in_right_up(void *d)      { in_right        = 0.0f; }
+static void in_jump_down(void *d)     { in_jump         = 1.0f; }
+static void in_jump_up(void *d)       { in_jump         = 0.0f; }
+static void in_attack1_down(void *d)  { in_attack1      = 1.0f; }
+static void in_attack1_up(void *d)    { in_attack1      = 0.0f; }
+static void in_attack2_down(void *d)  { in_attack2      = 1.0f; }
+static void in_attack2_up(void *d)    { in_attack2      = 0.0f; }
+static void in_weapon_slot_1(void *d) { in_weapon_slot  = 0;    }
+static void in_weapon_slot_2(void *d) { in_weapon_slot  = 1;    }
 
 // Bind a key to a certain command
 static void key_bind_f(void *d)
@@ -86,8 +93,13 @@ void in_init()
   cmd_add_command("-right", in_right_up, NULL);
   cmd_add_command("+jump", in_jump_down, NULL);
   cmd_add_command("-jump", in_jump_up, NULL);
-  cmd_add_command("+attack", in_attack_down, NULL);
-  cmd_add_command("-attack", in_attack_up, NULL);
+  cmd_add_command("+attack1", in_attack1_down, NULL);
+  cmd_add_command("-attack1", in_attack1_up, NULL);
+  cmd_add_command("+attack2", in_attack2_down, NULL);
+  cmd_add_command("-attack2", in_attack2_up, NULL);
+  
+  cmd_add_command("weapon_slot_1", in_weapon_slot_1, NULL);
+  cmd_add_command("weapon_slot_2", in_weapon_slot_2, NULL);
   
   // Add commands to configure input
   cmd_add_command("sensitivity", sensitivity_f, NULL);
@@ -153,7 +165,14 @@ void in_key_event(int key, int action)
 
 void in_mouse_event(int button, int action)
 {
-  in_attack = action;
+  switch (button) {
+  case 1:
+    in_attack1 = action;
+    break;
+  case 3:
+    in_attack2 = action;
+    break;
+  }
 }
 
 void in_mouse_move(int dx, int dy)
@@ -171,7 +190,9 @@ void in_base_move(usercmd_t *usercmd)
   usercmd->forward  = in_forward - in_back;
   usercmd->right    = in_right - in_left;
   usercmd->jump     = in_jump;
-  usercmd->attack   = in_attack;
+  usercmd->attack1  = in_attack1;
+  usercmd->attack2  = in_attack2;
   usercmd->yaw      = in_yaw;
   usercmd->pitch    = in_pitch;
+  usercmd->weapon_slot = in_weapon_slot;
 }

@@ -56,6 +56,8 @@ void score_f(void *d)
 
 void cl_init()
 {
+  cl.local = false;
+  
   // Add client console commands
   cmd_add_command("say", say_f, NULL);
   cmd_add_command("name", name_f, NULL);
@@ -80,6 +82,54 @@ void cl_init()
   
   cl_connect(host_address);
 }
+
+void cl_init_local()
+{
+  cl.local = true;
+  
+  // Add client console commands
+  cmd_add_command("say", say_f, NULL);
+  cmd_add_command("name", name_f, NULL);
+  cmd_add_command("score", score_f, NULL);
+  
+  // Reset usercmd cache
+  cl.connected = false;
+  cl.cmd_tail = 0;
+  cl.cmd_head = 0;
+  
+  // Initialize game state
+  edict_init(&cg.edict);
+  bg_init(&cg.bg, &cg.edict);
+  
+  // Initialize renderer
+  if (!r_init())
+    log_printf(LOG_FATAL, "cl_init(): failed to initialize renderer");
+  
+  cg.ent_client = edict_add_entity(&cg.edict, BG_ES_CLIENT & (~BGC_MODEL)); // Create a new entity
+  cg.bg.transform[cg.ent_client].position     = vec3_init(0.0f, 1.0f, 0.0f);
+  cg.bg.motion[cg.ent_client]                 = (bg_motion_t) {0};
+  
+  cg.bg.capsule[cg.ent_client].radius         = 0.5f;
+  cg.bg.capsule[cg.ent_client].height         = 1.0f;
+  
+  cg.bg.health[cg.ent_client].max             = 100;
+  cg.bg.health[cg.ent_client].now             = cg.bg.health[cg.ent_client].max;
+  
+  cg.bg.model[cg.ent_client]                  = BG_MDL_SKULL;
+  cg.bg.weapon[cg.ent_client]                 = BG_WEAPON_PISTOL;
+  
+  cg.bg.attack[cg.ent_client].active          = false;
+  cg.bg.attack[cg.ent_client].next_attack1    = 0;
+  cg.bg.attack[cg.ent_client].next_attack2    = 0;
+  
+  entity_t entity = edict_add_entity(&cg.edict, BGC_TRANSFORM | BGC_PARTICLE);
+  cg.bg.transform[entity].position     = vec3_init(4.0f, 5.0f, 3.0f);
+  cg.bg.particle[entity].now_time = 0;
+  cg.bg.particle[entity].end_time = 500;
+  
+  cl_load_map("nk_chito");
+}
+
 
 void cl_console()
 {
@@ -115,7 +165,9 @@ void cl_update(int delta_time)
   cl_console();
   cl_view_look();
   cl_interpolate(interp);
-  cl_parse();
+  
+  if (!cl.local)
+    cl_parse();
   
   // Add the amount of time that has passed to the time until the next command
   next_cmd += delta_time;
@@ -133,8 +185,15 @@ void cl_update(int delta_time)
     // Updates to be done per command sent
     // NOTE: because changes to the local game state are only relevant per
     // command sent, they should only be applied every new command
-    cl_send_cmd();
-    cl_predict();
+    
+    if (cl.local) {
+      cg.bg.client[cg.ent_client].usercmd = cl.usercmd;
+      bg_update(&cg.bg);
+    } else {
+      cl_send_cmd();
+      cl_predict();
+    }
+    
     cl_snapshot();
   }
   

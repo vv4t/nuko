@@ -143,6 +143,35 @@ bool r_init_hud_mesh()
     .uv_pos     = vec2_init(+3.0f, +0.0f),
     .uv_size    = vec2_init(+1.0f, +1.0f) };
   
+  // Weapons
+  r.hud_defs[HUD_WEAPON_SELECTED] = (hud_def_t) {
+    .hud_align  = HUD_ALIGN_CENTER,
+    .scr_pos    = vec2_init(-0.9f, +0.01f),
+    .scr_size   = vec2_init(+0.15f, +0.15f),
+    .uv_pos     = vec2_init(+3.0f, +4.0f),
+    .uv_size    = vec2_init(+1.0f, +1.0f) };
+  
+  r.hud_defs[HUD_WEAPON_PISTOL] = (hud_def_t) {
+    .hud_align  = HUD_ALIGN_CENTER,
+    .scr_pos    = vec2_init(-0.9f, +0.01f),
+    .scr_size   = vec2_init(+0.15f, +0.15f),
+    .uv_pos     = vec2_init(+0.0f, +4.0f),
+    .uv_size    = vec2_init(+1.0f, +1.0f) };
+  
+  r.hud_defs[HUD_WEAPON_KATANA] = (hud_def_t) {
+    .hud_align  = HUD_ALIGN_CENTER,
+    .scr_pos    = vec2_init(-0.9f, -0.16f),
+    .scr_size   = vec2_init(+0.15f, +0.15f),
+    .uv_pos     = vec2_init(+1.0f, +4.0f),
+    .uv_size    = vec2_init(+1.0f, +1.0f) };
+  
+  r.hud_defs[HUD_ATTACK2_COOLDOWN] = (hud_def_t) {
+    .hud_align  = HUD_ALIGN_CENTER,
+    .scr_pos    = vec2_init(+0.0f, -0.051f),
+    .scr_size   = vec2_init(+0.05f, +0.006f),
+    .uv_pos     = vec2_init(+2.00f, +4.00f),
+    .uv_size    = vec2_init(+1.00f, +1.00f) };
+  
   if (!r_new_mesh(&r.hud_mesh, MAX_HUD * num_hud_rect_vertices)) {
     log_printf(LOG_ERROR, "r_init_hud_mesh(): failed to allocate hud mesh");
     return false;
@@ -159,7 +188,7 @@ bool r_init_hud_mesh()
 
 void r_hud_update_health()
 {
-  int hp = cg.bg.health[cg.ent_client].now;
+  int hp = fmax(cg.bg.health[cg.ent_client].now, 0);
   
   // Get each individual digit
   int digits[] = {
@@ -218,6 +247,37 @@ void r_hud_update_round_time()
   }
 }
 
+void r_hud_update_weapon()
+{
+  switch (cg.bg.weapon[cg.ent_client]) {
+  case BG_WEAPON_PISTOL:
+    r.hud_defs[HUD_WEAPON_SELECTED].scr_pos = vec2_init(-0.9f, +0.01f);
+    break;
+  case BG_WEAPON_KATANA:
+    r.hud_defs[HUD_WEAPON_SELECTED].scr_pos = vec2_init(-0.9f, -0.16f);
+    break;
+  }
+  
+  vertex_t hud_vertices[num_hud_rect_vertices];
+  hud_init_rect(hud_vertices, &r.hud_defs[HUD_WEAPON_SELECTED]);
+  r_sub_mesh(&r.hud_mesh, hud_vertices, HUD_WEAPON_SELECTED * num_hud_rect_vertices, num_hud_rect_vertices);
+  
+  int attack_left = cg.bg.attack[cg.ent_client].next_attack2;
+  
+  if (attack_left > 0) {
+    float interp = (float) fmax(BG_ATTACK2_TIME - attack_left, 0) / (float) BG_ATTACK2_TIME;
+    
+    r.hud_defs[HUD_ATTACK2_COOLDOWN].uv_pos.x = 2.0f;
+    r.hud_defs[HUD_ATTACK2_COOLDOWN].scr_size.x = 0.05f * interp;
+  } else {
+    r.hud_defs[HUD_ATTACK2_COOLDOWN].uv_pos.x = 4.0f;
+    r.hud_defs[HUD_ATTACK2_COOLDOWN].scr_size.x = 0.05f;
+  }
+  
+  hud_init_rect(hud_vertices, &r.hud_defs[HUD_ATTACK2_COOLDOWN]);
+  r_sub_mesh(&r.hud_mesh, hud_vertices, HUD_ATTACK2_COOLDOWN * num_hud_rect_vertices, num_hud_rect_vertices);
+}
+
 void r_render_hud()
 {
   glDisable(GL_DEPTH_TEST);
@@ -226,6 +286,7 @@ void r_render_hud()
   
   r_hud_update_health();
   r_hud_update_round_time();
+  r_hud_update_weapon();
   r_draw_mesh(&r.hud_mesh);
 }
 
@@ -236,28 +297,8 @@ bool r_init_hud_shader()
   // screen, the shader uses no matrix transformations and instead relies on
   // the vertices loaded in to be already correct.
   
-  static const char *src_vertex = ""
-    "#version 300 es\n"
-    "layout(location = 0) in vec3 v_pos;\n"
-    "layout(location = 1) in vec3 v_normal;\n"
-    "layout(location = 2) in vec2 v_uv;\n"
-    "out vec2 vs_uv;\n"
-    "void main() {\n"
-    " vs_uv = v_uv;\n"
-    " gl_Position = vec4(v_pos, 1.0);\n"
-    "}";
-
-  static const char *src_fragment = ""
-    "#version 300 es\n"
-    "precision mediump float;\n"
-    "out vec4 frag_color;\n"
-    "in vec4 vs_pos;\n"
-    "in vec2 vs_uv;\n"
-    "uniform sampler2D sampler;\n"
-    "void main() {\n"
-    " vec4 color = texture(sampler, vs_uv);\n"
-    " frag_color = color;\n"
-    "}";
+  const char *src_vertex = file_read_all("assets/shader/hud.vs");
+  const char *src_fragment = file_read_all("assets/shader/hud.fs");
   
   if (!gl_load_shader(&r.hud_shader.program, src_vertex, src_fragment)) {
     log_printf(LOG_ERROR, "r_init_cg_shader(): failed to load shader");

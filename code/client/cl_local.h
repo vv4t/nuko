@@ -39,6 +39,8 @@ typedef struct {
   int         cmd_tail;
   int         cmd_head;
   usercmd_t   cmd_queue[MAX_CMD_QUEUE];
+  
+  bool        local; // TODO: remove this later
 } client_t;
 
 extern client_t cl;

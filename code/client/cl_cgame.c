@@ -47,6 +47,8 @@ void cl_reconcile()
   memcpy(&cg.bg.transform, &cl.snapshot.sv_transform, sizeof(cl.snapshot.sv_transform));
   memcpy(&cg.bg.capsule, &cl.snapshot.sv_capsule, sizeof(cl.snapshot.sv_capsule));
   memcpy(&cg.bg.attack, &cl.snapshot.sv_attack, sizeof(cl.snapshot.sv_attack));
+  memcpy(&cg.bg.weapon, &cl.snapshot.sv_weapon, sizeof(cl.snapshot.sv_weapon));
+  memcpy(&cg.bg.particle, &cl.snapshot.sv_particle, sizeof(cl.snapshot.sv_particle));
   
   cg.edict.entities[cg.ent_client] = cl.snapshot.cl_entity_state;
 }
@@ -59,6 +61,7 @@ void cl_snapshot()
   // Snapshot the new game state
   memcpy(&cg.to.transform, &cg.bg.transform, sizeof(cg.bg.transform));
   memcpy(&cg.to.attack, &cg.bg.attack, sizeof(cg.bg.attack));
+  memcpy(&cg.to.particle, &cg.bg.particle, sizeof(cg.bg.particle));
 }
 
 // Interpolation reads from 'cg.to' and 'cg.from'. Any components to be
@@ -74,7 +77,6 @@ void cl_interpolate(float interp)
       vec3_t pos_from = cg.from.transform[i].position;
       vec3_t pos_to = cg.to.transform[i].position;
       vec3_t delta_pos = vec3_sub(pos_to, pos_from);
-      
       vec3_t pos_tween = vec3_add(pos_from, vec3_mulf(delta_pos, interp));
       
       cg.tween.transform[i].position = pos_tween;
@@ -82,13 +84,24 @@ void cl_interpolate(float interp)
     
     // Interpolate entity attacks
     if ((cg.edict.entities[i] & BGC_ATTACK) == BGC_ATTACK) {
-      int next_attack_from = cg.from.attack[i].next_attack;
-      int next_attack_to = cg.to.attack[i].next_attack;
-      int delta_attack = next_attack_to - next_attack_from;
+      int next_attack1_from = cg.from.attack[i].next_attack1;
+      int next_attack1_to = cg.to.attack[i].next_attack1;
+      int delta_attack1 = next_attack1_to - next_attack1_from;
       
-      int next_attack_tween = next_attack_from + (int) ((float) delta_attack * interp);
+      int next_attack1_tween = next_attack1_from + (int) ((float) delta_attack1 * interp);
       
-      cg.tween.attack[i].next_attack = next_attack_tween;
+      cg.tween.attack[i].next_attack1 = next_attack1_tween;
+    }
+    
+    // Interpolate entity attacks
+    if ((cg.edict.entities[i] & BGC_PARTICLE) == BGC_PARTICLE) {
+      int now_time_from = cg.from.particle[i].now_time;
+      int now_time_to = cg.to.particle[i].now_time;
+      int delta_now_time = now_time_to - now_time_from;
+      
+      int now_time_tween = now_time_from + (int) ((float) delta_now_time * interp);
+      
+      cg.tween.particle[i].now_time = now_time_tween;
     }
   }
 }

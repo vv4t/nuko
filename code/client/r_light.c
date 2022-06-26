@@ -69,71 +69,8 @@ void r_init_light_block()
 
 bool r_init_light_shader()
 {
-  static const char *src_vertex = ""
-    "#version 300 es\n"
-    "layout(location = 0) in vec3 v_pos;\n"
-    "layout(location = 1) in vec3 v_normal;\n"
-    "layout(location = 2) in vec2 v_uv;\n"
-    "out vec3 vs_pos;\n"
-    "out vec3 vs_normal;\n"
-    "out vec2 vs_uv;\n"
-    "uniform mat4 u_mvp;"
-    "uniform mat4 u_model;"
-    "void main() {\n"
-    " vs_pos = vec3(u_model * vec4(v_pos, 1.0));\n"
-    " vs_normal = v_normal;\n"
-    " vs_uv = v_uv;\n"
-    " gl_Position = u_mvp * vec4(v_pos, 1.0);\n"
-    "}";
-
-  static const char *src_fragment = ""
-  "#version 300 es\n"
-  "precision mediump float;\n"
-  "\n"
-  "out vec4 frag_color;\n"
-  "in vec3 vs_pos;\n"
-  "in vec3 vs_normal;\n"
-  "in vec2 vs_uv;\n"
-  "\n"
-  "struct light_t {\n"
-  " vec3 pos;\n"
-  " float intensity;\n"
-  " vec4 color;\n"
-  "};\n"
-  "\n"
-  "layout (std140) uniform block {\n"
-  " light_t lights[32];\n"
-  "};\n"
-  "\n"
-  "uniform sampler2D  u_sampler;\n"
-  "uniform bool       u_glow;\n"
-  "\n"
-  "void main() {\n"
-  "  vec3 ambient_light = vec3(0.1, 0.1, 0.1);\n"
-  "  \n"
-  "  vec3 light = ambient_light;\n"
-  "  \n"
-  "  if (!u_glow) {\n"
-  "    for (int i = 0; i < 32; i++) {\n"
-  "      if (lights[i].intensity <= 0.0)\n"
-  "        continue;\n"
-  "      \n"
-  "      vec3 delta_pos = lights[i].pos - vs_pos;\n"
-  "      vec3 light_dir = normalize(delta_pos);\n"
-  "      float delta_dist = length(delta_pos);\n"
-  "      float diffuse = max(dot(vs_normal, light_dir), 0.0);\n"
-  "      float ambience = 0.1;\n"
-  "      float attentuation = lights[i].intensity / (1.0 + 4.0 * delta_dist + 0.4 * delta_dist * delta_dist);\n"
-  "      float intensity = diffuse * attentuation;\n"
-  "      light += lights[i].color.xyz * clamp(intensity, 0.0, 1.0);\n"
-  "    }\n"
-  "  } else {\n"
-  "    light = vec3(1, 1, 1);\n"
-  "  }\n"
-  "  \n"
-  "  vec4 color = texture(u_sampler, vs_uv);\n"
-  "  frag_color = vec4(light, 1.0) * color;\n"
-  "}";
+  const char *src_vertex = file_read_all("assets/shader/light.vs");
+  const char *src_fragment = file_read_all("assets/shader/light.fs");
 
   if (!gl_load_shader(&r.light_shader.program, src_vertex, src_fragment)) {
     log_printf(LOG_ERROR, "r_init_cg_shader(): failed to load shader");
@@ -143,6 +80,13 @@ bool r_init_light_shader()
   r.light_shader.ul_mvp = glGetUniformLocation(r.light_shader.program, "u_mvp");
   r.light_shader.ul_model = glGetUniformLocation(r.light_shader.program, "u_model");
   r.light_shader.ul_glow = glGetUniformLocation(r.light_shader.program, "u_glow");
+  r.light_shader.ul_view_pos = glGetUniformLocation(r.light_shader.program, "u_view_pos");
+  r.light_shader.ul_sampler = glGetUniformLocation(r.light_shader.program, "u_sampler");
+  r.light_shader.ul_skybox = glGetUniformLocation(r.light_shader.program, "u_skybox");
+  
+  glUseProgram(r.light_shader.program);
+  glUniform1i(r.light_shader.ul_sampler, 0);
+  glUniform1i(r.light_shader.ul_skybox, 1);
   
   return true;
 }

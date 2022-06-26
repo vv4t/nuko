@@ -84,6 +84,24 @@ void bg_pm_check_pos(bgame_t *bg)
   }
 }
 
+#define BG_PLAYER_CHECK_WEAPON (BGC_MODEL | BGC_WEAPON)
+void bg_pm_check_weapon(bgame_t *bg)
+{
+  for (int i = 0; i < bg->edict->num_entities; i++) {
+    if ((bg->edict->entities[i] & BG_PLAYER_CHECK_WEAPON) != BG_PLAYER_CHECK_WEAPON)
+      continue;
+    
+    switch (bg->weapon[i]) {
+    case BG_WEAPON_PISTOL:
+      bg->model[i] = BG_MDL_SKULL;
+      break;
+    case BG_WEAPON_KATANA:
+      bg->model[i] = BG_MDL_SKULL2;
+      break;
+    }
+  }
+}
+
 #define BG_PLAYER_MOVE (BGC_TRANSFORM | BGC_CLIENT | BGC_CLIP)
 void bg_pm_walk_move(bgame_t *bg)
 {
@@ -139,19 +157,52 @@ void bg_pm_free_look(bgame_t *bg)
   }
 }
 
-#define BG_PLAYER_ATTACK (BGC_TRANSFORM | BGC_CLIENT | BGC_ATTACK)
+#define BG_PLAYER_ATTACK (BGC_TRANSFORM | BGC_CLIENT | BGC_WEAPON | BGC_ATTACK)
 void bg_pm_attack(bgame_t *bg)
 {
   for (int i = 0; i < bg->edict->num_entities; i++) {
     if ((bg->edict->entities[i] & BG_PLAYER_ATTACK) != BG_PLAYER_ATTACK)
       continue;
     
-    if (bg->client[i].usercmd.attack && bg->attack[i].next_attack < 0) {
+    bg->weapon[i] = bg->client[i].usercmd.weapon_slot;
+    
+    if (bg->client[i].usercmd.attack1 && bg->attack[i].next_attack1 < 0) {
       bg->attack[i].active = true;
-      bg->attack[i].next_attack = BG_ATTACK_TIME;
+      bg->attack[i].next_attack1 = weapon_attribs[bg->weapon[i]].attack_time;
+      bg->attack[i].origin = bg->transform[i].position;
+      bg->attack[i].direction = bg->transform[i].rotation;
     } else {
       bg->attack[i].active = false;
-      bg->attack[i].next_attack -= BG_TIMESTEP * 1000;
+      bg->attack[i].next_attack1 -= BG_TIMESTEP * 1000;
+    }
+    
+    if (bg->client[i].usercmd.attack2 && bg->attack[i].next_attack2 < 0) {
+      bg->attack[i].next_attack2 = BG_ATTACK2_TIME;
+      weapon_attribs[bg->weapon[i]].attack2(bg, i);
+    } else {
+      bg->attack[i].next_attack2 -= BG_TIMESTEP * 1000;
     }
   }
+}
+
+#define ATTACK2_PISTOL (BGC_TRANSFORM | BGC_MOTION)
+void attack2_pistol(bgame_t *bg, entity_t entity)
+{
+  if ((bg->edict->entities[entity] & ATTACK2_PISTOL) != ATTACK2_PISTOL)
+    return;
+  
+  vec3_t fly_dir = vec3_rotate(vec3_init(0.0f, 0.0f, -20.0f), bg->transform[entity].rotation);
+  
+  bg->motion[entity].velocity = vec3_add(bg->motion[entity].velocity, fly_dir);
+}
+
+#define ATTACK2_KATANA (BGC_TRANSFORM | BGC_MOTION)
+void attack2_katana(bgame_t *bg, entity_t entity)
+{
+  if ((bg->edict->entities[entity] & ATTACK2_KATANA) != ATTACK2_KATANA)
+    return;
+  
+  vec3_t fly_dir = vec3_rotate(vec3_init(0.0f, 0.0f, 20.0f), bg->transform[entity].rotation);
+  
+  bg->motion[entity].velocity = vec3_add(bg->motion[entity].velocity, fly_dir);
 }
