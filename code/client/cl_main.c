@@ -8,18 +8,11 @@ cgame_t     cg;
 // it is the milliseconds between sending each usercmd.
 static int  cl_cmdrate  = 50;
 
-// Write the host's address to a buffer
-// NOTE: On browser, it simply connects to /socket. A dedicated PC version is
-// not supported yet so it simply connects to localhost for testing purposes.
-#ifdef __EMSCRIPTEN__
-void cl_get_host_address(char *host_address, int len);
-#else
-void cl_get_host_address(char *host_address, int len)
+// Connect to the server
+void connect_f(void *d)
 {
-  const char *str_host = "127.0.0.1";
-  memcpy(host_address, str_host, strlen(str_host) + 1);
+  cl_connect();
 }
-#endif
 
 // Console function for chat
 void say_f(void *d)
@@ -56,15 +49,14 @@ void score_f(void *d)
 
 void cl_init()
 {
-  cl.local = false;
-  
   // Add client console commands
   cmd_add_command("say", say_f, NULL);
   cmd_add_command("name", name_f, NULL);
   cmd_add_command("score", score_f, NULL);
+  cmd_add_command("connect", connect_f, NULL);
   
   // Reset usercmd cache
-  cl.connected = false;
+  cl.connection = CONN_DISCONNECTED;
   cl.cmd_tail = 0;
   cl.cmd_head = 0;
   
@@ -76,55 +68,8 @@ void cl_init()
   if (!r_init())
     log_printf(LOG_FATAL, "cl_init(): failed to initialize renderer");
   
-  // Connect to server
-  char host_address[256];
-  cl_get_host_address(host_address, 256);
-  
-  cl_connect(host_address);
+  cl_tutorial_init();
 }
-
-void cl_init_local()
-{
-  cl.local = true;
-  
-  // Add client console commands
-  cmd_add_command("say", say_f, NULL);
-  cmd_add_command("name", name_f, NULL);
-  cmd_add_command("score", score_f, NULL);
-  
-  // Reset usercmd cache
-  cl.connected = false;
-  cl.cmd_tail = 0;
-  cl.cmd_head = 0;
-  
-  // Initialize game state
-  edict_init(&cg.edict);
-  bg_init(&cg.bg, &cg.edict);
-  
-  // Initialize renderer
-  if (!r_init())
-    log_printf(LOG_FATAL, "cl_init(): failed to initialize renderer");
-  
-  cg.ent_client = edict_add_entity(&cg.edict, BG_ES_CLIENT & (~BGC_MODEL)); // Create a new entity
-  cg.bg.transform[cg.ent_client].position     = vec3_init(0.0f, 1.0f, 0.0f);
-  cg.bg.motion[cg.ent_client]                 = (bg_motion_t) {0};
-  
-  cg.bg.capsule[cg.ent_client].radius         = 0.5f;
-  cg.bg.capsule[cg.ent_client].height         = 1.0f;
-  
-  cg.bg.health[cg.ent_client].max             = 100;
-  cg.bg.health[cg.ent_client].now             = cg.bg.health[cg.ent_client].max;
-  
-  cg.bg.model[cg.ent_client]                  = BG_MDL_SKULL;
-  cg.bg.weapon[cg.ent_client]                 = BG_WEAPON_PISTOL;
-  
-  cg.bg.attack[cg.ent_client].active          = false;
-  cg.bg.attack[cg.ent_client].next_attack1    = 0;
-  cg.bg.attack[cg.ent_client].next_attack2    = 0;
-  
-  cl_load_map("nk_street");
-}
-
 
 void cl_console()
 {
@@ -161,8 +106,7 @@ void cl_update(int delta_time)
   cl_view_look();
   cl_interpolate(interp);
   
-  if (!cl.local)
-    cl_parse();
+  cl_parse();
   
   // Add the amount of time that has passed to the time until the next command
   next_cmd += delta_time;
@@ -181,9 +125,12 @@ void cl_update(int delta_time)
     // NOTE: because changes to the local game state are only relevant per
     // command sent, they should only be applied every new command
     
-    if (cl.local) {
+    if (cl.connection != CONN_CONNECTED) {
       cg.bg.client[cg.ent_client].usercmd = cl.usercmd;
       bg_update(&cg.bg);
+      cl_tutorial_attack();
+      cl_tutorial_dummy_death();
+      cl_tutorial_round();
     } else {
       cl_send_cmd();
       cl_predict();

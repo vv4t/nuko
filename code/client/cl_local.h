@@ -11,6 +11,7 @@ The local definitions of the client module.
 
 #include "input.h"
 #include "renderer.h"
+#include "../game/weapon.h"
 #include "../game/frame.h"
 #include "../game/map_file.h"
 #include "../common/net.h"
@@ -23,24 +24,33 @@ The local definitions of the client module.
 
 #define MAX_CMD_QUEUE   128
 
+typedef enum {
+  CONN_DISCONNECTED,
+  CONN_CONNECTING,
+  CONN_CONNECTED
+} conn_status_t;
+
+// Client components
+typedef enum {
+  CLC_DUMMY = (AUX_BGC << 0),
+} cl_component_t;
+
 typedef struct {
   // Network socket for TCP/WebSocket connection
-  sock_t      sock;
-  bool        connected;
+  sock_t        sock;
+  conn_status_t connection;
   
-  // The last snapshot received from the server
-  int         snapshot_ack;
-  snapshot_t  snapshot;
+  // The last   snapshot received from the server
+  int           snapshot_ack;
+  snapshot_t    snapshot;
   
   // The client's usercmd set by polling peripheral input
-  usercmd_t   usercmd;
+  usercmd_t     usercmd;
   
   // A cache of unacknowledged usercmds used in cl_predict()
-  int         cmd_tail;
-  int         cmd_head;
-  usercmd_t   cmd_queue[MAX_CMD_QUEUE];
-  
-  bool        local; // TODO: remove this later
+  int           cmd_tail;
+  int           cmd_head;
+  usercmd_t     cmd_queue[MAX_CMD_QUEUE];
 } client_t;
 
 extern client_t cl;
@@ -88,7 +98,7 @@ void  cl_load_map(const char *path);
 // Maintain a network connection with the server/host. This involves parsing
 // packets sent by the server and sending packets created by the client, 
 //
-void  cl_connect(const char *host);
+void  cl_connect();
 void  cl_parse();
 void  cl_parse_snapshot(const frame_t *frame);
 void  cl_parse_client_info(const frame_t *frame);
@@ -97,5 +107,16 @@ void  cl_send_cmd();
 void  cl_send_chat(const char *text);
 void  cl_send_name(const char *name);
 void  cl_send_score();
+
+//
+// - cl_tutorial.c -
+// Default tutorial map before the player connects to the server
+//
+void  cl_tutorial_init();
+void  cl_tutorial_spawn_dummy();
+void  cl_tutorial_spawn_player();
+void  cl_tutorial_attack();
+void  cl_tutorial_dummy_death();
+void  cl_tutorial_round();
 
 #endif

@@ -7,7 +7,6 @@ entity_t sv_new_client(sock_t sock)
   // check if the entity was succesfully allocated
   if (entity == -1) {
     net_sock_disconnect(sock); // disconnect if not
-    
     log_printf(LOG_WARNING, "too many clients.");
     return -1;
   }

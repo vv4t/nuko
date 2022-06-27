@@ -6,7 +6,6 @@ Local definitions for bgame.h
 #include "bgame.h"
 
 #define BG_MIN_INCLINE  0.8
-#define BG_TIMESTEP     0.050
 #define BG_FRICTION     4.0
 #define BG_GRAVITY      18.0
 

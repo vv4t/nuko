@@ -14,7 +14,9 @@ run on both the client and the server.
 #include <stdbool.h>
 
 #define MAX_CLIP_PLANES 16 // Maximum planes detected by a collider
+
 #define BG_ATTACK2_TIME 2000 // ATTACK2 cooldown
+#define BG_TIMESTEP     0.050
 
 // Shared components
 typedef enum {

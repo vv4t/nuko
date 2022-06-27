@@ -36,7 +36,6 @@ typedef struct {
   
   // Server round time
   int             round_time;
-  
   entity_t        ent_client; // Local entity ID
 } cgame_t;
 

@@ -244,7 +244,6 @@ int main(int argc, char* argv[])
   sys_focus();
   
   cl_init();
-  // cl_init_local();
   
   prev_time = sys_time();
 

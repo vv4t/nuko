@@ -1,12 +1,35 @@
 #include "cl_local.h"
 
-void cl_connect(const char *host)
+// Write the host's address to a buffer
+// NOTE: On browser, it simply connects to /socket. A dedicated PC version is
+// not supported yet so it simply connects to localhost for testing purposes.
+#ifdef __EMSCRIPTEN__
+void cl_get_host_address(char *host_address, int len);
+#else
+void cl_get_host_address(char *host_address, int len)
 {
-  cl.sock = net_connect(host);
+  const char *str_host = "127.0.0.1";
+  memcpy(host_address, str_host, strlen(str_host) + 1);
+}
+#endif
+
+void cl_connect()
+{
+  // Connect to server
+  char host_address[256];
+  cl_get_host_address(host_address, 256);
+  
+  log_printf(LOG_DEBUG, "connecting...");
+  
+  cl.connection = CONN_CONNECTING;
+  cl.sock = net_connect(host_address);
 }
 
 void cl_parse()
 {
+  if (cl.connection == CONN_DISCONNECTED)
+    return;
+  
   // TODO: Add client disconnect checks; where frame_read() == 0
   frame_t frame;
   while (frame_read(cl.sock, &frame) > 0) {
@@ -41,7 +64,11 @@ void cl_parse_client_info(const frame_t *frame)
   // seems kinda redundant. That or I should create a 'map change' request from
   // the server.
   
-  cl.connected = true;
+  if (cl.connection == CONN_CONNECTING) {
+    cl.connection = CONN_CONNECTED;
+    log_printf(LOG_DEBUG, "connected");
+  }
+  
   cg.ent_client = frame->data.client_info.entity;
   
   cl_load_map(frame->data.client_info.map_name);
@@ -62,7 +89,7 @@ void cl_parse_chat(const frame_t *frame)
 
 void cl_send_cmd()
 {
-  if (!cl.connected)
+  if (cl.connection == CONN_DISCONNECTED)
     return;
   
   frame_t frame;
@@ -94,7 +121,7 @@ void cl_send_cmd()
 
 void cl_send_chat(const char *text)
 {
-  if (!cl.connected)
+  if (cl.connection == CONN_DISCONNECTED)
     return;
   
   frame_t frame;
@@ -106,7 +133,7 @@ void cl_send_chat(const char *text)
 
 void cl_send_score()
 {
-  if (!cl.connected)
+  if (cl.connection == CONN_DISCONNECTED)
     return;
   
   frame_t frame;
@@ -116,7 +143,7 @@ void cl_send_score()
 
 void cl_send_name(const char *name)
 {
-  if (!cl.connected)
+  if (cl.connection == CONN_DISCONNECTED)
     return;
   
   frame_t frame;

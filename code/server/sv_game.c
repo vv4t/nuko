@@ -271,11 +271,6 @@ void sv_apply_damage()
     if ((sv.edict.entities[i] & SV_APPLY_DAMAGE) != SV_APPLY_DAMAGE)
       continue;
     
-    if (sv.respawn[i].invul_time > 0) {
-      sv.damage[i].num_dmg = 0;
-      continue;
-    }
-    
     for (int j = 0; j < sv.damage[i].num_dmg; j++) {
       sv.bg.health[i].now -= sv.damage[i].dmg[j].amount;
       
@@ -303,7 +298,7 @@ void sv_apply_damage()
 }
 
 #define SV_CLIENT_SHOOT (BGC_ATTACK | SVC_CLIENT)
-#define SV_SHOOT_VICTIM (BGC_TRANSFORM | BGC_CAPSULE)
+#define SV_SHOOT_VICTIM (BGC_TRANSFORM | BGC_CAPSULE | SVC_DAMAGE)
 void sv_client_shoot()
 {
   vec3_t forward = vec3_init(0.0f, 0.0f, 1.0f);
@@ -318,8 +313,10 @@ void sv_client_shoot()
     snapshot_t *snapshot = &sv.snapshot_queue[sv.client[i].snapshot_ack % MAX_SNAPSHOT_QUEUE];
     vec3_t weap_dir = vec3_rotate(forward, sv.bg.transform[i].rotation);
     
-    for (int j = 0; j < snapshot->edict.num_entities; j++) {
-      if ((snapshot->edict.entities[j] & SV_SHOOT_VICTIM) != SV_SHOOT_VICTIM)
+    // NOTE: using sv.bg.instead of snapshot because snaphot doesn't confirm if
+    // entity has SVC_DAMAGE
+    for (int j = 0; j < sv.edict.num_entities; j++) {
+      if ((sv.edict.entities[j] & SV_SHOOT_VICTIM) != SV_SHOOT_VICTIM)
         continue;
       
       if (i == j)
@@ -350,44 +347,4 @@ void dmg_add(sv_damage_t *damage, int amount, entity_t src)
   dmg->src = src;
   
   damage->num_dmg++;
-}
-
-bool weapon_attack_pistol(
-  vec3_t              weap_pos,
-  vec3_t              weap_dir,
-  vec3_t              victim_pos,
-  const bg_capsule_t  *victim_capsule)
-{
-  vec3_t delta_pos = vec3_sub(victim_pos, weap_pos);
-  vec3_t delta_dir = vec3_normalize(delta_pos);
-  
-  float proj_dist = vec3_dot(delta_dir, weap_dir);
-  
-  if (proj_dist > 0) {
-    vec3_t normal = vec3_normalize(vec3_add(delta_dir, vec3_mulf(weap_dir, -proj_dist)));
-    float distance = vec3_dot(weap_pos, normal);
-    
-    float sphere_dist = vec3_dot(normal, victim_pos) - distance - 3 * victim_capsule->radius;
-    
-    if (sphere_dist < 0.0f)
-      return true;
-  }
-  
-  return false;
-}
-
-bool weapon_attack_katana(
-  vec3_t              weap_pos,
-  vec3_t              weap_dir,
-  vec3_t              victim_pos,
-  const bg_capsule_t  *victim_capsule)
-{
-  vec3_t weap_origin = vec3_add(weap_pos, weap_dir);
-  vec3_t delta_pos = vec3_sub(weap_origin, victim_pos);
-  float sphere_dist = 6 * victim_capsule->radius;
-  
-  if (vec3_dot(delta_pos, delta_pos) < sphere_dist * sphere_dist)
-    return true;
-  
-  return false;
 }
