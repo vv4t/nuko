@@ -43,3 +43,7 @@ body {
   color: #ff69b4;
   font-family: Consolas, monaco, monospace;
 }
+
+a {
+  color: #00ffff;
+}

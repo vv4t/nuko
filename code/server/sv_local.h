@@ -21,7 +21,7 @@ Local definitions for server
 
 #define MAX_DMG             8 // Maximum types of damage to be applied to the player
 
-#define MAX_CMD_QUEUE       4
+#define MAX_CMD_QUEUE       8
 #define MAX_SNAPSHOT_QUEUE  64
 
 #define SV_ROUND_TIME       180000
