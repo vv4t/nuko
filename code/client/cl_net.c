@@ -116,6 +116,7 @@ void cl_send_cmd()
       MAX_CMD_QUEUE,
       cl.cmd_tail,
       cl.cmd_head);
+    cl.cmd_head = cl.cmd_tail;
   }
 }
 

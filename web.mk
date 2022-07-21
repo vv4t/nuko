@@ -2,7 +2,7 @@
 
 EM_CC=emcc
 
-RESOURCES=$(patsubst %, build/web/client/%, style.css nuko.css main.js index.html credits.html help.html leaderboard.html)
+RESOURCES=$(patsubst %, build/web/client/%, style.css nuko.css main.js index.html credits.html help.html)
 
 COM_SRC=code/common/*.c code/game/*.c
 COM_CFLAGS=-s WASM=1 -O3
@@ -34,9 +34,6 @@ build/web/client/main.js: web/client/main.js | build/web/client
 	cp $< $@
 
 build/web/client/credits.html: web/client/credits.html | build/web/client
-	cp $< $@
-
-build/web/client/leaderboard.html: web/client/leaderboard.html | build/web/client
 	cp $< $@
 
 build/web/client/help.html: web/client/help.html | build/web/client
