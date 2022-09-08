@@ -1,6 +1,8 @@
 # NUKO
 
-A multiplayer first person shooter written from scratch.
+[Live version](https://cirnosperfectmultiplayerlobby.herokuapp.com)
+
+A multiplayer first person shooter written in C and SDL2 for my SDD Major Project.
 
 ## Prerequisites
 
